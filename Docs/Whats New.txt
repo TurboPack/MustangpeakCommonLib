@@ -1,0 +1,140 @@
+Sept 3, 2007 Version 1.7.0
+  - Fixed possible uninitialized variable warning
+  - Added UpsideDownDIB function to detect if a DIB is top-down or bottom-up
+  - Fixed Transparency issue with Vista and GIF89
+  - Fixed problem with thumbnail extraction
+  - Fixed system String memory leaks that have been in TNamespace for years.  
+  - Added Stream Copying routines to MPCommonObjects.pas
+  - Added helper for ProgressTheme in MPCommonObjects.pas
+  - Added FixFormFont to MPCommonUtilities.pas
+  - Added FillGradient to MPCommonUtilities.pas
+  - Fixed bugs in MPDataObject.pas
+  - Added IsSpecialVariable and SpecialVariableReplacePath to MPShellUtilities.pas to allow using variables such as %apppath% and %desktop% in the combobox edit box
+  - Fixed bug in Graphics Blending routine.
+  - Fixed problems with image extractions
+  - More fixes for thumbnails
+  - Fixed bug where Threaded Shell Execute was not waiting for the DDE exchange to occur before returning.  Caused executing of file objects to not finish and fail.
+ - Added a CreateProcess wrapper to simplify calling the call.
+  - Fixed bug in ShortenTextW
+  - Added dynamically linked functions for NTFS Volume access
+  - Added function to mimic the C macro for CTL_CODE
+  - Fixed bug in the TNamespace.ShowContextMenu method
+  - Fixed bug(s) in the TWideHDrop.AssignFilesW method
+  - Add SHGetKnownFolderPath definition for Vista
+  - Added the FOLDERID_ and KF_FLAG_ constants for SHGetKnownFolderPath
+  - Added new global TNamespace: ProgramFilesFolder
+  - Fixed bug in MPThreadManager.pas that could cause the application to not shut down
+  - Added implementation of FindFirstFileEx
+  - Cached the Browsable property in TNamespace
+  - Added ShellExecuteEx for ANSI and UNICODE
+  - Added Alex's RegisterNSE and UnregisterNSE changed to handle Unicode or ANSI
+  - Added ExecShellEx for a wrapper for ShellExecuteEx
+  - Added ANSI/Unicode function for ExpandEnviromentString called WideExpandEnviromentString.
+  - Fixed bug in the new ExecShellEx function
+  - Fixed incorrect testing of column counts.  Causes AV's in some cases
+  - Added functionality to fix Threaded Details in VirtualShellTools
+  - Fixed app closing issue, when pumping messages you must call PostQuitMessage when WM_QUIT is encountered or the app won't close.
+  - Fixed problem with showing column details beyond column 5.  
+  - Changed TTntStringList to TWideStrings in the HDrop DataObject wrapper
+  - Added TCommonHDrop.FileNames(FileList: TWideStrings); overload method if TNT Unicode Controls is available.
+  - Added a few "const" modifiers to passed parameters to pass by reference instead of putting the entire large record on the stack
+  - Made use of WideMessageBox consistent throughout package
+  - Some refactoring of CommonSupports function, saves a reference increment/decrement
+  - Added FindBrowseableRootPIDL and IsParentBrowseable functions to the MPShellUtilities.pas file.
+  - Fixed bug that would cause calling the 'pastelink' context menu verb from functioning
+  - Fixed bug in the new FindBrowseableRootPIDL method
+  - Moved Shell Menus from VSTools to Common Library
+  - Finally found bug with EasyListview/D2007 and Vista
+
+March 18, 2007 Version 1.6.0
+  - Changed TEasyThread so it could be used without the TEasyThreaManager
+  - IMPORTANT: Some will hate it some will love it but I found a way to move VirtualShellUtilities into the common library so TNamespace can be used without the Shell Components.  It is Unicode enabled by using TntControls and the {$DEFINE TNTSUPPORT} like most other Mustangpeak libraries.  CommonLibrary, EasyListview and VSTools 2.0 all must be updated and rebuild, along with VirtualShellUtilities changed to MPShellUtilities in your projects.  Also a number of the strings that went with VirtualShellUtilities in VirtualResources.pas are now found in MPResources.pas so this unit may need to be added to your projects as well.
+  - Added a few more utility functions in MPCommonUtilities.pas
+  - Fixed bug in DataObjectSupportsShell function, did not include the FileDescriptor formats to work with Outlook, Notes, etc.
+  - Added a few missing Windows Shell Defines to MPShellTypes.pas
+  - Added Disk Size and FreeSpace utility function to MPShellUtilities.pas
+  -Added Dynamically linked exports of PathMatchMaskA and PathMatchMaskW
+  - Fixed bug that would create new threads during shut down.
+  - Added a Delphi friendly implemenation of SHBrowseForFolder to MPShellUtilities.pas
+  - Added dynamically loaded import to GetCurrentDirW for applications to use.
+  - Fixed wrong value for FILE_ATTRIBUTE_REPARSE_POINT
+  - Added TNamespace.ReparsePoint and TNamespace.SparseFile the correspond to FILE_ATTRIBUTE_REPARSE_POINT and FILE_ATTRIBUTE_SPARSE_FILE
+  - CHANGE: Changed VST_UseModalDialogs to MP_UseModalDialogs.
+  - Added MP_UseSpecialReparsePointOverlay global option in MPShellUtilities.pas to show an overlay on ReparsePoints.
+  - Added a check in the TCommonThread object to check if OLEInitialize succeeded so OLEUninitialize won't be called unless it was property initialized.  This can cause the lockups on shut down.
+  - Added parameter to EnumerateFolderEx to help with freezing of VT drawing if Explorer shows a dialog.
+  - Added Utility function for IsWinVista, WideIncrementalSearch, WidePathMatchSpec, and WidePathMatchSpecExists, WideGetTempDir
+  - Added Utility function DataObjectContainsPIDL to test if a particular PIDL is contained in the DataObject
+  - Added definitions for XButton support 
+  - Fixed race issue with the CommonThread.  If you had AV's in the IDE (or application) on shut down this will fix it.
+  - Fixed bug in WideStrLCopy
+  - Added ShadowBlendBits to support the Windows Vista shadowed thumbnails for folders.
+  - Added support for MP_ThreadedShellExecute to launch programs in a separate Thread
+  - Fixed bug that would cause an AV in TNamespace.InternalSubItems.
+  - Fixed bug that would keep application from shutting down.  Thread would not shut down.
+  - Fixed bug in File size formating
+  - Fixed TNamespace.GetSizeOfFileKB, it showed "KB" instead of "1KB" for small files
+  - Fixed bug with AddContextMenuItem
+  - Fixed possible recursion problem if a ReparsePoint was encountered
+  - Added FindNextFileW_MP define
+  - Fixed published property in DataObject class
+  - Fixed upsidedown gif file extraction of thumbnails
+  - Added WideStripLeadingBackslash function
+  - Fixed bug with DirExistsVET
+
+
+Nov 23, 2006 Version 1.5.0
+  - Hopefully fixed bug with Threads hanging.  Added a new Callback type global thread. Allows 
+    for a method in an object to be called back when the thread task finishes.
+  
+
+Nov 12, 2006 Version 1.5.0
+  - Made the package Unicode aware with use of TnTControls {DEFINE TNTSUPPORT}
+  - Moved many more shell defines into the packages
+  - Added FileGroupDescriptorA, FileGroupDesriptorW, and FileContents wrappers for Shell data transfer
+  - Updated IDataObject implementation to support copying the data object contents (obsure use in VSTools)
+  - Added Unicode capability to TCommonHDrop format (with {DEFINE TNTSUPPORT}}
+  - Moved TWideStringDynArray and TIntegerDynArray into MPCommonUtilities.pas and changed the name to 
+    TCommonWideStringDynArray and TCommonIntegerDynArray for issues with CBuilder
+  - Moved TEasyVAlignment type into MPCommonUtilities.pas and renamed it to TCommonVAlignment type  
+  - Added a number of Wide API functions that are loaded dynamically (as not to give Win9X issues)
+  - Added more utility functions
+  - Resorted the interface section function alphabetically
+  - Defined a new type in MPCommonObjects.pas:
+        TCommonImageIndexInteger = type Integer;
+    this is the type that all ImageIndex parameters have been changed to.  This allows for the designtime
+    object inspector to have images in the pulldowns for the image indexes.  "This WILL BREAK YOUR 
+    APPLICATIONS".  Do a search on "ImageIndex" and any event with an "xxxxIndex: Integer" change to
+    "xxxxIndex: TCommonImageIndexInteger"
+  - Moved the PIDL struture types into MPCommonObjects.pas
+  - Moved and renamed a few Explorer ContextMenu types into MPCommonObjects.pas
+      TEasyShellContextMenuAction becomes TCommonShellContextMenuAction
+      TEasyShellContextMenuExtension becomes TCommonShellContextMenuExtension
+  - Fixed bug in the TEasyThread on shut down  - 
+  - Created a new design time package
+
+Oct 8, 2006 Version 1.2.0
+
+  - Added missing define to allow VSTools2 to compile under BDS4
+  - Moved more common code into Library
+  - Minor fixes
+  - Fixed problem with Compilers.inc and BDS2006
+  - Cleaned D7 package
+  - General Cleanup.
+  - Reworked the ShellTypes to hopefully be more BCB friendly
+  - Added new common functions
+  - Fixed CommonThread. Possibility it could hang on shut down.
+  - Fixed AV on shut down of thread.  Freed PIDLMgr before finished using it
+  - Added Shell Definitions for ICategories and associated flags/interfaces for Grouping
+  - Added DataObjectSupportsShell function  
+
+
+July 30, 2006 Version 1.0.0
+
+  - Reworked ShellTypes package to be more BCB friendly
+  - The CommonThread has changed.  If you are using the thread
+    or responding the a message sent by the thread request then
+    DO NOT FREE the Msg.Request object now.  Call Msg.Request.Release.
+    This is because when a request is not created if the Window parameter
+    is nil then it is interperted as the request is to be Broadcast to
+    all registered windows.

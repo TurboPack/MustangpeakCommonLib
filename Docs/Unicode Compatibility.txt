@@ -1,0 +1,33 @@
+
+To enabled Unicode this this library open the
+
+ ${Install}\Source\Options.inc
+
+file and search for the following:
+
+
+// -----------------------------------------------------------------------------
+// Use unicode-aware inplace editors. This implementation uses Troy Wolbrink's
+// TNT controls, which can be found at: www.tntware.com
+
+{.$DEFINE TNTSUPPORT}
+
+
+Then uncomment the TNTSUPPORT define like this:
+
+
+{$DEFINE TNTSUPPORT}
+
+Now open the package for the library and recompile.  The compile will warn you to add the Tnt 
+package to the library.  Say yes.  The package will compile, save and exit.
+
+
+************* IMPORTANT *******************
+YOU MUST ADD THE TNT PACKAGE TO THE REQIRES CLAUSE IN THE MPLIBRARY DPK PACKAGE FILE AND RECOMPILE THE PACKAGES. . DO NOT JUST UNCOMMENT OUT THE TNTSUPPORT DEFINE AND RECOMPILE
+
+
+You will now have access to Unicode methods and the library will be Unicode enabled.
+
+
+
+Jim

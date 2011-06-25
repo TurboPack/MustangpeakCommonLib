@@ -1,0 +1,1 @@
+AppVerName=Mustangpeak Common Library 2.1.0

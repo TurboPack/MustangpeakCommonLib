@@ -1,0 +1,199 @@
+[General]
+UpdatedTo=3
+ConditionalsEnabled=1
+File=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPCommonObjects.pas
+Tree=Project
+RootExpanded=1
+ProjectSelected=UF_MPCommonObjects
+ClassSelected=A_TCommonCanvasControl
+UnitSelected=
+
+[Compiler]
+DCC32Path=C:\Program Files\Borland\Delphi7\Bin\
+DCCILPath=
+DefaultCompiler=0
+DCC32Version=7
+NetVersion=0
+
+[NameSpaceWin32]
+List=
+
+[NameSpaceNet]
+List=
+
+[CodeGeneration]
+NewUnitDirectory=
+MoveUnitMember=
+
+[DPR]
+Filename=
+UseCustomCfg=0
+CustomCfg=
+
+[Executable]
+Filename=
+CommandLine=
+Console=0
+
+[frmClasses]
+Visible=1
+
+[frmProject]
+Visible=1
+
+[frmUnits]
+Visible=1
+
+[CDG_ProjectGroup1;1;1]
+CDU_..\Source\MPCommonObjects.pas;1;1=
+:TCommonCanvasControl=1;C
+:TCommonCheckBound=1;C
+:TCommonCheckBoundManager=1;C
+:TCommonDefaultCanvasState=1;C
+:TCommonMemoryStreamHelper=1;C
+:TCommonPIDLList=1;C
+:TCommonPIDLManager=1;C
+:TCommonStream=1;C
+:TCommonSysImages=1;C
+CDU_..\Source\MPCommonUtilities.pas;1;1=
+:TCommonHLS=1;R
+:TCommonRGB=1;R
+:TLibRec=1;R
+:TWMContextMenu=1;R
+CDU_..\Source\MPDataObject.pas;0;1=
+:ICommonDataObject=1;I
+:TCommonClipboardFormat=1;C
+:TCommonDataObject=1;C
+:TCommonEnumFormatEtc=1;C
+:TCommonHDrop=1;C
+:TCommonLogicalPerformedDropEffect=1;C
+:TCommonPreferredDropEffect=1;C
+:TCommonShellIDList=1;C
+:TCommonStreamClipFormat=1;C
+:TDataObjectInfo=1;R
+CDU_..\Source\MPResources.pas;0;1=
+CDU_..\Source\MPShellTypes.pas;0;1=
+:_FILEGROUPDESCRIPTORW=1;R
+:_IMAGELISTDRAWPARAMS=1;R
+:_STARTUPINFOW=1;R
+:IACList=1;I
+:IACList2=1;I
+:IAutoComplete=1;I
+:IAutoComplete2=1;I
+:IBrowserFrameOptions=1;I
+:ICategorizer=1;I
+:ICategoryProvider=1;I
+:IContextMenu=1;I
+:IContextMenu2=1;I
+:IContextMenu3=1;I
+:ICurrentWorkingDirectory=1;I
+:IDragSourceHelper=1;I
+:IDropTargetHelper=1;I
+:IEnumExtraSearch=1;I
+:IExtractImage=1;I
+:IExtractImage2=1;I
+:IImageList=1;I
+:IQueryAssociations=1;I
+:IShellDetails=1;I
+:IShellFolder2=1;I
+:IShellIconOverlay=1;I
+:IShellLinkW=1;I
+:tagEXTRASEARCH=1;R
+:tagSHCOLUMNID=1;R
+:tagSHELLDETAILS=1;R
+:TCategoryInfo=1;R
+:TDWordItemID=1;R
+:TNotifyRegister=1;R
+:TSHDragImage=1;R
+:TShellNotifyRec=1;R
+:TWMPrint=1;R
+
+[OpenEditors]
+0=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPCommonObjects.pas;"","28,632"
+1=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPCommonUtilities.pas;"","12,2559"
+2=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPDataObject.pas;"","23,49"
+3=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPResources.pas;"","8,46"
+4=D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source\MPShellTypes.pas;"","4,32"
+
+[ExtraPaths]
+0="C:\Program Files\Borland\Delphi7\Lib","1"
+1="C:\Program Files\Borland\Delphi7\Bin","1"
+2="C:\Program Files\Borland\Delphi7\Imports","1"
+3="C:\Program Files\Borland\Delphi7\Projects\Bpl","1"
+4="C:\Program Files\Borland\Delphi7\Rave5\Lib","1"
+5="C:\Program Files\Soft Gems\Virtual Treeview\Source","1"
+6="C:\Program Files\GExperts for Delphi 7","1"
+7="D:\Program Data\Delphi Projects\3rd Party Components\EasyNSE\Source","1"
+8="D:\Program Data\Delphi Projects\3rd Party Components\EasyNSE\Include","1"
+9="C:\Program Files\CadoDraw\LIB","1"
+10="C:\Program Files\CadoDraw\Bin","1"
+11="D:\Program Data\Delphi Projects\3rd Party Components\VirtualShellTools\Source","1"
+12="D:\program data\delphi projects\etchcad","1"
+13="D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source","1"
+14="D:\program data\delphi projects\3rd party components\virtualshelltools\design","1"
+15="D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source","1"
+
+[BrowsePaths]
+0="C:\Program Files\Borland\Delphi7\source\vcl","1"
+1="C:\Program Files\Borland\Delphi7\Source\Rtl","1"
+2="C:\Program Files\Borland\Delphi7\source\rtl\Sys","1"
+3="C:\Program Files\Borland\Delphi7\source\rtl\Win","1"
+4="C:\Program Files\Borland\Delphi7\source\rtl\common","1"
+5="C:\Program Files\Borland\Delphi7\source\Internet","1"
+6="C:\Program Files\Borland\Delphi7\source\clx","1"
+7="C:\Program Files\Borland\Delphi7\Source\Indy","1"
+8="C:\Program Files\Borland\Delphi7\Source\IntraWeb","1"
+9="C:\Program Files\Borland\Delphi7\Source\Samples","1"
+10="C:\Program Files\Borland\Delphi7\Source\Soap","1"
+11="C:\Program Files\Borland\Delphi7\Source\ToolsAPI","1"
+12="C:\Program Files\Borland\Delphi7\Source\Xml","1"
+13="D:\Program Data\Delphi Projects\3rd Party Components\Mustangpeak Common Library\Source","1"
+
+[NetBrowsePath]
+
+[NetReferences]
+
+[NetCompilerPath]
+
+[ExcludedUnits]
+
+[ExcludedPaths]
+
+[CCIgnoredUnits]
+
+[CCNetIgnoredUnits]
+
+[CCIgnoredClasses]
+
+[CCNetIgnoredClasses]
+
+[ExcludedFiles]
+
+[Defines]
+0="MSWINDOWS","1"
+1="WIN32","1"
+
+[Declared]
+0="COMPILER_6_UP","1"
+1="COMPILER_7_UP","1"
+2="USETHEMES","1"
+
+[NetDefines]
+0="CIL","1"
+1="CLR","1"
+2="MANAGEDCODE","1"
+
+[NetDeclared]
+
+[RecentFiles]
+0=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Design\EasyCollectionEditorD4.pas;"","28,12"
+1=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Design\EasyListviewReg.pas;"","83,20"
+2=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Design\EasyCollectionEditor.pas;"","83,20"
+3=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVCommonObjects.pas;"","31,16"
+4=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVCommonUtilities.pas;"","83,20"
+5=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVDataObject.pas;"","83,20"
+6=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVResources.pas;"","83,20"
+7=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVShellTypes.pas;"","83,20"
+8=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyLVWideStrings.pas;"","4,23"
+9=D:\Program Data\Delphi Projects\3rd Party Components\EasyListview\Source\EasyScrollFrame.pas;"","83,21"
+

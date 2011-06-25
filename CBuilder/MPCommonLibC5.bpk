@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.05.03"/>
+    <PROJECT value="&quot;$(BCB)\Projects\Bpl\MPCommonLibC5.bpl&quot;"/>
+    <OBJFILES value="&quot;$(BCB)\projects\Intermed\MPCommonObjects.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPCommonUtilities.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPDataObject.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPResources.obj&quot;
+      &quot;$(BCB)\projects\Intermed\MPShellTypes.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPShellUtilities.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPThreadManager.obj&quot; 
+      &quot;$(BCB)\projects\Intermed\MPCommonLibC5.obj&quot;"/>
+    <RESFILES value="MPCommonLibC5.res"/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="Vcl50.lib"/>
+    <PACKAGES value="vcl50.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\Source"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value=""/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="tlink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="MPCommonLibC5.cpp"/>
+    <INCLUDEPATH value="..\Source;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="$(BCB)\projects\lib;..\Source;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <WARNINGS value="-w-par"/>
+  </MACROS>
+  <OPTIONS>
+    <CFLAG1 value="-Od -H=$(BCB)\Projects\Intermed\MPCommonLibC5.csm -Hc -Vx -Ve -X- -r- -a8 
+      -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2$(BCB)\projects\Intermed -N0$(BCB)\projects\Intermed -$YD -$W -$T -$R 
+      -$Q -$O- -$J- -v -JPHNE -M"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zd"/>
+    <LFLAGS value="-l$(BCB)\projects\Lib -I$(BCB)\projects\Intermed 
+      -D&quot;Mustang Peak Common Library runtime Package&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi 
+      -v"/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+  </LINKER>
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl
+
+[Parameters]
+RunParams=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+  </IDEOPTIONS>
+</PROJECT>
