@@ -669,8 +669,8 @@ type
 
   IContextMenu3 = interface(IContextMenu2)
   [SID_IContextMenu3]
-    function HandleMenuMsg2(uMsg: UINT; wParam, lParam: Integer;
-      var lpResult: Integer): HResult; stdcall;
+    function HandleMenuMsg2(uMsg: UINT; wParam: WPARAM; lParam: LPARAM;
+      var lpResult: LRESULT): HResult; stdcall;
   end;
 
 type

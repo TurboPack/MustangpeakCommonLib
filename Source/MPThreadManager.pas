@@ -206,7 +206,7 @@ type
     FHandle: THandle;
     FOLEInitialized: Boolean;
     FTargetWnd: HWnd; // Window that the message is posted to.  It will get a WM_COMMONTHREADNOTIFIER message with the TCommonThreadRequest in LParam
-    FThreadID: THandle;
+    FThreadID: DWORD;
     FStub: pointer;
     FTerminated: Boolean;
     FSuspended: Boolean;
@@ -264,7 +264,7 @@ type
     property Running: Boolean read FRunning;
     property Suspended: Boolean read FSuspended write SetSuspended;
     property TargetWnd: HWnd read FTargetWnd write FTargetWnd;
-    property ThreadID: THandle read FThreadID;
+    property ThreadID: DWORD read FThreadID;
   end;
   TCommonBaseThreadClass = class of TCommonThread;
 
