@@ -27,7 +27,7 @@ package MPCommonLibD16D;
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Mustangpeak Common Library DesignTime Package'}
 {$DESIGNONLY}
-{$IMPLICITBUILD ON}
+{$IMPLICITBUILD OFF}
 
 requires
   rtl,
