@@ -48,7 +48,7 @@ uses
   ShellAPI,
   ActiveX,
   MPShellTypes,
-  MPCommonObjects;
+  MPCommonObjects, MPCommonUtilities;
 
 
 const
@@ -56,7 +56,7 @@ const
   COMMONTHREADSAFETYVALVE = 200;  // Number of PostMessage trys before giving up
   WM_COMMONTHREADCALLBACK = WM_APP + 356;  // Handle this message to recieve the data from the thread
   WM_COMMONTHREADNOTIFIER = WM_APP + 355;  // Used internally to pass the data from the thread to the dispatch window
-  TID_START = 0;   // Use this Thread ID to start custom ID's for the ThreadRequest.RequestID field
+  TID_START = WPARAM(0);   // Use this Thread ID to start custom ID's for the ThreadRequest.RequestID field
                    // This way the same thread can be used for various tasks and call a common
                    // message handler
 
@@ -73,11 +73,12 @@ type
   TNamespaceCallbackProc = procedure(Request: TPIDLCallbackThreadRequest) of object;
 
   // TMessage definition for how the data is passed to the target window via PostMessage
-  TWMThreadRequest = packed record
+  TWMThreadRequest = {$IFNDEF CPUX64}packed{$ENDIF} record
     Msg: Cardinal;
-    RequestID: Longint;
+    {$IFDEF CPUX64}MsgFiller: TDWordFiller;{$ENDIF}
+    RequestID: WPARAM;
     Request: TCommonThreadRequest;
-    Result: Longint;
+    Result: LRESULT;
   end;
 
   TCommonThreadDirection = (
@@ -113,7 +114,7 @@ type
   // **************************************************************************
   TCommonThreadRequest = class(TPersistent)
   private
-    FID: Cardinal;                   // The ID that identifies the request type
+    FID: WPARAM;                     // The ID that identifies the request type
     FPriority: TCommonThreadPriority;  // The Thread will sort the request list by Priority, 0 being highest 100 being the lowest
     FRefCount: Integer;
     FTag: Integer;                   // User defineable field
@@ -134,7 +135,7 @@ type
     procedure Release;
     property CallbackWndMessage: Cardinal read FCallbackWndMessage write FCallbackWndMessage;
     property Item: Pointer read FItem write FItem;
-    property ID: Cardinal read FID write FID;
+    property ID: WPARAM read FID write FID;
     property Priority: TCommonThreadPriority read FPriority write FPriority default 50;
     property RemainingRequests: Integer read FRemainingRequests write FRemainingRequests;
     property Tag: Integer read FTag write FTag;
@@ -207,7 +208,7 @@ type
     FOLEInitialized: Boolean;
     FTargetWnd: HWnd; // Window that the message is posted to.  It will get a WM_COMMONTHREADNOTIFIER message with the TCommonThreadRequest in LParam
     FThreadID: DWORD;
-    FStub: pointer;
+    FStub: ICallBackStub;
     FTerminated: Boolean;
     FSuspended: Boolean;
     FEvent: THandle;
@@ -237,7 +238,7 @@ type
     property CriticalSectionInitialized: Boolean read FCriticalSectionInitialized write FCriticalSectionInitialized;
     property Event: THandle read GetEvent;
     property RequestListLocked: Boolean read FRequestListLocked write SetRequestListLocked; // Don't set/reset this across threads!
-    property Stub: pointer read FStub write FStub;
+    property Stub: ICallbackStub read FStub write FStub;
     property Terminated: Boolean read FTerminated;
   public
     constructor Create(CreateSuspended: Boolean); virtual;
@@ -343,7 +344,7 @@ type
   private
     FAClassName: AnsiString;
     FControlList: TThreadList;
-    FStub: Pointer;
+    FStub: ICallBackStub;
     FFilterWindow: HWND;
     FEnabled: Boolean;
 
@@ -371,7 +372,7 @@ type
 
     procedure AddRequest(Request: TCommonThreadRequest; DoSetEvent: Boolean);
     procedure FlushAllMessageCache(Window: TWinControl; Item: Pointer = nil);
-    procedure FlushMessageCache(Window: TWinControl; RequestID: Cardinal; Item: Pointer = nil);
+    procedure FlushMessageCache(Window: TWinControl; RequestID: WPARAM; Item: Pointer = nil);
     function RegisterControl(Window: TWinControl): Boolean;
     procedure UnRegisterAll;
     procedure UnRegisterControl(Window: TWinControl);
@@ -402,7 +403,7 @@ function GlobalCallbackThreadManager: TCallbackThreadManager;
 implementation
 
 uses
-  MPCommonUtilities, MPResources, MPShellUtilities;
+  MPResources, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -605,14 +606,14 @@ begin
   IsMultiThread := True;
   Direction := etdFirstInLastOut;
   RequestList := TThreadList.Create;
-  Stub := CreateStub(Self, @TCommonThread.ExecuteStub);
+  Stub := TCallBackStub.Create(Self, @TCommonThread.ExecuteStub, 0);
   Flags := 0;
   if CreateSuspended then
   begin
     Flags := CREATE_SUSPENDED;
     FSuspended := True
   end;
-  FHandle := CreateThread(nil, 0, Stub, nil, Flags, FThreadID);
+  FHandle := CreateThread(nil, 0, Stub.StubPointer, nil, Flags, FThreadID);
 end;
 
 destructor TCommonThread.Destroy;
@@ -621,8 +622,6 @@ var
   List: TList;
 begin
   Assert(Finished, 'The Thread must be terminated before destroying the TCommonThread object');
-  DisposeStub(Stub);
-  Stub := nil;
   if Handle <> 0 then
     CloseHandle(Handle);
   FHandle := 0;
@@ -1043,10 +1042,6 @@ begin
   // based on this class
   if AClassName <> '' then
     Windows.UnregisterClassA(PAnsiChar( AnsiString(AClassName)), hInstance);
-  // Free the stub for the window procedure
-  if Assigned(FStub) then
-    DisposeStub(FStub);
-  FStub := nil;
   FreeAndNil(FControlList);
   FreeThread;
   inherited;
@@ -1157,7 +1152,7 @@ begin
   FlushMessageCache(Window, TID_START, Item);
 end;
 
-procedure TCommonThreadManager.FlushMessageCache(Window: TWinControl; RequestID: Cardinal; Item: Pointer = nil);
+procedure TCommonThreadManager.FlushMessageCache(Window: TWinControl; RequestID: WPARAM; Item: Pointer = nil);
 // First locks the thread by locking its RequestList.  This stops the thread
 // from accessing a new request.  It then flushes the Windows message cache
 // of pending messages matching the RequestId.
@@ -1420,9 +1415,9 @@ begin
     if not GetClassInfoA(hInstance, PAnsiChar( AnsiString(AClassName)), ClassInfo) then
     begin
       if not Assigned(FStub) then
-        FStub := CreateStub(Self, @TCommonThreadManager.FilterWndProc);
+        FStub := TCallBackStub.Create(Self, @TCommonThreadManager.FilterWndProc, 4);
       ClassInfo.style := 0;
-      ClassInfo.lpfnWndProc := FStub;
+      ClassInfo.lpfnWndProc := FStub.StubPointer;
       ClassInfo.cbClsExtra := 0;
       ClassInfo.cbWndExtra := 0;
       ClassInfo.hInstance := hInstance;

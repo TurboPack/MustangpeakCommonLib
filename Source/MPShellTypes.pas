@@ -664,7 +664,7 @@ type
 
   IContextMenu2 = interface(IContextMenu)
     [SID_IContextMenu2]
-    function HandleMenuMsg(uMsg: UINT; WParam, LParam: Integer): HResult; stdcall;
+    function HandleMenuMsg(uMsg: UINT; WParam: WPARAM; LParam: LPARAM): HResult; stdcall;
   end;
 
   IContextMenu3 = interface(IContextMenu2)
@@ -770,7 +770,7 @@ type
   end;
 
   PSHDragImage = ^TSHDragImage;
-  TSHDragImage = packed record
+  TSHDragImage = {$IFNDEF CPUX64}packed{$ENDIF} record
     sizeDragImage: TSize;
     ptOffset: TPoint;
     hbmpDragImage: HBITMAP;
@@ -921,8 +921,8 @@ const
 type
   {$EXTERNALSYM PShellDetails}
   PShellDetails=^TShellDetails;
-  {$EXTERNALSYM tagSHELLDETAILS} 
-  tagSHELLDETAILS = packed record
+  {$EXTERNALSYM tagSHELLDETAILS}
+  tagSHELLDETAILS = {$IFNDEF CPUX64}packed{$ENDIF} record
     Fmt: Integer;
     cxChar: Integer;
     str: TStrRet;
@@ -1073,10 +1073,10 @@ const
 
 type
   PSHColumnInit = ^TSHColumnInit;
-  TSHColumnInit = packed record
+  TSHColumnInit = record
     dwFlags: ULONG;
     dwReserved: ULONG;
-    wszFolder: array[0..MAX_PATH] of WideChar;
+    wszFolder: packed array[0..MAX_PATH-1] of WideChar;
   end;
 
   TSHColumnInfo = packed record
@@ -1095,12 +1095,12 @@ const
 
   type
   PSHColumnData = ^TSHColumnData;
-  TSHColumnData = packed record
+  TSHColumnData = record
     dwFlags: ULONG;
     dwFileAttributes: DWORD;
     dwReserved: ULONG;
     pwszExt: PWideChar;
-    wszFile: array[0..MAX_PATH] of WideChar;
+    wszFile: packed array[0..MAX_PATH-1] of WideChar;
   end;
 
   {$EXTERNALSYM IColumnProvider}
@@ -1373,7 +1373,7 @@ type
         pszIcon: PAnsiChar;
     pszTitle: PAnsiChar;
     pfnDlgProc: Pointer;
-    lParam: Longint;
+    lParam: LPARAM;
     pfnCallback: TFNPSPCallbackA;
     pcRefParent: PInteger;
     pszHeaderTitle: PAnsiChar;      // this is displayed in the header
@@ -1399,7 +1399,7 @@ type
         pszIcon: PWideChar;
     pszTitle: PWideChar;
     pfnDlgProc: Pointer;
-    lParam: Longint;
+    lParam: LPARAM;
     pfnCallback: TFNPSPCallbackW;
     pcRefParent: PInteger;
     pszHeaderTitle: PWideChar;      // this is displayed in the header
@@ -2048,11 +2048,11 @@ type
 
   QCMINFO_IDMAP = record
     nMaxIDs : UINT;
-    pIdList : array [0..0] of QCMINFO_IDMAP_PLACEMENT;
+    pIdList : packed array [0..0] of QCMINFO_IDMAP_PLACEMENT;
   end;
 
   PQCMINFO_IDMAP = ^QCMINFO_IDMAP;
-   QCMINFO = packed record
+   QCMINFO = record
     menu : HMENU;             // in
     indexMenu : UINT;         // in
     idCmdFirst : UINT;        // in/out
@@ -2239,9 +2239,9 @@ const
   PIDSI_DOC_SECURITY  = 19;  // VT_I4
 
 type
-  tagTCategoryInfo = packed record
+  tagTCategoryInfo = record
     CategoryInfo: DWORD;  // a CATINFO_XXXX constant
-    wscName: array[0..259] of WideChar;
+    wscName: packed array[0..259] of WideChar;
   end;
 
   ICategorizer = interface(IUnknown)
@@ -2360,7 +2360,7 @@ type
   PKnownFolderIDs = ^TKnownFolderIDs;
 
   {$EXTERNALSYM TKnownFolderDefinition}
-  TKnownFolderDefinition = packed record
+  TKnownFolderDefinition = record
     Category: DWORD;      // KF_CATEGORY
     pszName: LPWSTR;
     pszDescription: LPWSTR;
@@ -2377,7 +2377,6 @@ type
   end;
   PKnownFolderDefinition = ^TKnownFolderDefinition;
   KNOWNFOLDER_DEFINITION = TKnownFolderDefinition;
-
 
   {$EXTERNALSYM IKnownFolder}
   IKnownFolder = interface(IUnknown)
@@ -2407,8 +2406,6 @@ type
     function RegisterFolder(const rfid: TGUID; pKFD: PKnownFolderDefinition): HRESULT; stdcall;
     function UnregisterFolder(const rfid: TGUID): HRESULT; stdcall;
   end;
-
-
 
 const
   {$EXTERNALSYM IID_IBrowserFrameOptions}
@@ -2676,7 +2673,7 @@ type
 
   // Add new CommCtl v6.0 paramters
   {$EXTERNALSYM _IMAGELISTDRAWPARAMS}
-  _IMAGELISTDRAWPARAMS = packed record
+  _IMAGELISTDRAWPARAMS = record
     cbSize: DWORD;
     himl: HIMAGELIST;
     i: Integer;
@@ -2792,7 +2789,7 @@ const
 type
 
   PDFMICS = ^TDFMICS;
-  TDFMICS = packed record
+  TDFMICS = record
     cbSize:  DWORD;
     fMask:  DWORD;     // CMIC_MASK_ values for the invoke
     lParam:  LPARAM;  // same as lParam of DFM_INFOKECOMMAND
@@ -3089,7 +3086,9 @@ type
   IShellFolderViewCB = interface(IUnknown)
   [SID_IShellFolderViewCB]
     function MessageSFVCB(uMsg: UINT; WParam: WPARAM; LParam: LPARAM): HRESULT; stdcall;
-  end;   TSFVM_WEBVIEW_CONTENT_DATA = packed record
+  end;
+
+  TSFVM_WEBVIEW_CONTENT_DATA = packed record
     l1 : integer;
     l2 : integer;
     pUnk : IUnknown; // IUIElement
@@ -3165,7 +3164,7 @@ type
 
 
   PDetailsInfo =^TDetailsInfo;
-  TDetailsInfo = packed record
+  TDetailsInfo = record
     pidl: PItemIDList;
     Fmt: Integer;
     cxChar: Integer;
@@ -3176,7 +3175,7 @@ type
 
   TShellViewExProc =  function(psvOuter: IShellview; psf: IShellFolder; hwndMain: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): HRESULT; stdcall;
 
-  TShellViewCreate = packed record
+  TShellViewCreate = record
     dwSize: DWORD;
     pShellFolder: IShellFolder;
     psvOuter: IShellView;
@@ -3195,8 +3194,8 @@ const
 type
   {$IFDEF CPPB_6}
     {$EXTERNALSYM IPersistIDList}
-  {$ENDIF} 
-  IPersistIDList = interface(IPersist) 
+  {$ENDIF}
+  IPersistIDList = interface(IPersist)
   [SID_IPersistIDList]
     // sets or gets a fully qualifed idlist for an object
     function SetIDList(pidl : PItemIdList) : HResult; stdcall;
@@ -3898,7 +3897,7 @@ const
 
 type
 //  {$EXTERNALSYM _tagpropertykey}    // BCB does not have this defined and needs it
-  _tagpropertykey = packed record
+  _tagpropertykey = record
     fmtid: TGUID;
     pid: DWORD;
   end;

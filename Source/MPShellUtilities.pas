@@ -785,6 +785,9 @@ type
 { Encapsulates IShellLink, ASCI and Unicode                                     }
 {-------------------------------------------------------------------------------}
 
+  {$IF CompilerVersion >= 23}
+  [ComponentPlatformsAttribute(pidWin32 or pidWin64)]
+  {$IFEND}
   TVirtualShellLink = class(TComponent)
   private
     FFileName: WideString;            // File name of the lnk file
@@ -1397,7 +1400,7 @@ type
     FReferenceCounted: Boolean;
     FRenameMenuItem: Boolean;
     FShortCutMenuItem: Boolean;
-    FStub: Pointer;
+    FStub: ICallBackStub;
     FPasteMenuItem: Boolean;
     FUIObjectOfDataObject: IDataObject;
     FUIObjectOfDropTarget: IDropTarget;
@@ -1498,7 +1501,7 @@ type
     property OnShow: TCommonShellMenuEvent read FOnShow write FOnShow;
     property RefCount: Integer read FRefCount write FRefCount;
     property ShortCutMenuItem: Boolean read FShortCutMenuItem write FShortCutMenuItem default True;
-    property Stub: Pointer read FStub write FStub;
+    property Stub: ICallBackStub read FStub write FStub;
     property RenameMenuItem: Boolean read FRenameMenuItem write FRenameMenuItem default True;
     property PasteMenuItem: Boolean read FPasteMenuItem write FPasteMenuItem default True;
     property UIObjectOfDataObject: IDataObject read FUIObjectOfDataObject write FUIObjectOfDataObject;
@@ -4623,7 +4626,7 @@ begin
 
   OldError := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
   try
-    if Assigned(ShellFolder) then
+    if Folder and Assigned(ShellFolder) then
     begin
       if Assigned(EnumFunc) then
       begin
@@ -4694,7 +4697,7 @@ begin
     if not MP_UseModalDialogs then
       MessageWnd := 0;
 
-    if Assigned(ShellFolder)  then
+    if Folder and Assigned(ShellFolder)  then
     begin
       ValidateFileObjects(FileObjects);
       Flags := FileObjectsToFlags(FileObjects);
@@ -9105,7 +9108,7 @@ begin
   MenuMap := TMenuItemMap.Create;
   KeyStrings.Duplicates := dupIgnore;
   KeyStrings.Sorted := True;
-  Stub := CreateStub(Self, @TCommonShellContextMenu.DefMenuCreateCallback);
+  Stub := TCallbackStub.Create(Self, @TCommonShellContextMenu.DefMenuCreateCallback, 6);
   ActivePIDLs := TCommonPIDLList.Create;
   ActivePIDLs.SharePIDLs := True;
   FRenameMenuItem := True;
@@ -9118,7 +9121,6 @@ begin
   ActiveFolder := nil;
   CurrentContextMenu := nil;
   CurrentContextMenu2 := nil;
-  DisposeStub(Stub);
   FreeAndNil(FActivePIDLs);
   FreeAndNil(FKeyStrings);
   FreeAndNil(FMenuMap);
@@ -9333,7 +9335,7 @@ begin
        if cmeShellDefault in Extensions then
           Result := S_OK
         else
-          Result := S_FALSE; 
+          Result := S_FALSE;
         QCMInfo := PQCMINFO( lParm);
         // This seems to be broken.  The items added "normally" (using idCmdFirst as is)
         // don't get registered and send a 0 when selected. DFM_MERGECONTEXTMENUTOP works
@@ -9883,7 +9885,7 @@ begin
               SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, DesktopPIDL);
               Success := CDefFolderMenu_Create2_MP(DesktopPIDL, Owner.Handle,
                 Length(ChildPIDLs), PItemIDList(ChildPIDLs[0]), Self,
-                Stub, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK;
+                Stub.StubPointer, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK;
             end else
             begin
               FromDesktop := False;
@@ -9898,13 +9900,13 @@ begin
                   if Assigned(ParentPIDL) and Assigned(ChildPIDLs) then
                     Success := CDefFolderMenu_Create2_MP(nil {ParentPIDL}, Owner.Handle,
                       Length(ChildPIDLs), PItemIDList(ChildPIDLs[0]),
-                      Self, Stub, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK
+                      Self, Stub.StubPointer, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK
                   else begin
                     // Must be a background menu call
                     ChildrenPIDLs := nil;
                     if Assigned(ParentPIDL) and not Assigned(ChildPIDLs) then
                       Success := CDefFolderMenu_Create2_MP(ParentPIDL, Owner.Handle,
-                        0, ChildrenPIDLs, Self, Stub, Length(Keys),
+                        0, ChildrenPIDLs, Self, Stub.StubPointer, Length(Keys),
                         PHKey(@Keys[0]), ContextMenu) = S_OK
                   end
                 end
