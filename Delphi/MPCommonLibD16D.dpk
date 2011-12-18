@@ -1,7 +1,6 @@
 package MPCommonLibD16D;
 
 {$R *.res}
-{$R *.otares}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -33,6 +32,7 @@ package MPCommonLibD16D;
 requires
   rtl,
   vcl,
+  MPCommonLibD16,
   designide,
   vclactnband,
   vclx;
