@@ -61,6 +61,9 @@ uses
       {$ENDIF}
     {$ENDIF}
   {$ENDIF}
+  {$IFDEF COMPILER_17_UP}
+  PlatformAPI,
+  {$ENDIF}
   Classes,
   MPCommonWizardTemplates;
 
@@ -232,10 +235,11 @@ type
   //
   // ***************************************************************************
   TCommonWizardNotifierObject = class(TNotifierObject,
+    IOTARepositoryWizard,
     {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
     {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
+    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
     IOTAWizard,
-    IOTARepositoryWizard,
     IOTAProjectWizard)
   private
     FAuthor: string;
@@ -282,6 +286,12 @@ type
     function GetPersonality: string; virtual; abstract;
     {$ENDIF}
 
+    {$IFDEF COMPILER_17_UP}
+    { IOTARepositoryWizard160 }
+    function GetFrameworkTypes: TArray<string>;
+    function GetPlatforms: TArray<string>;
+    {$ENDIF COMPILER_17_UP}
+
     {$IFDEF COMPILER_6_UP}
     property Designer: string read GetDesigner;
     {$ENDIF}
@@ -310,10 +320,12 @@ type
   end;
 
    TCommonWizardModuleCreate = class(TCommonWizardNotifierObject,
+    IOTARepositoryWizard,
     {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
     {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
+    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
     IOTAWizard,
-    IOTARepositoryWizard,
+
     IOTAProjectWizard)
   private
     FCreatorClass: TCommonWizardModuleCreatorClass;
@@ -328,12 +340,14 @@ type
   //   Wizard to Create a new Delphi Form
    // ***************************************************************************
   TCommonWizardDelphiForm = class(TCommonWizardModuleCreate,
+  IOTARepositoryWizard,
     {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
     {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
+    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
     IOTAWizard,
-    IOTARepositoryWizard,
     IOTAProjectWizard)
   protected
+
   public
     // IOTAWizard
     {$IFDEF COMPILER_8_UP}
@@ -342,10 +356,11 @@ type
   end;
 
   TCommonWizardBuilderForm = class(TCommonWizardDelphiForm,
+     IOTARepositoryWizard,
     {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
     {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
+    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
     IOTAWizard,
-    IOTARepositoryWizard,
     IOTAProjectWizard)
   public
     // IOTAWizard
@@ -749,6 +764,18 @@ begin
   Result := FGalleryCategory
 end;
 {$ENDIF COMPILER_8_UP}
+
+{$IFDEF COMPILER_17_UP}
+function TCommonWizardNotifierObject.GetFrameworkTypes: TArray<string>;
+begin
+  Result := TArray<string>.Create()
+end;
+
+function TCommonWizardNotifierObject.GetPlatforms: TArray<string>;
+begin
+  Result := TArray<string>.Create(cWin32Platform, cWin64Platform);
+end;
+{$ENDIF COMPILER_17_UP}
 
 function TCommonWizardNotifierObject.GetGlpyhResourceID: string;
 begin
