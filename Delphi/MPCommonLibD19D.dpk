@@ -1,7 +1,6 @@
-package MPCommonLibD16D;
+package MPCommonLibD19D;
 
 {$R *.res}
-{$R *.otares}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -28,12 +27,12 @@ package MPCommonLibD16D;
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Mustangpeak Common Library DesignTime Package'}
 {$DESIGNONLY}
-{$IMPLICITBUILD OFF}
+{$IMPLICITBUILD ON}
 
 requires
   rtl,
   vcl,
-  MPCommonLibD16,
+  MPCommonLibD19,
   designide,
   vclactnband,
   vclx;

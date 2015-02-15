@@ -1,5 +1,6 @@
-package MPCommonLibD18D;
+package MPCommonLibD18;
 
+{$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -24,20 +25,21 @@ package MPCommonLibD18D;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Mustangpeak Common Library DesignTime Package'}
-{$DESIGNONLY}
+{$DESCRIPTION 'Mustangpeak Common Library Runtime Package'}
+{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
-  vcl,
-  MPCommonLibD18,
-  designide,
-  vclactnband,
-  vclx;
+  vcl;
 
 contains
-  MPCommonWizardHelpers in '..\..\Source\MPCommonWizardHelpers.pas',
-  MPCommonWizardTemplates in '..\..\Source\MPCommonWizardTemplates.pas';
+  MPShellTypes in '..\Source\MPShellTypes.pas',
+  MPCommonUtilities in '..\Source\MPCommonUtilities.pas',
+  MPResources in '..\Source\MPResources.pas',
+  MPCommonObjects in '..\Source\MPCommonObjects.pas',
+  MPDataObject in '..\Source\MPDataObject.pas',
+  MPThreadManager in '..\Source\MPThreadManager.pas',
+  MPShellUtilities in '..\Source\MPShellUtilities.pas';
 
 end.
