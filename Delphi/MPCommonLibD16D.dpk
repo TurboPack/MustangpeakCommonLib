@@ -33,7 +33,6 @@ package MPCommonLibD16D;
 requires
   rtl,
   vcl,
-  MPCommonLibD16,
   designide,
   vclactnband,
   vclx;
