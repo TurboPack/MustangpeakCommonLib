@@ -413,6 +413,8 @@ function IsDelphiPersonality: Boolean;
 
 implementation
 
+uses
+  System.UITypes;
 
 function GetCurrentProjectGroup: IOTAProjectGroup;
 var

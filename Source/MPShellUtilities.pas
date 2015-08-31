@@ -1797,7 +1797,7 @@ var
 implementation
 
 uses
-  Dialogs;
+  System.AnsiStrings, Vcl.Dialogs;
 
 type
   TShellILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList;
@@ -2512,7 +2512,7 @@ begin
           StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERB, nil, Pointer(@VerbA[1]), LEN_MAXVERB));
           if StrFound or (defaultID = MenuID) then
           begin
-            SetLength(VerbA, StrLen(PAnsiChar( VerbA)));
+            SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
             if defaultID = MenuID then
               Verb := VerbA;
             if lstrcmpiA(PAnsiChar( VerbA), PAnsiChar(AnsiString(Verb))) = 0 then
@@ -3834,7 +3834,7 @@ begin
       then
         Result := ''
       else begin
-        SetLength(S, StrLen( PAnsiChar(S)));
+        SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
         Result := S
       end
     end else
@@ -3871,7 +3871,7 @@ begin
       then
         Result := ''
       else begin
-        SetLength(S, StrLen( PAnsiChar(S)));
+        SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
         Result := S
       end
     end else
@@ -7180,7 +7180,7 @@ begin
                 if IsUnicode then
                   SetLength(VerbW, lstrlenW(PWideChar( VerbW)))
                 else begin
-                  SetLength(VerbA, StrLen(PAnsiChar( VerbA)));
+                  SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
                   VerbW := VerbA
                 end;
 

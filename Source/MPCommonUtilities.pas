@@ -656,7 +656,7 @@ var
 implementation
 
 uses
-  MPCommonObjects;
+  System.AnsiStrings, MPCommonObjects;
 
 type
   PLibRec = ^TLibRec;
@@ -3786,7 +3786,7 @@ begin
     STRRET_CSTR:
       begin
         P := @StrRet.cStr[0];
-        SetString(Result, P, StrLen(P));
+        SetString(Result, P, System.AnsiStrings.StrLen(P));
       end;
     STRRET_OFFSET:
       begin
@@ -3795,7 +3795,7 @@ begin
           {$R-}
           P := PAnsiChar(@(APIDL).mkid.abID[StrRet.uOffset - SizeOf(APIDL.mkid.cb)]);
           {$R+}
-          SetString(Result, P, StrLen(P));
+          SetString(Result, P, System.AnsiStrings.StrLen(P));
         end else
           Result := '';
       end;

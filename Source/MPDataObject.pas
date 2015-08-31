@@ -430,7 +430,7 @@ var
 implementation
 
 uses
-  MPShellUtilities, Math;
+  System.Math, System.AnsiStrings, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;

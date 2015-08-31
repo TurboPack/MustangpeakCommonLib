@@ -25,7 +25,7 @@ interface
 
 {$I Options.inc}
 {$I ..\Include\Addins.inc}
-
+{$WARN SYMBOL_PLATFORM OFF}
 {$ifdef COMPILER_12_UP}
   {$WARN IMPLICIT_STRING_CAST       OFF}
  {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
@@ -1607,5 +1607,7 @@ finalization
   FreeAndNil(GlobalThread);
   FreeAndNil(GlobalCallbackThread);
   FreeAndNil(PIDLMgr);
+
+{$WARN SYMBOL_PLATFORM ON}
 
 end.

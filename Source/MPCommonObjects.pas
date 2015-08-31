@@ -677,10 +677,6 @@ end;
 
 procedure StripDuplicatesAndDesktops(NamespaceList: TList);
 
-{$IFDEF COMPILER_6_UP}
-  {$MESSAGE 'THIS IS DOG SLOW'}
-{$ENDIF}
-
 //
 // Sort and modifies the NamespaceList to work with SHFileOperation and other shell
 // operations.  The items in the List will be sorted and possibly removed but will NOT

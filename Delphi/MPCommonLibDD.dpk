@@ -5,7 +5,7 @@ package MPCommonLibDD;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
@@ -25,14 +25,14 @@ package MPCommonLibDD;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Mustangpeak Common Library DesignTime Package'}
+{$DESCRIPTION 'Mustangpeak Common Library Delphi DesignTime Package'}
+{$LIBSUFFIX '220'}
 {$DESIGNONLY}
-{$IMPLICITBUILD ON}
+{$IMPLICITBUILD OFF}
 
 requires
   rtl,
   vcl,
-  MPCommonLibD21,
   designide,
   vclactnband,
   vclx;

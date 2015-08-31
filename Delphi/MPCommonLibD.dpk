@@ -5,7 +5,7 @@ package MPCommonLibD;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
@@ -25,9 +25,10 @@ package MPCommonLibD;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Mustangpeak Common Library Runtime Package'}
+{$DESCRIPTION 'Mustangpeak Common Library Delphi Runtime Package'}
+{$LIBSUFFIX '220'}
 {$RUNONLY}
-{$IMPLICITBUILD ON}
+{$IMPLICITBUILD OFF}
 
 requires
   rtl,

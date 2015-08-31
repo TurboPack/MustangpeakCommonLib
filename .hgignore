@@ -1,0 +1,9 @@
+syntax: glob
+*.local
+*.dsk
+*identcache
+*.~dsk
+*.tvsconfig
+__history
+*.stat
+*.dcu
