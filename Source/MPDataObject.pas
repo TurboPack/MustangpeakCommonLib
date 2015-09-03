@@ -29,7 +29,6 @@ interface
   {$DEFINE GX_DEBUG}
 {$ENDIF}
 
-{$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 

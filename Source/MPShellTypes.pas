@@ -25,7 +25,6 @@ unit MPShellTypes;
 
 interface
 
-{$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 

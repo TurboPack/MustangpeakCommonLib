@@ -25,7 +25,6 @@ unit MPCommonObjects;
 
 interface
 
-{$I Options.inc}
 {$I ..\Include\Addins.inc}
 
 uses

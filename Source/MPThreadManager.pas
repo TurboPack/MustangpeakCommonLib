@@ -23,7 +23,6 @@ unit MPThreadManager;
 
 interface
 
-{$I Options.inc}
 {$I ..\Include\Addins.inc}
 {$WARN SYMBOL_PLATFORM OFF}
 

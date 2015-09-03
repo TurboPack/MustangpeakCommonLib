@@ -66,8 +66,6 @@ interface
 
 {$B-}
 
-{$include Options.inc}
-
 uses
   {$IFDEF GX_DEBUG}
   DbugIntf,
