@@ -91,10 +91,6 @@ type
   // many formats
   TeltArray = array[0..255] of TFormatEtc;
 
-  {$IFNDEF COMPILER_6_UP}
-  PCardinal = ^Cardinal;
-  {$ENDIF}
-  
 //------------------------------------------------------------------------------
 // TCommonEnumFormatEtc :
 //       Implements the IEnumFormatEtc interface for the IDataObject

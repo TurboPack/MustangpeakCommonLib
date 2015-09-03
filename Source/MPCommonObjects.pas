@@ -67,20 +67,6 @@ type
   TCommonImageIndexInteger = type Integer;
 
   TStringListEx = class(TStringList)
-  private
-    {$IFNDEF COMPILER_7_UP}
-    FNameValueSeparator: Char;
-
-    function GetNameValueSeparator: Char;
-    function GetValueFromIndex(Index: Integer): string;
-    procedure SetNameValueSeparator(const Value: Char);
-    procedure SetValueFromIndex(Index: Integer; const Value: string);
-    {$ENDIF}
-  public
-    {$IFNDEF COMPILER_7_UP}
-    property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
-    property NameValueSeparator: Char read GetNameValueSeparator write SetNameValueSeparator;
-    {$ENDIF}
   end;
 
 type
@@ -519,10 +505,6 @@ type
   function ILIsParent(PIDL1: PItemIDList; PIDL2: PItemIDList; ImmediateParent: LongBool): LongBool;
   function ILIsEqual(PIDL1: PItemIDList; PIDL2: PItemIDList): LongBool;
 
-  {$IFNDEF COMPILER_6_UP}
-  function GUIDToString(const GUID: TGUID): string;
-  {$ENDIF}
-  
 var
   StreamHelper: TCommonMemoryStreamHelper;
   Checks: TCommonCheckBoundManager;
@@ -547,20 +529,6 @@ var
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
   ILIsEqual_MP: TILIsEqual = nil;
-
-{$IFNDEF COMPILER_6_UP}
-function GUIDToString(const GUID: TGUID): string;
-var
-  P: PWideChar;
-begin
-  Result := '';
-  if Succeeded(StringFromCLSID(GUID, P)) then
-  begin
-    Result := P;
-    CoTaskMemFree(P);
-  end
-end;
-{$ENDIF}
 
 function MultiPathNamespaceListSort(Item1, Item2: Pointer): Integer;
 // Simply sorts the PIDLs by their length, it has nothing to do with the name 
@@ -2518,45 +2486,6 @@ begin
   FImageSize := Value;
   RecreateHandle;
 end;
-
-
-{$IFNDEF COMPILER_7_UP}
-{ TStringListEx }
-
-function TStringListEx.GetNameValueSeparator: Char;
-begin
-  if FNameValueSeparator = '' then
-    NameValueSeparator := '=';
-  Result := FNameValueSeparator;
-end;
-
-function TStringListEx.GetValueFromIndex(Index: Integer): string;
-begin
-  if Index >= 0 then
-    Result := Copy(Get(Index), Length(Names[Index]) + 2, MaxInt)
-  else
-    Result := '';
-end;
-
-procedure TStringListEx.SetNameValueSeparator(const Value: Char);
-begin
-  if (FNameValueSeparator <> Value) then
-    FNameValueSeparator := Value;
-end;
-
-procedure TStringListEx.SetValueFromIndex(Index: Integer;
-  const Value: string);
-begin
-  if Value <> '' then
-  begin
-    if Index < 0 then Index := Add('');
-    Put(Index, Names[Index] + NameValueSeparator + Value);
-  end
-  else
-    if Index >= 0 then Delete(Index);
-end;
-{$ENDIF}
-
 
 (*
 { TCommonHintWindow }

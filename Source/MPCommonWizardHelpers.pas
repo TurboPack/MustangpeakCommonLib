@@ -65,31 +65,6 @@ const
   );
 
 type
-  {$IFNDEF COMPILER_7_UP}
-  // ***************************************************************************
-  // TOTAFile
-  //   The implements the basic IOTAFile interface
-  // ***************************************************************************
-  TOTAFile = class(TInterfacedObject, IOTAFile)
-    FSource: string;
-    FAge: TDateTime;
-  public
-    constructor Create(const StringCode: String; const Age: TDateTime = -1);
-    function GetSource: string; virtual;
-    function GetAge: TDateTime; virtual;
-  end;
-  {$ENDIF}
-
-  {$IFNDEF COMPILER_5_UP}
-  TNotifierObject = class(TInterfacedObject)
-  public
-    procedure AfterSave;
-    procedure BeforeSave;
-    procedure Destroyed;
-    procedure Modified;
-  end;
-  {$ENDIF}
-
   // ---------------------------------------------------------------------------
   // OTAFile Module
   // ---------------------------------------------------------------------------

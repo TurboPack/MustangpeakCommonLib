@@ -102,10 +102,6 @@ const
   WideSpace = WideChar(#32);
   WidePeriod = WideChar('.');
 
-  {$IFNDEF COMPILER_6_UP}
-  NullAsStringValue: string = '';
-  {$ENDIF}
-
   Shlwapi = 'shlwapi.dll';
   Mpr = 'Mpr.dll';
 
@@ -127,11 +123,6 @@ type
   TCommonPWideCharArray = array of PWideChar;
   TCommonWideStringDynArray = array of WideString;
   TCommonIntegerDynArray = array of Integer;
-
-  {$IFNDEF COMPILER_6_UP}
-  TValueRelationship = -1..1;
-  TSeekOrigin = (soBeginning, soCurrent, soEnd);
-  {$ENDIF}
 
   TCommonDropEffect = (
     cdeNone,                 // No drop effect (the circle with the slash through it
@@ -281,18 +272,6 @@ procedure DrawWindowButton(Canvas: TCanvas; Pos: TPoint; Size: Integer; ButtonTy
 
 function CheckBounds(Size: Integer; Character: Char = Char($67)): TRect;
 
-
-
-{$IFNDEF COMPILER_6_UP}
-function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
-function VarToWideStr(const V: Variant): WideString;
-function BoolToStr(B: Boolean; UseBoolStrs: Boolean = False): string;
-function CompareTime(const A, B: TDateTime): TValueRelationship;
-function WideCompareText(S1, S2: WideString): Integer;
-function ExcludeTrailingBackslash(Path: WideString): WideString;
-function IncludeTrailingBackslash(Path: WideString): WideString;
-function GUIDToString(const GUID: TGUID): string;
-{$ENDIF}
 function AbsRect(ARect: TRect): TRect;
 function AddCommas(NumberString: WideString): WideString;
 function AsyncLeftButtonDown: Boolean;
@@ -314,9 +293,6 @@ procedure CopyToNullBufferW(S: WideString; Buffer: PWideChar; CharCount: Cardina
 procedure CreateProcessMP(ExeFile, Parameters, InitalDir: WideString);
 function DiffRectHorz(Rect1, Rect2: TRect): TRect;
 function DiffRectVert(Rect1, Rect2: TRect): TRect;
-{$IFNDEF COMPILER_6_UP}
-function DirectoryExists(const Directory: AnsiString): Boolean;
-{$ENDIF}
 function DiskInDrive(C: AnsiChar): Boolean;
 function DragDetectPlus(Handle: HWND; Pt: TPoint): Boolean;
 function DrawTextWEx(DC: HDC; Text: WideString; var lpRect: TRect; Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
@@ -499,25 +475,6 @@ type
     constructor Create(Obj : TObject; MethodPtr: Pointer; NumArgs : integer);
     destructor Destroy; override;
   end;
-
-{$IFNDEF COMPILER_5_UP}
-function Supports(const Instance: IUnknown; const IID: TGUID; out Intf): Boolean; overload;
-function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean; overload;
-procedure FreeAndNil(var Obj);
-
-type
-  TWMContextMenu = packed record
-    Msg: Cardinal;
-    hWnd: HWND;
-    case Integer of
-      0: (
-        XPos: Smallint;
-        YPos: Smallint);
-      1: (
-        Pos: TSmallPoint;
-        Result: Longint);
-  end;
-{$ENDIF}
 
 // ****************************************************************************
  // Registration function for Shell and Namespace Extensions
@@ -904,30 +861,6 @@ function UnregisterNSE(const AFileName: WideString; AMessages: TEasyNSERegMessag
 begin
   Result:= RegUnregNSE(AFileName, False, AMessages);
 end;
-
-{$IFNDEF COMPILER_6_UP}
-function DirectoryExists(const Directory: AnsiString): Boolean;
-var
-  Code: Integer;
-begin
-  Code := GetFileAttributesA(PAnsiChar(Directory));
-  Result := (Code <> -1) and (FILE_ATTRIBUTE_DIRECTORY and Code <> 0);
-end;
-{$ENDIF}
-
-{$IFNDEF COMPILER_6_UP}
-function GUIDToString(const GUID: TGUID): string;
-var
-  P: PWideChar;
-begin
-  Result := '';
-  if Succeeded(StringFromCLSID(GUID, P)) then
-  begin
-    Result := P;
-    CoTaskMemFree(P);
-  end
-end;
-{$ENDIF}
 
 procedure MakeFindDataW(const FindFileDataA: TWIN32FindDataA; var FindFileDataW: TWIN32FindDataW);
 //
@@ -3097,88 +3030,6 @@ begin
   end
 end;
 
-{$IFNDEF COMPILER_5_UP}
-function Supports(const Instance: IUnknown; const IID: TGUID; out Intf): Boolean;
-begin
-  Result := (Instance <> nil) and (Instance.QueryInterface(IID, Intf) = 0);
-end;
-
-function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean; overload;
-begin
-  Result := False;
-  Pointer( Intf) := nil;
-  if Assigned(Instance) then
-    Result := Instance.GetInterface(IID, Intf)
-end;
-
-procedure FreeAndNil(var Obj);
-var
-  Temp: TObject;
-begin
-  Temp := TObject(Obj);
-  Pointer(Obj) := nil;
-  Temp.Free;
-end;
-{$ENDIF}
-
-{$IFNDEF COMPILER_6_UP}
-function Supports(const Instance: IUnknown; const IID: TGUID): Boolean;
-var
-  Temp: IUnknown;
-begin
-  {$IFNDEF COMPILER_5_UP}
-  Result := Supports(Instance, IID, Temp);
-  {$ELSE}
-  Result := SysUtils.Supports(Instance, IID, Temp)
-  {$ENDIF}
-end;
-
-procedure ClearMenuItems(Menu: TMenu);
-var
-  I: Integer;
-begin
-  for I := Menu.Items.Count - 1 downto 0 do
-    Menu.Items[I].Free;
-end;
-
-function TryStrToInt(const S: string; out Value: Integer): Boolean;
-var
-  E: Integer;
-begin
-  Val(S, Value, E);
-  Result := E = 0;
-end;
-{$ENDIF}
-
-{$IFNDEF COMPILER_7_UP}
-function GetFileVersion(const AFileName: string): Cardinal;
-var
-  FileName: string;
-  InfoSize, Wnd: DWORD;
-  VerBuf: Pointer;
-  FI: PVSFixedFileInfo;
-  VerSize: DWORD;
-begin
-  Result := Cardinal(-1);
-  // GetFileVersionInfo modifies the filename parameter data while parsing.
-  // Copy the string const into a local variable to create a writeable copy.
-  FileName := AFileName;
-  UniqueString(FileName);
-  InfoSize := GetFileVersionInfoSize(PChar(FileName), Wnd);
-  if InfoSize <> 0 then
-  begin
-    GetMem(VerBuf, InfoSize);
-    try
-      if GetFileVersionInfo(PChar(FileName), Wnd, InfoSize, VerBuf) then
-        if VerQueryValue(VerBuf, '\', Pointer(FI), VerSize) then
-          Result:= FI.dwFileVersionMS;
-    finally
-      FreeMem(VerBuf);
-    end;
-  end;
-end;
-{$ENDIF}
-
 procedure CreateProcessMP(ExeFile, Parameters, InitalDir: WideString);
 var
   pi: TProcessInformation;
@@ -5289,71 +5140,6 @@ begin
      end
    end
 end;
-
-{$IFNDEF COMPILER_6_UP}
-function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
-begin
-  if not VarIsNull(V) then
-    Result := V
-  else
-    Result := ADefault;
-end;
-
-function VarToWideStr(const V: Variant): WideString;
-begin
-  Result := VarToWideStrDef(V, NullAsStringValue);
-end;
-
-function BoolToStr(B: Boolean; UseBoolStrs: Boolean = False): string;
-const
-  cSimpleBoolStrs: array [boolean] of String = ('0', '-1');
-begin
-  if UseBoolStrs then
-  begin
-    if B then
-      Result := 'True'
-    else
-      Result := 'False'
-  end
-  else
-    Result := cSimpleBoolStrs[B];
-end;
-
-function CompareTime(const A, B: TDateTime): TValueRelationship;
-begin
-  if Abs(Frac(A) - Frac(B)) < (1 / MSecsPerDay) then
-    Result := 0
-  else if Frac(A) < Frac(B) then
-    Result := Low(TValueRelationship)
-  else
-    Result := High(TValueRelationship);
-end;
-
-function WideCompareText(S1, S2: WideString): Integer;
-begin
-  Result := WideStrComp( PWideChar(S1), PWideChar(S2))
-end;
-
-function ExcludeTrailingBackslash(Path: WideString): WideString;
-begin
-  Result := Path;
-  if Result <> '' then
-  begin
-    Result := Trim(Result);
-    if Length(Result) > 0 then
-      if Result[Length(Result)] = '\' then
-        SetLength(Result, Length(Result) - 1)
-  end
-end;
-
-function IncludeTrailingBackslash(Path: WideString): WideString;
-begin
-  Result := Path;
-  if Path <> '' then
-    Result := ExcludeTrailingBackslash(Path) + '\'
-end;
-
-{$ENDIF}
 
 function VariantToCaption(const V: Variant): WideString;
 var

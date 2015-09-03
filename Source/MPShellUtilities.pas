@@ -1275,29 +1275,6 @@ type
  end;
 {-------------------------------------------------------------------------------}
 
-  {$IFNDEF COMPILER_5_UP}
-  TObjectList = class(TList)
-  private
-    FOwnsObjects: Boolean;
-  protected
-    function GetItem(Index: Integer): TObject;
-    procedure SetItem(Index: Integer; AObject: TObject);
-  public
-    constructor Create; overload;
-    constructor Create(AOwnsObjects: Boolean); overload;
-
-    function Add(AObject: TObject): Integer;
-    function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
-    function FindInstanceOf(AClass: TClass; AExact: Boolean = True; AStartAt: Integer = 0): Integer;
-    procedure Insert(Index: Integer; AObject: TObject);
-    function First: TObject;
-    function Last: TObject;
-    property OwnsObjects: Boolean read FOwnsObjects write FOwnsObjects;
-    property Items[Index: Integer]: TObject read GetItem write SetItem; default;
-  end;
-  {$ENDIF}
-
   TVirtualNameSpaceList  = class(TObjectList)
   private
     function GetItems(Index: Integer): TNamespace;
@@ -1404,12 +1381,12 @@ type
   // IShellFolder
     function ParseDisplayName(hwndOwner: HWND; pbcReserved: Pointer; lpszDisplayName: POLESTR; out pchEaten: ULONG; out ppidl: PItemIDList; var dwAttributes: ULONG): HResult; stdcall;
     function EnumObjects(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList): HResult; stdcall;
-    function BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}:x Pointer{$ENDIF}): HResult; stdcall;
-    function BindToStorage(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvObj{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
+    function BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut): HResult; stdcall;
+    function BindToStorage(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvObj): HResult; stdcall;
     function CompareIDs(lParam: LPARAM; pidl1, pidl2: PItemIDList): HResult; stdcall;
-    function CreateViewObject(hwndOwner: HWND; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
+    function CreateViewObject(hwndOwner: HWND; const riid: TIID; out ppvOut): HResult; stdcall;
     function GetAttributesOf(cidl: UINT; var apidl: PItemIDList; var rgfInOut: UINT): HResult; stdcall;
-    function GetUIObjectOf(hwndOwner: HWND; cidl: UINT; var apidl: PItemIDList; const riid: TIID; prgfInOut: Pointer; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
+    function GetUIObjectOf(hwndOwner: HWND; cidl: UINT; var apidl: PItemIDList; const riid: TIID; prgfInOut: Pointer; out ppvOut): HResult; stdcall;
     function GetDisplayNameOf(pidl: PItemIDList; uFlags: DWORD; var lpName: TStrRet): HResult; stdcall;
     function SetNameOf(hwndOwner: HWND; pidl: PItemIDList; lpszName: POLEStr; uFlags: DWORD; var ppidlOut: PItemIDList): HResult; stdcall;
     // IDropTarget
@@ -8940,79 +8917,6 @@ begin
   end
 end;
 
-{$IFNDEF COMPILER_5_UP}
-{ TObjectList }
-
-function TObjectList.Add(AObject: TObject): Integer;
-begin
-  Result := inherited Add(AObject);
-end;
-
-constructor TObjectList.Create;
-begin
-  inherited Create;
-  FOwnsObjects := True;
-end;
-
-constructor TObjectList.Create(AOwnsObjects: Boolean);
-begin
-  inherited Create;
-  FOwnsObjects := AOwnsObjects;
-end;
-
-function TObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean;
-  AStartAt: Integer): Integer;
-var
-  I: Integer;
-begin
-  Result := -1;
-  for I := AStartAt to Count - 1 do
-    if (AExact and
-        (Items[I].ClassType = AClass)) or
-       (not AExact and
-        Items[I].InheritsFrom(AClass)) then
-    begin
-      Result := I;
-      break;
-    end;
-end;
-
-function TObjectList.First: TObject;
-begin
-  Result := TObject(inherited First);
-end;
-
-function TObjectList.GetItem(Index: Integer): TObject;
-begin
-  Result := inherited Items[Index];
-end;
-
-function TObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := inherited IndexOf(AObject);
-end;
-
-procedure TObjectList.Insert(Index: Integer; AObject: TObject);
-begin
-  inherited Insert(Index, AObject);
-end;
-
-function TObjectList.Last: TObject;
-begin
-  Result := TObject(inherited Last);
-end;
-
-function TObjectList.Remove(AObject: TObject): Integer;
-begin
-  Result := inherited Remove(AObject);
-end;
-
-procedure TObjectList.SetItem(Index: Integer; AObject: TObject);
-begin
-  inherited Items[Index] := AObject;
-end;
-{$ENDIF}
-
 { TVirtualNamespaceList }
 
 function TVirtualNamespaceList.Add(ANamespace: TNamespace): Integer;
@@ -9082,7 +8986,7 @@ begin
   inherited Destroy;
 end;
 
-function TCommonShellContextMenu.BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult;
+function TCommonShellContextMenu.BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut): HResult;
 begin
   Result := ActiveFolder.BindToObject(pidl, pbcReserved, riid, ppvOut);
   {$IFDEF GXDEBUG_VIRTUALCONTEXTMENU}
@@ -9090,7 +8994,7 @@ begin
   {$ENDIF}
 end;
 
-function TCommonShellContextMenu.BindToStorage(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvObj{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult;
+function TCommonShellContextMenu.BindToStorage(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvObj): HResult;
 begin
   Result := ActiveFolder.BindToStorage(pidl, pbcReserved, riid, ppvObj);
   {$IFDEF GXDEBUG_VIRTUALCONTEXTMENU}
@@ -9106,7 +9010,7 @@ begin
   {$ENDIF}
 end;
 
-function TCommonShellContextMenu.CreateViewObject(hwndOwner: HWND; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult;
+function TCommonShellContextMenu.CreateViewObject(hwndOwner: HWND; const riid: TIID; out ppvOut): HResult;
 begin
   Result := ActiveFolder.CreateViewObject(hwndOwner, riid, ppvOut);
   {$IFDEF GXDEBUG_VIRTUALCONTEXTMENU}
@@ -9568,7 +9472,7 @@ begin
   {$ENDIF}
 end;
 
-function TCommonShellContextMenu.GetUIObjectOf(hwndOwner: HWND; cidl: UINT; var apidl: PItemIDList; const riid: TIID; prgfInOut: Pointer; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult;
+function TCommonShellContextMenu.GetUIObjectOf(hwndOwner: HWND; cidl: UINT; var apidl: PItemIDList; const riid: TIID; prgfInOut: Pointer; out ppvOut): HResult;
 var
   DataObject: IDataObject;
   NSList: TList;
