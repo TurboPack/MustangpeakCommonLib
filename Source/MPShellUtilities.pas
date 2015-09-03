@@ -1693,7 +1693,7 @@ var
 implementation
 
 uses
-  System.AnsiStrings, Vcl.Dialogs;
+  System.AnsiStrings, System.Types, Vcl.Dialogs;
 
 type
   TShellILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList;

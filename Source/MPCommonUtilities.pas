@@ -564,7 +564,7 @@ var
 implementation
 
 uses
-  System.AnsiStrings, MPCommonObjects;
+  System.AnsiStrings, System.UITypes, MPCommonObjects;
 
 type
   PLibRec = ^TLibRec;

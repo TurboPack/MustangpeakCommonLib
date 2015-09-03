@@ -8,3 +8,6 @@ __history
 __recovery
 *.stat
 *.dcu
+*.obj
+*.pch
+*.#00
