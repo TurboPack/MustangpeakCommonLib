@@ -111,7 +111,6 @@ type
   //
   // Encapsulates Theme handles for various objects
   //
-  {$IFDEF USETHEMES}
   TCommonThemeManager = class
   private
     FButtonTheme: HTHEME;    // Some useful Themes
@@ -152,7 +151,6 @@ type
     property TreeviewTheme: HTHEME read FTreeviewTheme write FTreeviewTheme;
     property WindowTheme: HTHEME read FWindowTheme write FWindowTheme;
   end;
-  {$ENDIF USETHEMES}
 
   //
   // TWinControl that has a canvas and a few methods/properites for
@@ -182,7 +180,7 @@ type
     FOnMouseEnter: TCommonMouseEnterEvent;
     FOnMouseExit: TNotifyEvent;
     FShowThemedBorder: Boolean;
-    {$IFDEF USETHEMES}FThemes: TCommonThemeManager;{$ENDIF USETHEMES}
+    FThemes: TCommonThemeManager;
     function GetCanvas: TControlCanvas;
     function GetThemed: Boolean;
     procedure SetBorderStyle(const Value: TBorderStyle);
@@ -219,7 +217,7 @@ type
     procedure WMNCCalcSize(var Msg: TWMNCCalcSize); message WM_NCCALCSIZE;
     procedure WMNCPaint(var Msg: TWMNCPaint); message WM_NCPAINT;
     procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
-    {$IFDEF USETHEMES}procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;{$ENDIF USETHEMES}
+    procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
     property BackBits: TBitmap read FBackBits write FBackBits;
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property CacheDoubleBufferBits: Boolean read FCacheDoubleBufferBits write SetCacheDoubleBufferBits default False;
@@ -248,7 +246,7 @@ type
     property DragCursor;
     property DragMode;
     property ForcePaint: Boolean read FForcePaint write FForcePaint;
-    {$IFDEF USETHEMES}property Themes: TCommonThemeManager read FThemes;{$ENDIF USETHEMES}
+    property Themes: TCommonThemeManager read FThemes;
     property UpdateCount: Integer read FUpdateCount;
   published
   end;
@@ -800,20 +798,14 @@ end;
 
 function TCommonCanvasControl.DrawWithThemes: Boolean;
 begin
-  {$IFDEF USETHEMES}
   Result := Themed and Themes.Loaded;
-  {$ELSE}
-  Result := False;
-  {$ENDIF USETHEMES}
 end;
 
 function TCommonCanvasControl.GetThemed: Boolean;
 begin
   Result := False;
-  {$IFDEF USETHEMES}
   if not (csLoading in ComponentState) then
     Result := FThemed and UseThemes;
-  {$ENDIF USETHEMES}
 end;
 
 procedure TCommonCanvasControl.AfterPaintRect(ACanvas: TCanvas; ClipRect: TRect);
@@ -843,16 +835,14 @@ begin
   // No notifications for font change
 //  Font.OnChange := nil;
   FBorderStyle := bsSingle;
-  {$IFDEF USETHEMES}
   FThemes := TCommonThemeManager.Create(Self);
-  {$ENDIF USETHEMES}
   FThemed := True;
 end;
 
 destructor TCommonCanvasControl.Destroy;
 begin
   inherited;
-  {$IFDEF USETHEMES}FreeAndNil(FThemes);{$ENDIF USETHEMES}
+  FreeAndNil(FThemes);
   FreeAndNil(FNCCanvas);
   FreeAndNil(FCanvas);
   FreeAndNil(FBackBits);
@@ -893,7 +883,7 @@ end;
 procedure TCommonCanvasControl.CreateWnd;
 begin
   inherited CreateWnd;
-  {$IFDEF USETHEMES}Themes.ThemesLoad;{$ENDIF USETHEMES}
+  Themes.ThemesLoad;
   ResizeBackBits(ClientWidth, ClientHeight);
 end;
 
@@ -1094,8 +1084,7 @@ begin
   if Value <> FThemed then
   begin
     FThemed := Value;
-    {$IFDEF USETHEMES}
-    if Value then    
+    if Value then
       Themes.ThemesLoad
     else
       Themes.ThemesFree;
@@ -1108,7 +1097,6 @@ begin
       RecreateWnd;
   //    SafeInvalidateRect(nil, True);
     end;
-    {$ENDIF USETHEMES}
   end
 end;
 
@@ -1159,7 +1147,7 @@ end;
 procedure TCommonCanvasControl.WMDestroy(var Msg: TMessage);
 begin
   FreeAndNil(FMouseTimer);
-  {$IFDEF USETHEMES}Themes.ThemesFree;{$ENDIF USETHEMES}
+  Themes.ThemesFree;
   inherited;
 end;
 
@@ -1197,10 +1185,8 @@ end;
 
 procedure TCommonCanvasControl.WMNCCalcSize(var Msg: TWMNCCalcSize);
 begin
-  {$IFDEF USETHEMES}
   if not Themes.Loaded then
     Themes.ThemesLoad;
-  {$ENDIF USETHEMES}
   if DrawWithThemes and ShowThemedBorder then
   begin
     DefaultHandler(Msg);
@@ -1372,14 +1358,12 @@ begin
   end
 end;
 
-{$IFDEF USETHEMES}
 procedure TCommonCanvasControl.WMThemeChanged(var Message: TMessage);
 begin
   inherited;
   Themes.ThemesFree;
   Themes.ThemesLoad;
 end;
-{$ENDIF USETHEMES}
 
 { TCoolPIDLList }
 
@@ -2156,7 +2140,6 @@ begin
 end;
 
 { TCommonThemeManager }
-{$IFDEF USETHEMES}
 constructor TCommonThemeManager.Create(AnOwner: TWinControl);
 begin
   inherited Create;
@@ -2239,9 +2222,6 @@ begin
     RedrawWindow(Owner.Handle, nil, 0, RDW_FRAME or RDW_INVALIDATE or RDW_NOERASE or RDW_NOCHILDREN);
   end
 end;
-{$ENDIF USETHEMES}
-
-
 
 { TCommonStream}
 

@@ -996,11 +996,7 @@ var
   Found: Boolean;
 begin
   Found := False;
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExtractFileName(Path);
-  {$ELSE}
   Result := ExtractFileName(Path);
-  {$ENDIF}
   if BaseNameOnly then
   begin
     i := Length(Result);
