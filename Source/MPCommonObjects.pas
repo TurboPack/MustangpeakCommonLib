@@ -29,15 +29,8 @@ interface
 {$I Options.inc}
 {$I ..\Include\Addins.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 uses
-  {$IFDEF COMPILER_10_UP}
   Types,
-  {$ENDIF}
   Windows,
   Messages,
   Classes,
@@ -49,28 +42,13 @@ uses
   Forms,
   ComCtrls,
   ExtCtrls,
-  {$IFDEF COMPILER_6_UP}
   RTLConsts,
-  {$ELSE}
-  Consts,
-  {$ENDIF}
-  {$IFDEF COMPILER_7_UP}
   Themes,
   UxTheme,
-  {$ELSE}
-    {$IFDEF USETHEMES}
-    TmSchema,
-    UxTheme,
-    {$ENDIF}
-  {$ENDIF}
-  {$IFDEF TNTSUPPORT}
+{$IFDEF TNTSUPPORT}
     TntClasses,
-    {$IFDEF COMPILER_10_UP}
     WideStrings,
-    {$ELSE}
-    TntWideStrings,
-    {$ENDIF}
-  {$ENDIF}
+{$ENDIF}
   ShlObj,
   ShellAPI,
   ImgList,
@@ -2357,7 +2335,7 @@ begin
   Result := TStringList.Create;
   ReadBuffer(Count, SizeOf(LongWord));
   for i := 0 to Count - 1 do
-    Result.Add(ReadString)
+    Result.Add(string(ReadString))
 end;
 
 function TCommonStream.ReadWideString: WideString;
@@ -2400,7 +2378,7 @@ begin
   Count := Value.Count;
   WriteBuffer(Count, SizeOf(Count));
   for i := 0 to Count - 1 do
-    WriteString(Value[i])
+    WriteString(AnsiString(Value[i]))
 end;
 
 procedure TCommonStream.WriteWideString(const Value: WideString);

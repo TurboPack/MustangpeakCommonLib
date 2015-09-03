@@ -34,11 +34,6 @@ interface
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 uses
   Windows,
   Messages,
@@ -59,11 +54,7 @@ uses
   {$IFDEF TNTSUPPORT}
   TntStdCtrls,
   TntClasses,
-    {$IFDEF COMPILER_10_UP}
-    WideStrings,
-    {$ELSE}
-    TntWideStrings,
-    {$ENDIF}
+  WideStrings,
   {$ENDIF}
   AxCtrls;
 
@@ -336,10 +327,8 @@ type
     procedure AssignFilesW(FileList: TWideStrings);
     procedure FileNamesW(FileList: TWideStrings);
     {$ENDIF}
-    {$IFDEF  COMPILER_12_UP}
     procedure AssignFilesW(FileList: TStrings);
     procedure FileNamesW(FileList: TStrings);
-    {$ENDIF}
     procedure FileNamesA(FileList: TStrings);
 
     property HDropStruct: THandle read GetHDropStruct;
@@ -872,7 +861,6 @@ begin
 end;
 {$ENDIF}
 
-{$IFDEF COMPILER_12_UP}
 procedure TCommonHDrop.AssignFilesW(FileList: TStrings);
 var
   i: Integer;
@@ -920,8 +908,6 @@ begin
       FileList.Add(FileNameW(i));
   end;
 end;
-{$ENDIF}
-
 
 procedure TCommonHDrop.FileNamesA(FileList: TStrings);
 var
@@ -2173,7 +2159,7 @@ end;
 function TFileGroupDescriptorA.FillDescriptor(FileName: AnsiString): TFileDescriptorA;
 begin
   FillChar(Result, SizeOf(Result), #0);
-  StrCopy(Result.cFileName, PAnsiChar(FileName));
+  System.AnsiStrings.StrCopy(Result.cFileName, PAnsiChar(FileName));
 end;
 
 function TFileGroupDescriptorA.GetDescriptorCount: Integer;

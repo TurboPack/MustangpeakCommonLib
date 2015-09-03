@@ -67,11 +67,6 @@ unit MPCommonUtilities;
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 interface
 
 uses
@@ -85,15 +80,8 @@ uses
   Math,
   ActiveX,
   ShlObj,
-  {$IFDEF COMPILER_6_UP}
   Variants,
   RTLConsts,
-  {$ELSE}
-  Consts,
-  {$ENDIF COMPILER_6_UP}
-  {$IFNDEF COMPILER_6_UP}
-  Menus,
-  {$ENDIF}
   {$IFDEF TNTSUPPORT}
   TntSysUtils,
   TntClasses,
@@ -512,16 +500,6 @@ type
     destructor Destroy; override;
   end;
 
-{$IFNDEF COMPILER_7_UP}
-function GetFileVersion(const AFileName: string): Cardinal;
-{$ENDIF}
-
-{$IFNDEF COMPILER_6_UP}
-function Supports(const Instance: IUnknown; const IID: TGUID): Boolean; overload;
-procedure ClearMenuItems(Menu: TMenu);
-function TryStrToInt(const S: string; out Value: Integer): Boolean;
-{$ENDIF}
-
 {$IFNDEF COMPILER_5_UP}
 function Supports(const Instance: IUnknown; const IID: TGUID; out Intf): Boolean; overload;
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean; overload;
@@ -838,9 +816,9 @@ begin
       CloseHandle(InfoW.hProcess)
   end else
   begin
-    CmdA := Cmd;
-    ParamsA := Params;
-    DirA := Dir;
+    CmdA := AnsiString(Cmd);
+    ParamsA := AnsiString(Params);
+    DirA := AnsiString(Dir);
     FillChar(InfoA, SizeOf(InfoA), 0);
     InfoA.cbSize := SizeOf(InfoA);
     InfoA.fMask := SEE_MASK_FLAG_NO_UI or SEE_MASK_NOCLOSEPROCESS;
@@ -972,7 +950,7 @@ begin
   i := 0;
   while FindFileDataA.cAlternateFileName[i] <> #0 do
   begin
-    WS := FindFileDataA.cAlternateFileName[i];
+    WS := Char(FindFileDataA.cAlternateFileName[i]);
     FindFileDataW.cAlternateFileName[i] := WS[1];
     Inc(i)
   end;
@@ -1046,13 +1024,9 @@ begin
   {$IFDEF TNTSUPPORT}
   Result := TntSysUtils.WideExcludeTrailingBackslash(Path);
   {$ELSE}
-  {$IFDEF COMPILER_6_UP}
-    {$WARN SYMBOL_PLATFORM OFF}
-  {$ENDIF}
+  {$WARN SYMBOL_PLATFORM OFF}
   Result := ExcludeTrailingBackslash(Path)
-  {$IFDEF COMPILER_6_UP}
-    {$WARN SYMBOL_PLATFORM ON}
-  {$ENDIF}
+  {$WARN SYMBOL_PLATFORM ON}
   {$ENDIF}
 end;
 
@@ -3634,13 +3608,9 @@ begin
   {$IFDEF TNTSUPPORT}
   Result := TntSysUtils.WideIncludeTrailingBackslash(Path);
   {$ELSE}
-  {$IFDEF COMPILER_6_UP}
-    {$WARN SYMBOL_PLATFORM OFF}
-  {$ENDIF}
+  {$WARN SYMBOL_PLATFORM OFF}
   Result := IncludeTrailingBackslash(Path);
-  {$IFDEF COMPILER_6_UP}
-    {$WARN SYMBOL_PLATFORM ON}
-  {$ENDIF}
+  {$WARN SYMBOL_PLATFORM ON}
   {$ENDIF}
 end;
 
@@ -3999,11 +3969,7 @@ begin
   {$IFDEF TNTSUPPORT}
   Result := True;
   {$ELSE}
-    {$IFDEF COMPILER_12_UP}
     Result := True;
-    {$ELSE}
-      Result := False;
-    {$ENDIF}
   {$ENDIF}
 end;
 
@@ -5397,7 +5363,7 @@ begin
     varString, varOleStr:
       Result := VarToWideStr(V);
 
-    varInteger,{$IFDEF COMPILER_6_UP}varWord, varShortInt, varLongWord,{$ENDIF} varSmallint,  varByte:
+    varInteger, varWord, varShortInt, varLongWord, varSmallint,  varByte:
       Result := IntToStr(V);
     varDate:
       begin

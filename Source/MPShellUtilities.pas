@@ -46,11 +46,6 @@ interface
 {$I ..\Include\Addins.inc}
 {$I Compilers.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
-{$endif COMPILER_12_UP}
-
 {.$DEFINE GXDEBUG_DEFMENUCREATE_CALLBACK}
 {.$DEFINE GXDEBUG_VIRTUALCONTEXTMENU}
 {.$DEFINE GXDEBUG_EXPLORERTHREADINSTANCE}
@@ -103,12 +98,8 @@ uses
   TntRegistry,
   TntMenus,
   {$ENDIF}
-  {$IFDEF COMPILER_6_UP}
   Variants,
-  {$ENDIF}
-  {$IFDEF COMPILER_5_UP}
   Contnrs,
-  {$ENDIF}
   Menus;
 
 const
@@ -1413,7 +1404,7 @@ type
   // IShellFolder
     function ParseDisplayName(hwndOwner: HWND; pbcReserved: Pointer; lpszDisplayName: POLESTR; out pchEaten: ULONG; out ppidl: PItemIDList; var dwAttributes: ULONG): HResult; stdcall;
     function EnumObjects(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList): HResult; stdcall;
-    function BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
+    function BindToObject(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}:x Pointer{$ENDIF}): HResult; stdcall;
     function BindToStorage(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID; out ppvObj{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
     function CompareIDs(lParam: LPARAM; pidl1, pidl2: PItemIDList): HResult; stdcall;
     function CreateViewObject(hwndOwner: HWND; const riid: TIID; out ppvOut{$IFNDEF COMPILER_5_UP}: Pointer{$ENDIF}): HResult; stdcall;
@@ -1706,11 +1697,6 @@ type
   function FileObjectsToFlags(FileObjects: TFileObjects): DWORD;
   function FileObjectsToString(FileObjects: TFileObjects): WideString;
 
-  {$ifdef COMPILER_4}
-  procedure FreeAndNil(var Obj);
-  function Supports(const Instance: IUnknown; const Intf: TGUID; out Inst): Boolean;
-  {$endif}
-
   function GetDiskFreeSpaceMP(Drive: PWideChar; var SectorsperCluster, BytesperSector, FreeClusters, TotalClusters: DWORD): boolean;
   function DriveSize(Drive: PWideChar): Int64; overload;
   function DriveSize(Drive: PWideChar; ByteSize: TBtyeSize): WideString; overload;
@@ -1912,9 +1898,7 @@ begin
   Reg := TRegistry.Create;
   try
     try
-      {$IFDEF COMPILER_5_UP}
       Reg.Access := KEY_READ;
-      {$ENDIF}
       Reg.RootKey := HKEY_CURRENT_USER;
       if Reg.OpenKey('\Software\Microsoft\Windows\CurrentVersion\Explorer', False) then
       begin
@@ -3304,29 +3288,6 @@ begin
 end;
 { ----------------------------------------------------------------------------- }
 
-{ Some Stuff D4 lacks.
-                                                }
-{$ifdef COMPILER_4}
-{ ----------------------------------------------------------------------------- }
-procedure FreeAndNil(var Obj);
-var
-  P: TObject;
-begin
-  P := TObject(Obj);
-  TObject(Obj) := nil;
-  P.Free;
-end;
-{ ----------------------------------------------------------------------------- }
-
-{ ----------------------------------------------------------------------------- }
-function Supports(const Instance: IUnknown; const Intf: TGUID; out Inst): Boolean;
-begin
-  Result := (Instance <> nil) and (Instance.QueryInterface(Intf, Inst) = 0);
-end;
-{ ----------------------------------------------------------------------------- }
-{$endif}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Local Functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -4368,7 +4329,6 @@ begin
           if not(VarIsEmpty(V) or VarIsNull(V)) then
           begin
            // D4 and D5 do not have VarArrayGet need to work on this someday.. or not support D4 and D5 anymore.
-            {$IFDEF COMPILER_6_UP}
             VarArrayLock(V);
             try
               for i := VarArrayLowBound(V, 1) to VarArrayHighBound(V, 1) do
@@ -4379,7 +4339,6 @@ begin
             finally
               VarArrayUnlock(V);
             end;
-            {$ENDIF}
           end else
              Result := VarToWideStr(V);
         end
@@ -5349,11 +5308,7 @@ begin
   begin
     // Onlcy allow TNamespaces created in the context of the thread that
     // created the window use the window
-    {$IFDEF COMPILER_6_UP}
     dwThreadID := GetWindowThreadProcessId(GlobalParentWnd, dwProcessID);
-    {$ELSE}
-    dwThreadID := GetWindowThreadProcessId(GlobalParentWnd, @dwProcessID);
-    {$ENDIF}
     if dwThreadID = GetCurrentThreadId then
       Result := GlobalParentWnd
   end

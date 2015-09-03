@@ -35,7 +35,8 @@ requires
   vcl,
   designide,
   vclactnband,
-  vclx;
+  vclx,
+  MPCommonLibD;
 
 contains
   MPCommonWizardHelpers in '..\Source\MPCommonWizardHelpers.pas',

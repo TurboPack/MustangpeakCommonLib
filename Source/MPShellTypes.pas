@@ -30,11 +30,6 @@ interface
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   ImgList, ShlObj, ShellAPI, ActiveX, ComObj, CommCtrl;
@@ -66,21 +61,6 @@ uses
 //------------------------------------------------------------------------------
 // Missing Windows Message definitions
 //------------------------------------------------------------------------------
-
-{$IFDEF COMPILER_4}
-type
-  TWMContextMenu = packed record
-    Msg: Cardinal;
-    hWnd: HWND;
-    case Integer of
-      0: (
-        XPos: Smallint;
-        YPos: Smallint);
-      1: (
-        Pos: TSmallPoint;
-        Result: Longint);
-  end;
-{$ENDIF}
 
 {$IFNDEF DELPHI_7_UP}
 type
