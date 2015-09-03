@@ -51,11 +51,6 @@ uses
   MPShellTypes,
   MPCommonUtilities,
   MPCommonObjects,
-  {$IFDEF TNTSUPPORT}
-  TntStdCtrls,
-  TntClasses,
-  WideStrings,
-  {$ENDIF}
   AxCtrls;
 
 const
@@ -319,10 +314,6 @@ type
     function FileName(Index: integer): WideString;
     function GetFormatEtc: TFormatEtc; override;
     procedure AssignFilesA(FileList: TStringList);
-    {$IFDEF TNTSUPPORT}
-    procedure AssignFilesW(FileList: TWideStrings);
-    procedure FileNamesW(FileList: TWideStrings);
-    {$ENDIF}
     procedure AssignFilesW(FileList: TStrings);
     procedure FileNamesW(FileList: TStrings);
     procedure FileNamesA(FileList: TStrings);
@@ -807,56 +798,6 @@ begin
   end
 end;
 
-{$IFDEF TNTSUPPORT}
-procedure TCommonHDrop.AssignFilesW(FileList: TWideStrings);
-var
-  i: Integer;
-  Size: integer;
-  Path: PAnsiChar;
-  ByteSize: Integer;
-begin
-  if Assigned(FileList) then
-  begin
-    FreeStructure;
-    Size := 0;
-    if UnicodeStringLists then
-      ByteSize := 2
-    else
-      ByteSize := 1;
-    for i := 0 to FileList.Count - 1 do
-      Inc(Size, (Length(FileList[i])+1)*(SizeOf(AnsiChar)*ByteSize)); // add spot for the null
-    Inc(Size, SizeOf(TDropFiles));
-    Inc(Size, SizeOf(AnsiChar)*2); // room for the terminating null
-    AllocStructure(Size);
-    DropFiles.pFiles := SizeOf(TDropFiles);
-    DropFiles.pt.x := 0;
-    DropFiles.pt.y := 0;
-    DropFiles.fNC := False;
-    if UnicodeStringLists then
-      Integer( DropFiles.fWide ):= 1
-    else
-      Integer( DropFiles.fWide) := 0;
-    Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
-    for i := 0 to FileList.Count - 1 do
-    begin
-      MoveMemory(Path, Pointer(FileList[i]), Length(FileList[i])*ByteSize);
-      Inc(Path, (Length(FileList[i]) + 1)*ByteSize); // skip over the single null #0
-    end
-  end
-end;
-
-procedure TCommonHDrop.FileNamesW(FileList: TWideStrings);
-var
-  i: integer;
-begin
-  if Assigned(FileList) then
-  begin
-    for i := 0 to FileCount - 1 do
-      FileList.Add(FileNameW(i));
-  end;
-end;
-{$ENDIF}
-
 procedure TCommonHDrop.AssignFilesW(FileList: TStrings);
 var
   i: Integer;
@@ -868,10 +809,7 @@ begin
   begin
     FreeStructure;
     Size := 0;
-    if UnicodeStringLists then
-      ByteSize := 2
-    else
-      ByteSize := 1;
+    ByteSize := 2;
     for i := 0 to FileList.Count - 1 do
       Inc(Size, (Length(FileList[i])+1)*(SizeOf(AnsiChar)*ByteSize)); // add spot for the null
     Inc(Size, SizeOf(TDropFiles));
@@ -881,10 +819,7 @@ begin
     DropFiles.pt.x := 0;
     DropFiles.pt.y := 0;
     DropFiles.fNC := False;
-    if UnicodeStringLists then
-      Integer( DropFiles.fWide ):= 1
-    else
-      Integer( DropFiles.fWide) := 0;
+    Integer( DropFiles.fWide ):= 1;
     Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
     for i := 0 to FileList.Count - 1 do
     begin

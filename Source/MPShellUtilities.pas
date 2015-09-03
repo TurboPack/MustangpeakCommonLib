@@ -92,12 +92,6 @@ uses
   MPThreadManager,
   MPResources,
   MPDataObject,
-  {$IFDEF TNTSUPPORT}
-  TntSysUtils,
-  TntClasses,
-  TntRegistry,
-  TntMenus,
-  {$ENDIF}
   Variants,
   Contnrs,
   Menus;
@@ -579,11 +573,7 @@ type
   TNamespaceArray = array of TNamespace;
 
   TCommonShellMenuEvent = procedure(Sender: TCommonShellContextMenu) of object;
-  {$IFDEF TNTSUPPORT}
-  TCommonShellMenuInvokeEvent = procedure(Sender: TCommonShellContextMenu; MenuItem: TTntMenuItem; InvokeInfo: PCMInvokeCommandInfo; var Handled: Boolean) of object;
-  {$ELSE}
   TCommonShellMenuInvokeEvent = procedure(Sender: TCommonShellContextMenu; MenuItem: TMenuItem; InvokeInfo: PCMInvokeCommandInfo; var Handled: Boolean) of object;
-  {$ENDIF}
   TCommonShellMenuMergeEvent = procedure(Sender: TCommonShellContextMenu; Menu: HMENU; IndexMenu: UINT; var CmdFirst: UINT; CmdLast: UINT; Flags: TShellContextMenuFlags) of object;
   TCommonShellMenuItemEvent = procedure(Sender: TCommonShellContextMenu; ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var Handled: Boolean) of object;
   TCommonShellMenuNewItemEvent = procedure(Sender: TCommonShellContextMenu; NS: TNamespace) of object;
@@ -1306,11 +1296,7 @@ type
   PMenuItemLink = ^TMenuItemLink;
   TMenuItemLink = record
     MenuID: UINT;
-    {$IFDEF TNTSUPPORT}
-    Item: TTntMenuItem;
-    {$ELSE}
     Item: TMenuItem
-    {$ENDIF}
   end;
 
   TMenuItemMap = class(TList)
@@ -1344,11 +1330,7 @@ type
     FMenuMap: TMenuItemMap;
     FMsgWnd: TWinControl;
     FOldWndProcForContextMenu: TWndMethod;
-    {$IFDEF TNTSUPPORT}
-    FKeyStrings: TTntStringList;
-    {$ELSE}
     FKeyStrings: TStringList;
-    {$ENDIF}
     FOnHide: TCommonShellMenuEvent;
     FOnInvokeCommand: TCommonShellMenuInvokeEvent;
     FOnMenuMerge: TCommonShellMenuMergeEvent;
@@ -1398,22 +1380,14 @@ type
     function DefMenuCreateCallback(const psf: IShellfolder; wnd: HWND; const pdtObj: IDataObject; uMsg: UINT; WParm: WParam; lParm: LParam): HResult; stdcall;
 
     procedure AddMenuKey(Key: WideString);
-    {$IFDEF TNTSUPPORT}
-    procedure AddMenuKeys(Keys: TTntStringList);
-    {$ELSE}
     procedure AddMenuKeys(Keys: TStringList);
-    {$ENDIF}
     procedure ClearKeys;
     procedure DoCopy(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoCreateShortCut(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoCut(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoDelete(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoHide; virtual;
-    {$IFDEF TNTSUPPORT}
-    procedure DoInvokeCommand(MenuItem: TTntMenuItem; InvokeInfo: PCMInvokeCommandInfo); virtual;
-    {$ELSE}
     procedure DoInvokeCommand(MenuItem: TMenuItem; InvokeInfo: PCMInvokeCommandInfo); virtual;
-    {$ENDIF}
     procedure DoMenuMerge(Menu: HMENU; IndexMenu: UINT; var CmdFirst: UINT; CmdLast: UINT; Flags: TShellContextMenuFlags); virtual;
     procedure DoMenuMergeBottom(Menu: HMENU; IndexMenu: UINT; var CmdFirst: UINT; CmdLast: UINT; Flags: TShellContextMenuFlags); virtual;
     procedure DoMenuMergeTop(Menu: HMENU; IndexMenu: UINT; var CmdFirst: UINT; CmdLast: UINT; Flags: TShellContextMenuFlags); virtual;
@@ -1424,11 +1398,7 @@ type
     procedure DoProperties(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoShow; virtual;
     function DuplicateKey(Key: HKEY): HKEY;
-    {$IFDEF TNTSUPPORT}
-    function FindCommandId(CmdID: UINT; var MenuItem: TTntMenuItem): Boolean;
-    {$ELSE}
     function FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
-    {$ENDIF}
     procedure HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT); stdcall;
     function InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: WideString; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
     procedure LoadMultiFolderPIDLArray(Namespaces: TNamespaceArray; var PIDLs: TAbsolutePIDLArray);
@@ -1443,11 +1413,7 @@ type
     property CutValidated: Boolean read FCutValidated write FCutValidated;
     property Extensions: TCommonShellContextMenuExtensions read FExtensions write FExtensions;
     property FromDesktop: Boolean read FFromDesktop write FFromDesktop;
-    {$IFDEF TNTSUPPORT}
-    property KeyStrings: TTntStringList read FKeyStrings write FKeyStrings;
-    {$ELSE}
     property KeyStrings: TStringList read FKeyStrings write FKeyStrings;
-    {$ENDIF}
     property LocalFocused: TNamespace read FLocalFocused write FLocalFocused;
     property LocalNamespaces: TNamespaceArray read FLocalNamespaces write FLocalNamespaces;
     property MenuMap: TMenuItemMap read FMenuMap write FMenuMap;
@@ -1477,11 +1443,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    {$IFDEF TNTSUPPORT}
-    function MergeMenuIntoContextMenu(Menu: TTntPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-    {$ELSE}
     function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-    {$ENDIF}
     procedure ClearMenuMap;
     property DeleteValidated: Boolean read FDeleteValidated write FDeleteValidated;
     property ReferenceCounted: Boolean read FReferenceCounted write FReferenceCounted;
@@ -1497,21 +1459,12 @@ type
     FFinalItemList: TCommonPIDLList;
     FInitialItemList: TCommonPIDLList;
     FOnNewItem: TCommonShellMenuNewItemEvent;
-    {$IFDEF TNTSUPPORT}
-    FPaste: TTntMenuItem;
-    FPasteShortCut: TTntMenuItem;
-    FPopupMenuProperties: TTntPopupMenu;
-    FPopupMenuPaste: TTntPopupMenu;
-    FPopupMenuPasteShortCut: TTntPopupMenu;
-    FProperties: TTntMenuItem;
-    {$ELSE}
     FPaste: TMenuItem;
     FPasteShortCut: TMenuItem;
     FPopupMenuProperties: TPopupMenu;
     FPopupMenuPaste: TPopupMenu;
     FPopupMenuPasteShortCut: TPopupMenu;
     FProperties: TMenuItem;
-    {$ENDIF}
     FShowPasteItem: Boolean;
     FShowPasteShortCutItem: Boolean;
     FShowPropertiesItem: Boolean;
@@ -1528,21 +1481,12 @@ type
     procedure LoadRegistryKeyStrings(Focused: TNamespace); override;
     property FinalItemList: TCommonPIDLList read FFinalItemList write FFinalItemList;
     property InitialItemList: TCommonPIDLList read FInitialItemList write FInitialItemList;
-    {$IFDEF TNTSUPPORT}
-    property Paste: TTntMenuItem read FPaste write FPaste;
-    property PasteShortCut: TTntMenuItem read FPasteShortCut write FPasteShortCut;
-    property PopupMenuProperties: TTntPopupMenu read FPopupMenuProperties write FPopupMenuProperties;
-    property PopupMenuPaste: TTntPopupMenu read FPopupMenuPaste write FPopupMenuPaste;
-    property PopupMenuPasteShortCut: TTntPopupMenu read FPopupMenuPasteShortCut write FPopupMenuPasteShortCut;
-    property Properties: TTntMenuItem read FProperties write FProperties;
-    {$ELSE}
     property Paste: TMenuItem read FPaste write FPaste;
     property PasteShortCut: TMenuItem read FPasteShortCut write FPasteShortCut;
     property PopupMenuProperties: TPopupMenu read FPopupMenuProperties write FPopupMenuProperties;
     property PopupMenuPaste: TPopupMenu read FPopupMenuPaste write FPopupMenuPaste;
     property PopupMenuPasteShortCut: TPopupMenu read FPopupMenuPasteShortCut write FPopupMenuPasteShortCut;
     property Properties: TMenuItem read FProperties write FProperties;
-    {$ENDIF}
     property RenameMenuItem default False;
     property PasteMenuItem default False;
   public
@@ -1651,9 +1595,6 @@ type
   function CFM_FlagsToShellContextMenuFlags(Flags: DWORD): TShellContextMenuFlags;
   function ClipboardContainsShellFormats: Boolean;
   function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: WideString; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
-  {$IFDEF TNTSUPPORT}
-  function WideStringListToNullSeparatedDoubleNullEndedString(WideStringList:TTntStringList): PWideChar;
-  {$ENDIF}
   function StringListToNullSeparatedDoubleNullEndedString(StringList: TStringList): PChar;
 
 // IShellLink (ShortCut) helpers
@@ -1690,11 +1631,7 @@ type
   function MPBrowseForFolder(Title: WideString; RootFolder, InitialPath: PItemIDList; BrowseFlags: TMPBrowseFlags; var SelectedPath: PItemIDList): Boolean; overload;
 
    // Merges a TVirtualShellPopupMenu object into a Shell Context Menu
-  {$IFDEF TNTSUPPORT}
-  function MergeMenuIntoContextMenu(Menu: TTntPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-  {$ELSE}
   function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-  {$ENDIF}
 
   // For saving/restoring the Default Column Widths for the VET or Listview
   procedure SaveDefaultColumnWidths(S: TStream);
@@ -1949,11 +1886,7 @@ begin
       Len := 0;
       if IsUnicode then
       begin
-        {$IFDEF TNTSUPPORT}
-        CharSize := SizeOf(WideChar);
-        {$ELSE}
         CharSize := SizeOf(Char);  // Works with D2009 as well
-        {$ENDIF}
       end else
         CharSize := SizeOf(AnsiChar);
 
@@ -2038,31 +1971,6 @@ procedure RestoreDefaultColumnWidths;
 begin
   VET_ColumnWidths := VET_DEFAULT_COLUMNWIDTHS;
 end;
-
-{$IFDEF TNTSUPPORT}
-function WideStringListToNullSeparatedDoubleNullEndedString(WideStringList: TTntStringList): PWideChar;
-//
-// Must free the memory assigned to the result with FreeMem when finished
-//
-var
-  Len, i: Integer;
-  Head: PWideChar;
-begin
-  Len := 0;
-  for i := 0 to WideStringList.Count - 1 do
-    Len := Len + Length(WideStringList[i]) + 1;  // Add the null
-  Inc(Len); // Add the second double null
-  GetMem(Result, Len * SizeOf(Result^));
-  FillChar(Result^, Len * SizeOf(Result^), #0);
-  Head := Result;
-  for i := 0 to WideStringList.Count - 1 do
-  begin
-    MoveMemory(Head, PWideChar( WideStringList[i]), Length(WideStringList[i]) * SizeOf(Result^));
-    Inc(Head, Length(WideStringList[i]) * SizeOf(Result^) + SizeOf(Result^))
-  end;
-end;
-{$ENDIF}
-
 
 // Let this be a wide string in D2009 and up
 function StringListToNullSeparatedDoubleNullEndedString(StringList: TStringList): PChar;
@@ -2593,25 +2501,6 @@ begin
   PIDLMgr.FreePIDL(InitialPathPIDL);
 end;
 
-{$IFDEF TNTSUPPORT}
-function MergeMenuIntoContextMenu(Menu: TTntPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-var
-  i: Integer;
-begin
-  Result := -1;
-  if Assigned(Menu) and (ContextMenu <> 0) then
-  begin
-    Result := idStart;
-    for i := Menu.Items.Count - 1 downto 0 do
-    begin
-      AddContextMenuItem(ContextMenu, Menu.Items[i].Caption, Index, Result);
-      Inc(Result);
-      if Menu.Items[i].Count > 0 then
-        beep;
-    end
-  end
-end;
-{$ELSE}
 function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
 var
   i: Integer;
@@ -2629,9 +2518,6 @@ begin
     end
   end
 end;
-{$ENDIF}
-
-
 
 // PIDL Functions
 
@@ -8658,19 +8544,11 @@ end;
 procedure TStreamableList.LoadFromFile(FileName: WideString; Version: integer = 0;
   ReadVerFromStream: Boolean = False);
 var
-  {$IFDEF TNTSUPPORT}
-  FileStream: TTntFileStream;
-  {$ELSE}
   FileStream: TFileStream;
-  {$ENDIF}
 begin
   FileStream := nil;
   try
-    {$IFDEF TNTSUPPORT}
-    FileStream := TTntFileStream.Create(FileName, fmOpenRead or fmShareExclusive);
-    {$ELSE}
     FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareExclusive);
-    {$ENDIF}
     LoadFromStream(FileStream);
   finally
     FileStream.Free
@@ -8690,21 +8568,13 @@ end;
 procedure TStreamableList.SaveToFile(FileName: WideString; Version: integer = 0;
   ReadVerFromStream: Boolean = False);
 var
-  {$IFDEF TNTSUPPORT}
-  FileStream: TTntFileStream;
-  {$ELSE}
   FileStream: TFileStream;
-  {$ENDIF}
 
 begin
   FileStream := nil;
   try
-   {$IFDEF TNTSUPPORT}
-   FileStream := TTntFileStream.Create(FileName, fmCreate or fmShareExclusive);
-   {$ELSE}
    FileStream := TFileStream.Create(FileName, fmCreate or fmShareExclusive);
-   {$ENDIF}
-    SaveToStream(FileStream);
+   SaveToStream(FileStream);
   finally
     FileStream.Free
   end;
@@ -8732,19 +8602,11 @@ end;
 
 procedure TStreamableClass.LoadFromFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False);
 var
-  {$IFDEF TNTSUPPORT}
-  FileStream: TTntFileStream;
-  {$ELSE}
   FileStream: TFileStream;
-  {$ENDIF}
 begin
   FileStream := nil;
   try
-    {$IFDEF TNTSUPPORT}
-    FileStream := TTntFileStream.Create(FileName, fmOpenRead or fmShareExclusive);
-    {$ELSE}
     FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareExclusive);
-    {$ENDIF}
     LoadFromStream(FileStream, Version, ReadVerFromStream);
   finally
     FileStream.Free
@@ -8762,19 +8624,11 @@ end;
 
 procedure TStreamableClass.SaveToFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False);
 var
-  {$IFDEF TNTSUPPORT}
-  FileStream: TTntFileStream;
-  {$ELSE}
   FileStream: TFileStream;
-  {$ENDIF}
 begin
   FileStream := nil;
   try
-    {$IFDEF TNTSUPPORT}
-    FileStream := TTntFileStream.Create(FileName, fmCreate or fmShareExclusive);
-    {$ELSE}
     FileStream := TFileStream.Create(FileName, fmCreate or fmShareExclusive);
-    {$ENDIF}
     SaveToStream(FileStream, Version, ReadVerFromStream);
   finally
     FileStream.Free
@@ -8959,11 +8813,7 @@ begin
   inherited Create(AOwner);
   Assert(AOwner is TWinControl, 'The Owner of a Shell Context Menu component must be a descendent of TWinControl');
   FMsgWnd := AOwner as TWinControl;
-  {$IFDEF TNTSUPPORT}
-  KeyStrings := TTntStringList.Create;
-  {$ELSE}
   KeyStrings := TStringList.Create;
-  {$ENDIF}
   MenuMap := TMenuItemMap.Create;
   KeyStrings.Duplicates := dupIgnore;
   KeyStrings.Sorted := True;
@@ -9026,11 +8876,7 @@ var
   DFMICS: PDFMICS;
   MapCount, i: Integer;
   MergeOffset: UINT;
-  {$IFDEF TNTSUPPORT}
-  MenuItem: TTntMenuItem;
-  {$ELSE}
   MenuItem: TMenuItem;
-  {$ENDIF}
 begin
   Result := E_NOTIMPL;
   DoDefault := True;
@@ -9409,24 +9255,6 @@ begin
   {$ENDIF}
 end;
 
-{$IFDEF TNTSUPPORT}
-function TCommonShellContextMenu.FindCommandId(CmdID: UINT; var MenuItem: TTntMenuItem): Boolean;
-var
-  i: Integer;
-begin
-  Result := False;
-  MenuItem := nil;
-  i := 0;
-  while not Result and (i < MenuMap.Count) do
-  begin
-    Result := MenuMap[i].MenuID = CmdID;
-    if Result then
-      MenuItem := MenuMap[i].Item
-    else
-      Inc(i)
-  end
-end;
-{$ELSE}
 function TCommonShellContextMenu.FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
 var
   i: Integer;
@@ -9443,7 +9271,6 @@ begin
       Inc(i)
   end
 end;
-{$ENDIF}
 
 function TCommonShellContextMenu.GetAttributesOf(cidl: UINT; var apidl: PItemIDList; var rgfInOut: UINT): HResult;
 var
@@ -9560,7 +9387,7 @@ type
     KeyArray[Length(KeyArray)-1] := Key
   end;
 
-  procedure AddExtKey({$IFDEF TNTSUPPORT}Reg: TTntRegistry;{$ELSE}Reg: TRegistry;{$ENDIF} KeyName: String; var Keys: THKeyArray);
+  procedure AddExtKey(Reg: TRegistry; KeyName: String; var Keys: THKeyArray);
   begin
     if Reg.OpenKeyReadOnly(KeyName) then
     begin
@@ -9582,11 +9409,7 @@ var
   Keys: THKeyArray;
   Desktop: IShellFolder;
   DesktopPIDL, ChildrenPIDLs: PItemIDList;
-  {$IFDEF TNTSUPPORT}
-  Reg: TTntRegistry;
-  {$ELSE}
   Reg: TRegistry;
-  {$ENDIF}
   WS, CurVer: WideString;
   UnknownAdded: Boolean;
   ShiftDown, ControlDown: Boolean;
@@ -9666,11 +9489,7 @@ begin
             //  Aug 25th - If I just pass the ext OR the file class then the Merge Extended items works ("Open" for instance)
 
             UnknownAdded := False;
-            {$IFDEF TNTSUPPORT}
-            Reg := TTntRegistry.Create;
-            {$ELSE}
             Reg := TRegistry.Create;
-            {$ENDIF}
             try
               Reg.RootKey := HKEY_CLASSES_ROOT;
               for i := 0 to KeyStrings.Count - 1 do
@@ -9902,17 +9721,10 @@ begin
   KeyStrings.Add(Key)
 end;
 
-{$IFDEF TNTSUPPORT}
-procedure TCommonShellContextMenu.AddMenuKeys(Keys: TTntStringList);
-begin
-  KeyStrings.Assign(Keys)
-end;
-{$ELSE}
 procedure TCommonShellContextMenu.AddMenuKeys(Keys: TStringList);
 begin
   KeyStrings.Assign(Keys)
 end;
-{$ENDIF}
 
 procedure TCommonShellContextMenu.ClearKeys;
 begin
@@ -9954,18 +9766,6 @@ begin
     OnHide(Self);
 end;
 
-{$IFDEF TNTSUPPORT}
-procedure TCommonShellContextMenu.DoInvokeCommand(MenuItem: TTntMenuItem; InvokeInfo: PCMInvokeCommandInfo);
-var
-  Handled: Boolean;
-begin
-  Handled := False;
-  if Assigned(OnInvokeCommand) then
-    OnInvokeCommand(Self, MenuItem, InvokeInfo, Handled);
-  if not Handled then
-    MenuItem.Click;
-end;
-{$ELSE}
 procedure TCommonShellContextMenu.DoInvokeCommand(MenuItem: TMenuItem; InvokeInfo: PCMInvokeCommandInfo);
 var
   Handled: Boolean;
@@ -9976,7 +9776,6 @@ begin
   if not Handled then
     MenuItem.Click;
 end;
-{$ENDIF}
 
 procedure TCommonShellContextMenu.DoMenuMerge(Menu: HMENU; IndexMenu: UINT;
   var CmdFirst: UINT; CmdLast: UINT; Flags: TShellContextMenuFlags);
@@ -10129,47 +9928,6 @@ begin
   {$ENDIF}
 end;
 
-{$IFDEF TNTSUPPORT}
-function TCommonShellContextMenu.MergeMenuIntoContextMenu(Menu: TTntPopupMenu;
-  ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
-  //
-  // Returns the ItemID of the last item it added to the ContextMenu
-  //
-
-  function RunMenu(MenuItem: TTntMenuItem; hPopupMenu: hMenu; MenuID: UINT): Integer;
-  var
-    i: Integer;
-    SubMenu: hMenu;
-    Map: PMenuItemLink;
-    NewIndex: Integer;
-  begin
-    Result := MenuID;
-    if MenuItem.Count > 0 then
-    begin
-      // Item has sub-items and won't take a MenuID
-      SubMenu := CreatePopupMenu;
-      NewIndex := AddContextMenuItem(hPopupMenu, MenuItem.Caption, Index, Result, SubMenu);
-      for i := MenuItem.Count - 1 downto 0 do
-        Result := RunMenu(MenuItem.Items[i] as TTntMenuItem, SubMenu, Result);
-    end else
-      NewIndex := AddContextMenuItem(hPopupMenu, MenuItem.Caption, Index, Result, 0);
-    if NewIndex <> $FFFF then
-    begin
-      Map := MenuMap.Add;
-      Map.MenuID := Result;
-      Map.Item := MenuItem;
-      Inc(Result)
-    end;
-  end;
-
-var
-  i: Integer;
-begin
-  Result := idStart;
-  for i := Menu.Items.Count - 1 downto 0 do
-    Result := RunMenu(Menu.Items[i] as TTntMenuItem, ContextMenu, Result)
-end;
-{$ELSE}
 function TCommonShellContextMenu.MergeMenuIntoContextMenu(Menu: TPopupMenu;
   ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
   //
@@ -10209,7 +9967,6 @@ begin
   for i := Menu.Items.Count - 1 downto 0 do
     Result := RunMenu(Menu.Items[i], ContextMenu, Result)
 end;
-{$ENDIF}
 
 { TCommonShellMultiParentContextMenu}
 function TCommonShellMultiParentContextMenu.ExecuteContextMenuVerb(Owner: TWinControl; Namespaces: TNamespaceArray; Verb: string; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
@@ -10267,21 +10024,12 @@ begin
   FShowPasteShortCutItem := True;
   FShowPropertiesItem := True;
   FAutoDetectNewItem := True;
-  {$IFDEF TNTSUPPORT}
-  PopupMenuProperties := TTntPopupMenu.Create(Self);
-  PopupMenuPasteShortCut := TTntPopupMenu.Create(Self);
-  PopupMenuPaste := TTntPopupMenu.Create(Self);
-  Paste := TTntMenuItem.Create(PopupMenuPaste);
-  PasteShortCut := TTntMenuItem.Create(PopupMenuPasteShortCut);
-  Properties := TTntMenuItem.Create(PopupMenuProperties);
-  {$ELSE}
   PopupMenuProperties := TPopupMenu.Create(Self);
   PopupMenuPasteShortCut := TPopupMenu.Create(Self);
   PopupMenuPaste := TPopupMenu.Create(Self);
   Paste := TMenuItem.Create(PopupMenuPaste);
   PasteShortCut := TMenuItem.Create(PopupMenuPasteShortCut);
   Properties := TMenuItem.Create(PopupMenuProperties);
-  {$ENDIF}
   Paste.Caption := STR_PASTE;
   PasteShortCut.Caption := STR_PASTELINK;
   Properties.Caption := STR_PROPERTIES;

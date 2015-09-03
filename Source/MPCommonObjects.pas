@@ -45,10 +45,6 @@ uses
   RTLConsts,
   Themes,
   UxTheme,
-{$IFDEF TNTSUPPORT}
-    TntClasses,
-    WideStrings,
-{$ENDIF}
   ShlObj,
   ShellAPI,
   ImgList,
@@ -691,9 +687,6 @@ var
   i: Integer;
   HDrop: TCommonHDrop;
   DragLoop: TCommonInShellDragLoop;
-  {$IFDEF TNTSUPPORT}
-  FileListW: TTntStringList;
-  {$ENDIF}
   FileListA: TStringList;
   NS: TNamespace;
   AbsolutePIDLs: TCommonPIDLList;
@@ -717,9 +710,6 @@ begin
     HDrop := TCommonHDrop.Create;
     AbsolutePIDLs := TCommonPIDLList.Create;
     AbsolutePIDLs.SharePIDLs := True;
-    {$IFDEF TNTSUPPORT}
-    FileListW := TTntStringList.Create;
-    {$ENDIF}
     FileListA := TStringList.Create;
     try
       // First PIDL must be the Desktop (root PIDL)
@@ -729,26 +719,12 @@ begin
         NS := TNamespace( NamespaceList[i]);
         if NS.FileSystem then
         begin
-          {$IFDEF TNTSUPPORT}
-          if IsUnicode then
-            FileListW.Add(NS.NameForParsing)
-          else
-            FileListA.Add(NS.NameForParsing);
-          {$ELSE}
           FileListA.Add(NS.NameForParsing);
-          {$ENDIF}
         end;
         AbsolutePIDLs.Add(NS.AbsolutePIDL);
       end;
       ShellIDList.AssignPIDLs(AbsolutePIDLs);
-      {$IFDEF TNTSUPPORT}
-      if IsUnicode then
-        HDrop.AssignFilesW(FileListW)
-      else
-        HDrop.AssignFilesA(FileListA);
-      {$ELSE}
       HDrop.AssignFilesA(FileListA);
-      {$ENDIF}
       ShellIDList.SaveToDataObject(ADataObject);
       HDrop.SaveToDataObject(ADataObject);
       if DragDropObject then
@@ -757,9 +733,6 @@ begin
       ShellIDList.Free;
       HDrop.Free;
       AbsolutePIDLs.Free;
-      {$IFDEF TNTSUPPORT}
-      FileListW.Free;
-      {$ENDIF}
       FileListA.Free;
       if DragDropObject then
         DragLoop.Free;

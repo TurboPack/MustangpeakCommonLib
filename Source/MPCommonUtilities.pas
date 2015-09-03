@@ -41,25 +41,6 @@ unit MPCommonUtilities;
 //  TextOutW
 //  WideCharToMultiByte
 
-  {$IFDEF TNTSUPPORT}
-//   IMPORTANT - PLEASE READ then comment this line out.
-//  If using TNT you MUST include the TNT package for your specific compiler in the
-//  Requires section of this package.  It may be possible to compile without doing
-//  this but you WILL eventually have strange crashes in your application that will
-//  be difficult to understand.  The best way to do this in my opinion is to create
-//  a new folder in the package install directory called "Delphi_TNT" (or CBuilder_TNT)
-//  and copy all the files from the Delphi (or CBuilder) folder into it.  Now open the
-//  MPCommonLibDx.dpk (or bpk) file in the "Delphi_TNT" (or CBuilder_TNT) based on your compiler
-//  version in a text editor.  In the "Requires" section add "TNTUnicodeVcl_Rx0", where
-//  the "x" is the version of Delphi you are using.  Open the dpk (bpk) file in your
-//  IDE. Select the menu option Projects>Options>Directories/Conditionals>Conditional
-//  and enter TNTSUPPORT. Compile the package, then open the MPCommonLibDxD.dpk (or bpk)
-//  and compile and press the Install button.
-//  Now when you update the packages you won't have to redo all this.  Just install
-//  the update then compile the packages in the "Delphi_TNT" (or CBuilder_TNT) folders
-//  an you are done.
-  {$ENDIF}
-
 {$B-}
 
 {$I Compilers.inc}
@@ -82,10 +63,6 @@ uses
   ShlObj,
   Variants,
   RTLConsts,
-  {$IFDEF TNTSUPPORT}
-  TntSysUtils,
-  TntClasses,
-  {$ENDIF}
   ShellAPI,
   ComCtrls,
   ComObj,
@@ -344,8 +321,6 @@ function TextExtentW(Text: PWideChar; DC: hDC): TSize; overload;
 function TextExtentW(Text: WideString; Canvas: TCanvas): TSize; overload;
 function TextExtentW(Text: WideString; Font: TFont): TSize; overload;
 function TextTrueExtentsW(Text: WideString; DC: HDC): TSize;
-function TNTConditionallyDefined: Boolean;
-function UnicodeStringLists: Boolean;
 function UniqueDirName(const ADirPath: WideString): WideString;
 function UniqueFileName(const AFilePath: WideString): WideString;
 function VariantToCaption(const V: Variant): WideString;
@@ -900,11 +875,7 @@ function WideDirectoryExists(const Name: WideString): Boolean;
 begin
   if Name <> '' then
   begin
-    {$IFDEF TNTSUPPORT}
-    Result := TntSysUtils.WideDirectoryExists(Name);
-    {$ELSE}
     Result := DirectoryExists(Name)
-    {$ENDIF}
   end else
     Result := False
 end;
@@ -945,22 +916,14 @@ end;
 
 function WideCreateDir(Path: WideString): Boolean;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideCreateDir(Path);
-  {$ELSE}
   Result := CreateDir(Path)
-  {$ENDIF}
 end;
 
 function WideExcludeTrailingBackslash(Path: WideString): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExcludeTrailingBackslash(Path);
-  {$ELSE}
   {$WARN SYMBOL_PLATFORM OFF}
   Result := ExcludeTrailingBackslash(Path)
   {$WARN SYMBOL_PLATFORM ON}
-  {$ENDIF}
 end;
 
 function WideExpandEnviromentString(EnviromentString: WideString): WideString;
@@ -1024,11 +987,7 @@ end;
 
 function WideExtractFilePath(Path: WideString): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExtractFilePath(Path);
-  {$ELSE}
   Result := ExtractFilePath(Path);
-  {$ENDIF}
 end;
 
 function WideExtractFileName(Path: WideString; BaseNameOnly: Boolean = False): WideString;
@@ -1054,42 +1013,25 @@ begin
     end;
     if Found then
     begin
-      {$IFDEF TNTSUPPORT}
-      Result[i] := WideChar( #0);
-      Result := WideString( PWideChar( Result));
-      {$ELSE}
       Result[i] := #0;
       Result := String( PWideChar( Result));
-      {$ENDIF}
     end;
   end;
 end;
 
 function WideFileExists(Path: WideString): Boolean;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideFileExists(Path);
-  {$ELSE}
   Result := FileExists(Path);
-  {$ENDIF}
 end;
 
 function WideExtractFileDir(Path: WideString): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExtractFileDir(Path);
-  {$ELSE}
   Result := ExtractFileDir(Path);
-  {$ENDIF}
 end;
 
 function WideExtractFileDrive(Path: WideString; DriveLetterOnly: Boolean = False): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExtractFileDrive(Path);
-  {$ELSE}
   Result := ExtractFileDrive(Path);
-  {$ENDIF}
   if DriveLetterOnly and (Length(Result) > 0) then
     Result := Result[1];
 end;
@@ -1098,15 +1040,6 @@ function WideExtractFileExt(Path: WideString; StripExtPeriod: Boolean = False): 
 var
   Head: PWideChar;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideExtractFileExt(Path);
-  if StripExtPeriod and (Length(Result) > 0) then
-  begin
-    Head := PWideChar( Result);
-    Inc(Head);
-    Result := WideString( Head);
-  end;
-  {$ELSE}
   Result := ExtractFileExt(Path);
   if StripExtPeriod and (Length(Result) > 0) then
   begin
@@ -1114,7 +1047,6 @@ begin
     Inc(Head);
     Result := String( Head);
   end;
-  {$ENDIF}
 end;
 
 function WideFindFirstFileEx(FileName: WideString;
@@ -1757,18 +1689,10 @@ function WideValidateDelimitedExtList(DelimitedText: WideString;
 var
   i: Integer;
   TestStr: WideString;
-  {$IFDEF TNTSUPPORT}
-  Extensions: TTntStringList;
-  {$ELSE}
   Extensions: TStringList;
-  {$ENDIF}
 begin
   Result := '';
-  {$IFDEF TNTSUPPORT}
-  Extensions := TTntStringList.Create;
-  {$ELSE}
   Extensions := TStringList.Create;
-  {$ENDIF}
   try
     Extensions.Sorted := False;
     case Delimiter of
@@ -3452,13 +3376,9 @@ end;
 
 function WideIncludeTrailingBackslash(Path: WideString): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := TntSysUtils.WideIncludeTrailingBackslash(Path);
-  {$ELSE}
   {$WARN SYMBOL_PLATFORM OFF}
   Result := IncludeTrailingBackslash(Path);
   {$WARN SYMBOL_PLATFORM ON}
-  {$ENDIF}
 end;
 
 function WideIncrementalSearch(CompareStr, Mask: WideString): Integer;
@@ -3802,24 +3722,6 @@ begin
   end;
 end;
 
-function TNTConditionallyDefined: Boolean;
-begin
-  {$IFDEF TNTSUPPORT}
-  Result := True;
-  {$ELSE}
-  Result := False;
-  {$ENDIF}
-end;
-
-function UnicodeStringLists: Boolean;
-begin
-  {$IFDEF TNTSUPPORT}
-  Result := True;
-  {$ELSE}
-    Result := True;
-  {$ENDIF}
-end;
-
 function UniqueDirName(const ADirPath: WideString): WideString;
 var
   i: integer;
@@ -3905,11 +3807,7 @@ end;
 
 function WideStringReplace(const S, OldPattern, NewPattern: WideString; Flags: TReplaceFlags; WholeWord: Boolean = False): WideString;
 begin
-  {$IFDEF TNTSUPPORT}
-  Result := Tnt_WideStringReplace(S, OldPattern, NewPattern, Flags, WholeWord);
-  {$ELSE}
   Result := StringReplace(S, OldPattern, NewPattern, Flags)
-  {$ENDIF};
 end;
 
 function WideShellExecute(hWnd: HWND; Operation, FileName, Parameters, Directory: WideString; ShowCmd: Integer = SW_NORMAL): HINST;
