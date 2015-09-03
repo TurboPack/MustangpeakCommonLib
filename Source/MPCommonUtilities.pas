@@ -890,7 +890,7 @@ begin
   i := 0;
   while FindFileDataA.cFileName[i] <> #0 do
   begin
-    WS := FindFileDataA.cFileName[i];
+    WS := string(FindFileDataA.cFileName[i]);
     FindFileDataW.cFileName[i] := WS[1];
     Inc(i)
   end
@@ -930,7 +930,7 @@ begin
     Result := SHFileOperationW_MP(FileOpStructW) = 0;
   end else
   begin
-    DirNameA := DirName + #0;
+    DirNameA := AnsiString(DirName + #0);
     FileOpStructA.Wnd := 0;
     FileOpStructA.wFunc := FO_DELETE;
     FileOpStructA.pFrom := PAnsiChar(DirNameA);
@@ -979,13 +979,13 @@ begin
     end
   end else
   begin
-    EnviromentStringA := EnviromentString;
+    EnviromentStringA := AnsiString(EnviromentString);
     Length := ExpandEnvironmentStringsA(PAnsiChar( EnviromentStringA), nil, 0);
     if Length > 0 then
     begin
       SetLength(ResultA, Length - 2); // There is a magic 1 per the MSDN docs for the ANSI version
       ExpandEnvironmentStringsA( PAnsiChar( EnviromentStringA), PAnsiChar( @ResultA[1]), Length);
-      Result := ResultA
+      Result := string(ResultA)
     end
   end
 end;
@@ -1011,11 +1011,11 @@ begin
     begin
       if OpenProcessToken(GetCurrentProcess, TOKEN_IMPERSONATE or TOKEN_QUERY, Token) then
       begin
-        EnviromentStringA := EnviromentString;
+        EnviromentStringA := AnsiString(EnviromentString);
         SetLength(ResultA, 256);
         ExpandEnvironmentStringsForUserA_MP(Token, PAnsiChar( EnviromentStringA), PAnsiChar( @ResultA[1]), 256);
         SetLength(ResultA, lstrlenA(PAnsiChar( ResultA)));
-        Result := ResultA;
+        Result := string(ResultA);
         CloseHandle(Token)
       end
     end
@@ -1266,17 +1266,13 @@ begin
   {$IFDEF TNT}
     Result := WideExtractFileDir( FileName)
   {$ELSE}
-    Result := ExtractFileDir( AnsiString(FileName))
+    Result := ExtractFileDir(FileName)
   {$ENDIF}
 end;
 
 function DirExistsW(const FileName: PWideChar): Boolean;
 begin
-  {$IFDEF TNT}
-    Result := DirectoryExists(FileName)
-  {$ELSE}
-    Result := DirectoryExists( AnsiString(FileName))
-  {$ENDIF}
+  Result := DirectoryExists(FileName)
 end;
 
 function FlipReverseCopyRect(const Flip, Reverse: Boolean; const Bitmap: TBitmap): TBitmap;
@@ -1594,7 +1590,7 @@ begin
     end
   end else
   begin
-    FolderPathA := FolderPath;
+    FolderPathA := AnsiString(FolderPath);
     FHandle := FindFirstFileA(PAnsiChar( AnsiString(FolderPathA + '\*.*')), InfoA);
     if FHandle <> INVALID_HANDLE_VALUE then
     try
@@ -1602,7 +1598,7 @@ begin
       begin
         if (lstrcmpiA(InfoA.cFileName, '.') <> 0) and (lstrcmpiA(InfoA.cFileName, '..') <> 0) and
             (InfoA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-          SumFolder(FolderPathA + '\' + InfoA.cFileName, Recurse, Size)
+          SumFolder(string(FolderPathA) + '\' + string(InfoA.cFileName), Recurse, Size)
       end else
         Size := Size + Int64(InfoA.nFileSizeHigh) * MAXDWORD + Int64(InfoA.nFileSizeLow);
       while FindNextFileA(FHandle, InfoA) and not SumFolderAbort do
@@ -1611,7 +1607,7 @@ begin
         begin
           if (lstrcmpiA(InfoA.cFileName, '.') <> 0) and (lstrcmpiA(InfoA.cFileName, '..') <> 0) and
             (InfoA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-            SumFolder(FolderPathA + '\' + InfoA.cFileName, Recurse, Size)
+            SumFolder(string(FolderPathA) + '\' + string(InfoA.cFileName), Recurse, Size)
         end else
           Size := Size + Int64(InfoA.nFileSizeHigh) * MAXDWORD + Int64(InfoA.nFileSizeLow);
       end;
@@ -1628,7 +1624,7 @@ begin
   if IsUnicode then
     GetTextExtentPoint32W(DC, PWideChar(Text), Length(Text), Result)
   else begin
-    S := WideString( Text);
+    S := PAnsiChar( Text);
     GetTextExtentPoint32A(DC, PAnsiChar(S), Length(S), Result)
   end;
 end;
@@ -3246,7 +3242,7 @@ procedure CopyToNullBufferA(S: WideString; Buffer: PAnsiChar; CharCount: Cardina
 var
   ANSI: AnsiString;
 begin
-  ANSI := S;
+  ANSI := AnsiString(S);
   FillChar(Buffer^, CharCount, #0);
   if Length(ANSI) > 0 then
   begin
@@ -3303,7 +3299,7 @@ begin
   end
   else begin
     GetNumberFormatA(LOCALE_USER_DEFAULT, 0, PAnsiChar(AnsiString(NumberString)), nil, BufferA, SizeOf(BufferA));
-    Result := BufferA
+    Result := string(BufferA)
   end;
 
   { Trimming white space in Unicode is tough don't pass any }
@@ -3369,7 +3365,7 @@ begin
     end else
     if not IsWin95_SR1 and Assigned(GetDiskFreeSpaceExA_MP) then
     begin
-      S := FolderPath;
+      S := AnsiString(FolderPath);
       if GetDiskFreeSpaceExA_MP(PAnsiChar(S), FreeSpaceAvailable, TotalSpace, nil) then
         Result := TotalSpace - FreeSpaceAvailable;
     end else
@@ -3434,7 +3430,7 @@ begin
   end else
   begin
     if GetCurrentDirectoryA(MAX_PATH, BufferA) > 0 then
-      Result := BufferA;
+      Result := string(BufferA);
   end
 end;
 
@@ -3450,7 +3446,7 @@ begin
   end else
   begin
     if GetTempPathA(MAX_PATH, BufferA) > 0 then
-      Result := BufferA;
+      Result := string(BufferA);
   end
 end;
 
@@ -3649,7 +3645,7 @@ begin
     begin
       SetLength(S, Len - 1);
       GetSystemDirectoryA(PAnsiChar(S), Len);
-      Result := S
+      Result := string(S)
     end
   end
 end;
@@ -3933,10 +3929,10 @@ begin
     Result := ShellExecuteW_MP(hWnd, PWideChar(Operation), PWideChar(FileName), PW, DW, SW_NORMAL)
   end else
   begin
-    OperationA := Operation;
-    FileNameA := FileName;
-    ParametersA := Parameters;
-    DirectoryA := Directory;
+    OperationA := AnsiString(Operation);
+    FileNameA := AnsiString(FileName);
+    ParametersA := AnsiString(Parameters);
+    DirectoryA := AnsiString(Directory);
     PA := nil;
     DA := nil;
     if ParametersA <> '' then
@@ -3954,8 +3950,8 @@ begin
   if IsUnicode then
     MessageBoxW(Window, PWideChar( AMessage), PWideChar( ACaption), MB_ICONEXCLAMATION or MB_OK)
   else begin
-    TextA := AMessage;
-    CaptionA := ACaption;
+    TextA := AnsiString(AMessage);
+    CaptionA := AnsiString(ACaption);
     MessageBoxA(Window, PAnsiChar( TextA), PAnsiChar( CaptionA), MB_ICONEXCLAMATION or MB_OK)
   end          
 end;
@@ -3976,8 +3972,8 @@ begin
   if IsUnicode then
     Result := MessageBoxW(Window, PWideChar( AMessage), PWideChar( ACaption), uType)
   else begin
-    TextA := AMessage;
-    CaptionA := ACaption;
+    TextA := AnsiString(AMessage);
+    CaptionA := AnsiString(ACaption);
     Result := MessageBoxA(Window, PAnsiChar( TextA), PAnsiChar( CaptionA), uType)
   end
 end;
@@ -4010,8 +4006,8 @@ begin
   if Win32Platform = VER_PLATFORM_WIN32_NT then
     Result := lstrcmpiW_MP(Str1, Str2)
   else begin
-    S1 := Str1;
-    S2 := Str2;
+    S1 := AnsiString(Str1);
+    S2 := AnsiString(Str2);
     Result := lstrcmpiA(PAnsiChar(S1), PAnsiChar(S2))
   end
 end;
@@ -4052,8 +4048,8 @@ begin
   if Win32Platform = VER_PLATFORM_WIN32_NT then
     Result := lstrcmpW_MP(Str1, Str2)
   else begin
-    S1 := Str1;
-    S2 := Str2;
+    S1 := AnsiString(Str1);
+    S2 := AnsiString(Str2);
     Result := lstrcmpA(PAnsiChar(S1), PAnsiChar(S2))
   end
 end;
@@ -4068,9 +4064,9 @@ begin
   if IsUnicode then
     CharLowerBuffW_MP(Str, lstrlenW(Str))
   else begin
-    S := Str;
+    S := AnsiString(Str);
     CharLowerBuffA(PAnsiChar(S), Length(S));
-    WS := S;
+    WS := string(S);
     { WS is a string index from 1, Result is PWideChar index from 0 }
     Move(WS[1], Result[0], Length(WS));
   end;
@@ -4227,7 +4223,7 @@ begin
     begin
       SetLength(S, Len - 1);
       GetWindowsDirectoryA(PAnsiChar(S), Len);
-      Result := S
+      Result := string(S)
     end
   end
 end;
@@ -4253,9 +4249,9 @@ begin
     if GetModuleFileNameA(0 , BufferA, SizeOf(BufferA)) > 0 then
     begin
       if PathOnly then
-        Result := ExtractFileDirW(BufferA)
+        Result := ExtractFileDir(string(BufferA))
       else
-        Result := BufferA
+        Result := string(BufferA)
     end
   end
 end;
@@ -4311,9 +4307,9 @@ begin
       Result := BufferW
   end else
   begin
-    S := FileName;
+    S := AnsiString(FileName);
     if GetShortPathNameA(PAnsiChar(S), BufferA, SizeOf(BufferA)) > 0 then
-      Result := BufferA
+      Result := string(BufferA)
   end
 end;
 

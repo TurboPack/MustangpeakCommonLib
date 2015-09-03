@@ -2475,7 +2475,7 @@ begin
           begin
             SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
             if defaultID = MenuID then
-              Verb := VerbA;
+              Verb := string(VerbA);
             if lstrcmpiA(PAnsiChar( VerbA), PAnsiChar(AnsiString(Verb))) = 0 then
             begin
               // Here we directly modify the pointer since the resource is not
@@ -3177,7 +3177,7 @@ begin
       Result := FileInfoW.iIcon;
     end else
     begin
-      FileExampleA := FileExampleW;
+      FileExampleA := AnsiString(FileExampleW);
       FillChar(FileInfoA, SizeOf(FileInfoA), #0);
       SHGetFileInfoA(PAnsiChar(FileExampleA), Attrib, FileInfoA, SizeOf(TSHFileInfoA), Flags);
       Result := FileInfoA.iIcon;
@@ -3773,7 +3773,7 @@ begin
         Result := ''
       else begin
         SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
-        Result := S
+        Result := string(S)
       end
     end else
       SetLength(Result,  lstrlenW(PWideChar( Result)))
@@ -3810,7 +3810,7 @@ begin
         Result := ''
       else begin
         SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
-        Result := S
+        Result := string(S)
       end
     end else
       SetLength(Result,  lstrlenW(PWideChar( Result)))
@@ -5543,7 +5543,7 @@ begin
     if not Assigned(FWin32FindDataA) then
       GetDataFromIDList;
     if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.cFileName
+      Result := string(FWin32FindDataA^.cFileName)
     else
       Result := '';
   end
@@ -5608,7 +5608,7 @@ begin
         if FileSystem and Assigned(FWin32FindDataA)  then
         begin
           FillChar(FileDataA, SizeOf(FileDataA), #0);
-          S := NameParseAddress;
+          S := AnsiString(NameParseAddress);
           Handle := FindFirstFileA(PAnsiChar( S), FileDataA);
           if Handle <> INVALID_HANDLE_VALUE then
           begin
@@ -6581,7 +6581,7 @@ begin
       if Assigned(FSHGetFileInfoRec) then
       begin
         SHGetFileInfoA(PAnsiChar(AbsolutePIDL), 0, InfoA, SizeOf(InfoA), SHGFI_TYPENAME or SHGFI_PIDL);
-        FSHGetFileInfoRec^.FileType := InfoA.szTypeName;
+        FSHGetFileInfoRec^.FileType := string(InfoA.szTypeName);
         { NT only half-assed supports the SHGetFileInfo...only if the ext is      }
         { associated with a program. So we build it ourselves                     }
         if FSHGetFileInfoRec^.FileType = '' then
@@ -6611,9 +6611,9 @@ begin
       GetDataFromIDList;
     if Assigned(FWin32FindDataA) and FileSystem then
     begin
-      Result := FWin32FindDataA^.cAlternateFileName;
+      Result := string(FWin32FindDataA^.cAlternateFileName);
       if Result = '' then
-        Result := WideUpperCase(FWin32FindDataA^.CFileName)
+        Result := WideUpperCase(string(FWin32FindDataA^.CFileName))
     end else
       Result := '';
   end
@@ -7113,7 +7113,7 @@ begin
                   SetLength(VerbW, lstrlenW(PWideChar( VerbW)))
                 else begin
                   SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
-                  VerbW := VerbA
+                  VerbW := string(VerbA)
                 end;
 
                 if not Result then
@@ -7888,9 +7888,9 @@ begin
     begin
       FillChar(ShellExecuteInfoA, SizeOf(TShellExecuteInfo), #0);
       if WideDirectoryExists(WorkingDir) then
-        ShortWorkingDir := WorkingDir
+        ShortWorkingDir := AnsiString(WorkingDir)
       else
-        ShortWorkingDir := ExtractFileDir(NameParseAddress);
+        ShortWorkingDir := AnsiString(ExtractFileDir(NameParseAddress));
       ShellExecuteInfoA.lpDirectory := PAnsiChar(ShortWorkingDir);
       ShellExecuteInfoA.cbSize := SizeOf(TShellExecuteInfo);
       ShellExecuteInfoA.fMask := SEE_MASK_INVOKEIDLIST or SEE_MASK_NOCLOSEPROCESS;
@@ -7899,7 +7899,7 @@ begin
       ShellExecuteInfoA.Wnd:= ParentWnd;
       ShellExecuteInfoA.nShow := SW_SHOWNORMAL;
       ShellExecuteInfoA.lpIDList:= AbsolutePIDL;
-      ShortCmdLine := CmdLineArguments;
+      ShortCmdLine := AnsiString(CmdLineArguments);
       ShellExecuteInfoA.lpParameters := PAnsiChar(ShortCmdLine);
       if RunInThread then
       begin
@@ -7913,8 +7913,8 @@ begin
         ShellExecuteThread.ShellExecuteInfoA.dwHotKey := ShellExecuteInfoA.dwHotKey;
         ShellExecuteThread.ShellExecuteInfoA.hIcon := ShellExecuteInfoA.hIcon;
         ShellExecuteThread.ShellExecuteInfoA.hProcess := ShellExecuteInfoA.hProcess;
-        ShellExecuteThread.lpDirectory := ShellExecuteInfoA.lpDirectory;
-        ShellExecuteThread.lpParameters := ShellExecuteInfoA.lpParameters;
+        ShellExecuteThread.lpDirectory := PChar(ShellExecuteInfoA.lpDirectory);
+        ShellExecuteThread.lpParameters := PChar(ShellExecuteInfoA.lpParameters);
         ShellExecuteThread.PIDL := PIDLMgr.CopyPIDL(ShellExecuteInfoA.lpIDList);
         ShellExecuteThread.Resume;
         Result := True;
@@ -8456,7 +8456,7 @@ begin
         if Success then
         begin
           SetLength(S, lstrlenA(PAnsiChar( S)));
-          FTargetPath := S
+          FTargetPath := string(S)
         end;
 
         SetLength(S, BUFFERSIZE);
@@ -8464,7 +8464,7 @@ begin
         if Success then
         begin
           SetLength(S, lstrlenA(PAnsiChar( S)));
-          FArguments := S
+          FArguments := string(S)
         end;
 
         SetLength(S, BUFFERSIZE);
@@ -8472,7 +8472,7 @@ begin
         if Success then
         begin
           SetLength(S, lstrlenA(PAnsiChar( S)));
-          FDescription := S
+          FDescription := string(S)
         end;
 
         SetLength(S, BUFFERSIZE);
@@ -8480,7 +8480,7 @@ begin
         if Success then
         begin
           SetLength(S, lstrlenA(PAnsiChar( S)));
-          FWorkingDirectory := S
+          FWorkingDirectory := string(S)
         end;
 
         SetLength(S, BUFFERSIZE);
@@ -8488,7 +8488,7 @@ begin
         if Success then
         begin
           SetLength(S, lstrlenA(PAnsiChar( S)));
-          FIconLocation := S
+          FIconLocation := string(S)
         end;
 
         FreeTargetIDList;
@@ -8592,17 +8592,17 @@ begin
       if CommonSupports(ShellLinkAInterface, IPersistFile, PersistFile) then
       begin
         FFileName := LinkFileName;
-        S := FTargetPath;
+        S := AnsiString(FTargetPath);
         ShellLinkAInterface.SetPath(PAnsiChar( S));
-        S := FArguments;
+        S := AnsiString(FArguments);
         ShellLinkAInterface.SetArguments(PAnsiChar(S));
-        S := FDescription;
+        S := AnsiString(FDescription);
         ShellLinkAInterface.SetDescription(PAnsiChar( S));
-        S := FTargetPath;
+        S := AnsiString(FTargetPath);
         ShellLinkAInterface.SetPath(PAnsiChar( S));
-        S := FWorkingDirectory;
+        S := AnsiString(FWorkingDirectory);
         ShellLinkAInterface.SetWorkingDirectory(PAnsiChar( S));
-        S := FIconLocation;
+        S := AnsiString(FIconLocation);
         ShellLinkAInterface.SetIconLocation(PAnsiChar( S), FIconIndex);
 
         if Assigned(FTargetIDList) then

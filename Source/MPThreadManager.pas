@@ -1014,7 +1014,7 @@ constructor TCommonThreadManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlList := TThreadList.Create;
-  AClassName := COMMONTHREADFILTERWNDCLASS + IntToStr( Integer( Self))
+  AClassName := AnsiString(COMMONTHREADFILTERWNDCLASS + IntToStr( Integer( Self)))
 end;
 
 procedure TCommonThreadManager.CreateThreadObject;

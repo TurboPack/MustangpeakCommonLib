@@ -775,7 +775,7 @@ begin
     if DropFiles.fWide then
       Result := FileNameW(Index)
     else
-      Result := FileNameA(Index)
+      Result := string(FileNameA(Index))
   end
 end;
 
