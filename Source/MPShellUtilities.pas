@@ -44,7 +44,6 @@ unit MPShellUtilities;
 interface
 
 {$I ..\Include\Addins.inc}
-{$I Compilers.inc}
 
 {.$DEFINE GXDEBUG_DEFMENUCREATE_CALLBACK}
 {.$DEFINE GXDEBUG_VIRTUALCONTEXTMENU}
@@ -67,7 +66,6 @@ interface
 
 {$B-}
 
-{$include Compilers.inc}
 {$include Options.inc}
 
 uses
@@ -2199,11 +2197,7 @@ begin
    if IsEqualGUID(riid, IContextMenu3) then
      Result := 'IContextMenu3'
    else
-   {$IFDEF CPPB_6}
-     if IsEqualGUID(riid, IBCB6ShellDetails) then
-   {$ELSE}
      if IsEqualGUID(riid, IShellDetails) then
-   {$ENDIF}
      Result := 'IShellDetails'
    else
    if IsEqualGUID(riid, IStream) then
@@ -2452,7 +2446,7 @@ begin
     BrowseInfoW.pidlRoot := RootFolder;
     BrowseInfoW.lParam := Integer( InitialPath);
     BrowseInfoW.pszDisplayName := DisplayNameW;
-    {$IFDEF CPPB}
+    {$IFDEF BCB}
     BrowseInfoW.lpfn := MPBrowseForFolderCallback;
     {$ELSE}
     BrowseInfoW.lpfn := @MPBrowseForFolderCallback;
@@ -2467,7 +2461,7 @@ begin
     BrowseInfoW.pidlRoot := RootFolder;
     BrowseInfoA.lParam := Integer( InitialPath);
     BrowseInfoA.pszDisplayName := DisplayNameA;
-    {$IFDEF CPPB}
+    {$IFDEF BCB}
     BrowseInfoA.lpfn := MPBrowseForFolderCallback;
     {$ELSE}
     BrowseInfoA.lpfn := @MPBrowseForFolderCallback;

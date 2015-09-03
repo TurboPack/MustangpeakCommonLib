@@ -25,7 +25,6 @@ unit MPShellTypes;
 
 interface
 
-{$I Compilers.inc}
 {$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
@@ -40,9 +39,6 @@ uses
 {$HPPEMIT '#include <comcat.h>'}
 {$HPPEMIT '#include <comcat.h>'}
 
-{$IFDEF CPPB_6}
-  {$HPPEMIT '#include <shtypes.h>'} // if BCB6 or later
-{$ENDIF}
 {$HPPEMIT '#include <winioctl.h>'}
 
 (*$HPPEMIT 'namespace Mpshellutilities { class TNamespace; }' *)
@@ -1870,20 +1866,6 @@ type
     property ViewOptions: Integer read Get_ViewOptions;
   end;
 
-{$IFDEF CPPB_6}
-// *********************************************************************//
-// DispIntf:  DShellFolderViewEvents
-// *********************************************************************//
-  DShellFolderViewEvents = dispinterface
-    ['{62112AA2-EBE4-11CF-A5FB-0020AFE7292D}']
-    procedure SelectionChanged; dispid 200;
-    procedure EnumDone; dispid 201;
-    function VerbInvoked: WordBool; dispid 202;
-    function DefaultVerbInvoked: WordBool; dispid 203;
-    function BeginDrag: WordBool; dispid 204;
-  end;
-{$ENDIF CPPB_6}
-
 //------------------------------------------------------------------------------
 // SHCreateShellFolderViewEx
 //------------------------------------------------------------------------------
@@ -3059,9 +3041,6 @@ const
   IID_IPersistIDList: TGUID = SID_IPersistIDList;
 
 type
-  {$IFDEF CPPB_6}
-    {$EXTERNALSYM IPersistIDList}
-  {$ENDIF}
   IPersistIDList = interface(IPersist)
   [SID_IPersistIDList]
     // sets or gets a fully qualifed idlist for an object

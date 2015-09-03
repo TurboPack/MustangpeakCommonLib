@@ -23,7 +23,6 @@ unit MPResources;
 
 interface
 
-{$I Compilers.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
 

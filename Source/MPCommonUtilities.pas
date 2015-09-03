@@ -43,7 +43,6 @@ unit MPCommonUtilities;
 
 {$B-}
 
-{$I Compilers.inc}
 {$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
@@ -1191,11 +1190,7 @@ end;
 
 function ExtractFileDirW(const FileName: WideString): WideString;
 begin
-  {$IFDEF TNT}
-    Result := WideExtractFileDir( FileName)
-  {$ELSE}
-    Result := ExtractFileDir(FileName)
-  {$ENDIF}
+  Result := ExtractFileDir(FileName)
 end;
 
 function DirExistsW(const FileName: PWideChar): Boolean;
@@ -1282,9 +1277,6 @@ var
   FindDataW: TWin32FindDataW;
 {$ENDIF}
 begin
-  {$IFDEF TNT}
-  Result:= WideFileExists(FileName); //Uses Tnt when available
-  {$ELSE}
   if IsUnicode then
     Handle := FindFirstFileW_MP(PWideChar(FileName), FindDataW)
   else
@@ -1292,7 +1284,6 @@ begin
   Result:= Handle <> INVALID_HANDLE_VALUE;
   if Result then
     Windows.FindClose(Handle);
-  {$ENDIF}
 end;
 
 function IsMappedDrivePath(const Path: WideString): Boolean;

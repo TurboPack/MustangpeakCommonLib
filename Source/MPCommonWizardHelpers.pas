@@ -27,7 +27,6 @@ unit MPCommonWizardHelpers;
 
 interface
 
-{$include Compilers.Inc}
 {$I ..\Include\Addins.inc}
 
 uses
@@ -718,7 +717,7 @@ end;
 
 function TCommonWizardModuleCreator.GetIsDelphi: Boolean;
 begin
-{$IFDEF CPPB}
+{$IFDEF BCB}
   Result := False;
 {$ELSE}
     if IsDelphiPersonality then
@@ -895,7 +894,7 @@ var
   i: Integer;
   IsBCB: Boolean;
 begin
-{$IFDEF CPPB}
+{$IFDEF BCB}
   Result := FILE_FORM_TEMPLATE_BCB;
   IsBCB := True;
 {$ELSE}
