@@ -81,7 +81,7 @@ private:
 	NativeUInt FID;
 	TCommonThreadPriority FPriority;
 	int FRefCount;
-	int FTag;
+	NativeInt FTag;
 	TCommonThread* FThread;
 	Vcl::Controls::TWinControl* FWindow;
 	void *FItem;
@@ -103,7 +103,7 @@ public:
 	__property NativeUInt ID = {read=FID, write=FID, nodefault};
 	__property TCommonThreadPriority Priority = {read=FPriority, write=FPriority, default=50};
 	__property int RemainingRequests = {read=FRemainingRequests, write=FRemainingRequests, nodefault};
-	__property int Tag = {read=FTag, write=FTag, nodefault};
+	__property NativeInt Tag = {read=FTag, write=FTag, nodefault};
 	__property TCommonThread* Thread = {read=FThread};
 	__property Vcl::Controls::TWinControl* Window = {read=FWindow, write=FWindow};
 };

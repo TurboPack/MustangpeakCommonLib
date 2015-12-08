@@ -873,7 +873,7 @@ type
     FShellLink: TVirtualShellLink;         // Object to read and write attributes to shortcut namespaces (files)
     FSHGetFileInfoRec: PSHGetFileInfoRec;  // Stores cached info from a call to SHGetFileInfo(A or W)
     FStates: TNamespaceStates;             // Dynamic state of the TNamespace
-    FTag: integer;
+    FTag: NativeInt;
     FTileDetail: TCommonIntegerDynArray; //
     FQueryInfoInterface: IQueryInfo;       // Interface for the popup InfoTips on folders in Win2k-WinME and up
     FWin32FindDataA: PWin32FindDataA;      // pointer to an allocated structure for an ASCI window file information if is is a file object
@@ -1216,7 +1216,7 @@ type
     property SubItems: Boolean read GetSubItems;
     property SymbolicLink: Boolean read GetSymbolicLink;
     property SymbolicLinkResolvePath: WideString read GetSymbolicLinkResolvePath;
-    property Tag: integer read FTag write FTag;
+    property Tag: NativeInt read FTag write FTag;
     property ThreadedDetailLoaded[Column: Integer]: Boolean read GetThreadedDetailLoaded write SetThreadedDetailLoaded;
     property ThreadedDetailLoading[Column: Integer]: Boolean read GetThreadedDetailLoading write SetThreadedDetailLoading;
     property ThreadedIconLoaded: Boolean read GetThreadedIconLoaded;

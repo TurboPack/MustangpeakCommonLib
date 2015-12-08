@@ -626,7 +626,7 @@ private:
 	TVirtualShellLink* FShellLink;
 	TSHGetFileInfoRec *FSHGetFileInfoRec;
 	TNamespaceStates FStates;
-	int FTag;
+	NativeInt FTag;
 	Mpcommonutilities::TCommonIntegerDynArray FTileDetail;
 	_di_IQueryInfo FQueryInfoInterface;
 	_WIN32_FIND_DATAA *FWin32FindDataA;
@@ -943,7 +943,7 @@ public:
 	__property bool SubItems = {read=GetSubItems, nodefault};
 	__property bool SymbolicLink = {read=GetSymbolicLink, nodefault};
 	__property System::WideString SymbolicLinkResolvePath = {read=GetSymbolicLinkResolvePath};
-	__property int Tag = {read=FTag, write=FTag, nodefault};
+	__property NativeInt Tag = {read=FTag, write=FTag, nodefault};
 	__property bool ThreadedDetailLoaded[int Column] = {read=GetThreadedDetailLoaded, write=SetThreadedDetailLoaded};
 	__property bool ThreadedDetailLoading[int Column] = {read=GetThreadedDetailLoading, write=SetThreadedDetailLoading};
 	__property bool ThreadedIconLoaded = {read=GetThreadedIconLoaded, nodefault};
