@@ -1,8 +1,8 @@
 ﻿// CodeGear C++Builder
-// Copyright (c) 1995, 2015 by Embarcadero Technologies, Inc.
+// Copyright (c) 1995, 2016 by Embarcadero Technologies, Inc.
 // All rights reserved
 
-// (DO NOT EDIT: machine generated header) 'MPShellUtilities.pas' rev: 30.00 (Windows)
+// (DO NOT EDIT: machine generated header) 'MPShellUtilities.pas' rev: 31.00 (Windows)
 
 #ifndef MpshellutilitiesHPP
 #define MpshellutilitiesHPP
@@ -275,17 +275,17 @@ class PASCALIMPLEMENTATION EVSTInvalidFileName : public System::Sysutils::Except
 	
 public:
 	/* Exception.Create */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg) : System::Sysutils::Exception(Msg) { }
-	/* Exception.CreateFmt */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg, System::TVarRec const *Args, const int Args_High) : System::Sysutils::Exception(Msg, Args, Args_High) { }
+	/* Exception.CreateFmt */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg, const System::TVarRec *Args, const int Args_High) : System::Sysutils::Exception(Msg, Args, Args_High) { }
 	/* Exception.CreateRes */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident)/* overload */ : System::Sysutils::Exception(Ident) { }
 	/* Exception.CreateRes */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec)/* overload */ : System::Sysutils::Exception(ResStringRec) { }
-	/* Exception.CreateResFmt */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident, System::TVarRec const *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High) { }
-	/* Exception.CreateResFmt */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec, System::TVarRec const *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High) { }
+	/* Exception.CreateResFmt */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident, const System::TVarRec *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High) { }
+	/* Exception.CreateResFmt */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec, const System::TVarRec *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High) { }
 	/* Exception.CreateHelp */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg, int AHelpContext) : System::Sysutils::Exception(Msg, AHelpContext) { }
-	/* Exception.CreateFmtHelp */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg, System::TVarRec const *Args, const int Args_High, int AHelpContext) : System::Sysutils::Exception(Msg, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateFmtHelp */ inline __fastcall EVSTInvalidFileName(const System::UnicodeString Msg, const System::TVarRec *Args, const int Args_High, int AHelpContext) : System::Sysutils::Exception(Msg, Args, Args_High, AHelpContext) { }
 	/* Exception.CreateResHelp */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, AHelpContext) { }
 	/* Exception.CreateResHelp */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, AHelpContext) { }
-	/* Exception.CreateResFmtHelp */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec, System::TVarRec const *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High, AHelpContext) { }
-	/* Exception.CreateResFmtHelp */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident, System::TVarRec const *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateResFmtHelp */ inline __fastcall EVSTInvalidFileName(System::PResStringRec ResStringRec, const System::TVarRec *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateResFmtHelp */ inline __fastcall EVSTInvalidFileName(NativeUInt Ident, const System::TVarRec *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High, AHelpContext) { }
 	/* Exception.Destroy */ inline __fastcall virtual ~EVSTInvalidFileName(void) { }
 	
 };
@@ -299,17 +299,17 @@ class PASCALIMPLEMENTATION EWow64RevertException : public System::Sysutils::Exce
 	
 public:
 	/* Exception.Create */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg) : System::Sysutils::Exception(Msg) { }
-	/* Exception.CreateFmt */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg, System::TVarRec const *Args, const int Args_High) : System::Sysutils::Exception(Msg, Args, Args_High) { }
+	/* Exception.CreateFmt */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg, const System::TVarRec *Args, const int Args_High) : System::Sysutils::Exception(Msg, Args, Args_High) { }
 	/* Exception.CreateRes */ inline __fastcall EWow64RevertException(NativeUInt Ident)/* overload */ : System::Sysutils::Exception(Ident) { }
 	/* Exception.CreateRes */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec)/* overload */ : System::Sysutils::Exception(ResStringRec) { }
-	/* Exception.CreateResFmt */ inline __fastcall EWow64RevertException(NativeUInt Ident, System::TVarRec const *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High) { }
-	/* Exception.CreateResFmt */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec, System::TVarRec const *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High) { }
+	/* Exception.CreateResFmt */ inline __fastcall EWow64RevertException(NativeUInt Ident, const System::TVarRec *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High) { }
+	/* Exception.CreateResFmt */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec, const System::TVarRec *Args, const int Args_High)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High) { }
 	/* Exception.CreateHelp */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg, int AHelpContext) : System::Sysutils::Exception(Msg, AHelpContext) { }
-	/* Exception.CreateFmtHelp */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg, System::TVarRec const *Args, const int Args_High, int AHelpContext) : System::Sysutils::Exception(Msg, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateFmtHelp */ inline __fastcall EWow64RevertException(const System::UnicodeString Msg, const System::TVarRec *Args, const int Args_High, int AHelpContext) : System::Sysutils::Exception(Msg, Args, Args_High, AHelpContext) { }
 	/* Exception.CreateResHelp */ inline __fastcall EWow64RevertException(NativeUInt Ident, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, AHelpContext) { }
 	/* Exception.CreateResHelp */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, AHelpContext) { }
-	/* Exception.CreateResFmtHelp */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec, System::TVarRec const *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High, AHelpContext) { }
-	/* Exception.CreateResFmtHelp */ inline __fastcall EWow64RevertException(NativeUInt Ident, System::TVarRec const *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateResFmtHelp */ inline __fastcall EWow64RevertException(System::PResStringRec ResStringRec, const System::TVarRec *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(ResStringRec, Args, Args_High, AHelpContext) { }
+	/* Exception.CreateResFmtHelp */ inline __fastcall EWow64RevertException(NativeUInt Ident, const System::TVarRec *Args, const int Args_High, int AHelpContext)/* overload */ : System::Sysutils::Exception(Ident, Args, Args_High, AHelpContext) { }
 	/* Exception.Destroy */ inline __fastcall virtual ~EWow64RevertException(void) { }
 	
 };
@@ -400,7 +400,7 @@ class PASCALIMPLEMENTATION TColumnMap : public System::TObject
 	typedef System::TObject inherited;
 	
 public:
-	TColumnItem* operator[](int Index) { return ColumnItem[Index]; }
+	TColumnItem* operator[](int Index) { return this->ColumnItem[Index]; }
 	
 private:
 	System::Classes::TList* FList;
@@ -993,7 +993,7 @@ class PASCALIMPLEMENTATION TVirtualNameSpaceList : public System::Contnrs::TObje
 	typedef System::Contnrs::TObjectList inherited;
 	
 public:
-	TNamespace* operator[](int Index) { return Items[Index]; }
+	TNamespace* operator[](int Index) { return this->Items[Index]; }
 	
 private:
 	TNamespace* __fastcall GetItems(int Index);
@@ -1032,7 +1032,7 @@ class PASCALIMPLEMENTATION TMenuItemMap : public System::Classes::TList
 	typedef System::Classes::TList inherited;
 	
 public:
-	PMenuItemLink operator[](int Index) { return Items[Index]; }
+	PMenuItemLink operator[](int Index) { return this->Items[Index]; }
 	
 protected:
 	HIDESBASE PMenuItemLink __fastcall Get(int Index);

@@ -1,8 +1,8 @@
 ﻿// CodeGear C++Builder
-// Copyright (c) 1995, 2015 by Embarcadero Technologies, Inc.
+// Copyright (c) 1995, 2016 by Embarcadero Technologies, Inc.
 // All rights reserved
 
-// (DO NOT EDIT: machine generated header) 'MPShellTypes.pas' rev: 30.00 (Windows)
+// (DO NOT EDIT: machine generated header) 'MPShellTypes.pas' rev: 31.00 (Windows)
 
 #ifndef MpshelltypesHPP
 #define MpshelltypesHPP
@@ -1385,7 +1385,7 @@ static const System::Word BFO_GO_HOME_PAGE = System::Word(0x4000);
 static const System::Word BFO_PREFER_IEPROCESS = System::Word(0x8000);
 static const int BFO_SHOW_NAVIGATION_CANCELLED = int(0x10000);
 static const unsigned BFO_QUERY_ALL = unsigned(0xffffffff);
-#define bfoNone EMPTYSET
+#define bfoNone System::Set<System::Byte>()
 #define bfoQueryAll (System::Set<TBrowserFrameOption, TBrowserFrameOption::bfoBrowserPersistSettings, TBrowserFrameOption::bfoShowNavigationCancelled>() << TBrowserFrameOption::bfoBrowserPersistSettings << TBrowserFrameOption::bfoRenameFolderOptionsToInternet << TBrowserFrameOption::bfoBothOptions << TBrowserFrameOption::bfoPreferInternetShortcut << TBrowserFrameOption::bfoBrowseNoInNewProcess << TBrowserFrameOption::bfoEnableHyperlinkTracking << TBrowserFrameOption::bfoUseIEOfflineSupport << TBrowserFrameOption::bfoSubstituteInternetStartPage << TBrowserFrameOption::bfoUseIELogoBanding << TBrowserFrameOption::bfoAddIEToCaptionBar << TBrowserFrameOption::bfoUseDialupRef << TBrowserFrameOption::bfoUseIEToolbar << TBrowserFrameOption::bfoNoParentFolderSupport \
 	<< TBrowserFrameOption::bfoNoReopenNextRestart << TBrowserFrameOption::bfoGoHomePage << TBrowserFrameOption::bfoPreferIEProcess << TBrowserFrameOption::bfoShowNavigationCancelled )
 static const System::Int8 ASSOCENUM_NONE = System::Int8(0x1);

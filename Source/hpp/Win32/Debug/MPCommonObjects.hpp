@@ -1,8 +1,8 @@
 ﻿// CodeGear C++Builder
-// Copyright (c) 1995, 2015 by Embarcadero Technologies, Inc.
+// Copyright (c) 1995, 2016 by Embarcadero Technologies, Inc.
 // All rights reserved
 
-// (DO NOT EDIT: machine generated header) 'MPCommonObjects.pas' rev: 30.00 (Windows)
+// (DO NOT EDIT: machine generated header) 'MPCommonObjects.pas' rev: 31.00 (Windows)
 
 #ifndef MpcommonobjectsHPP
 #define MpcommonobjectsHPP
@@ -70,6 +70,9 @@ class PASCALIMPLEMENTATION TStringListEx : public System::Classes::TStringList
 public:
 	/* TStringList.Create */ inline __fastcall TStringListEx(void)/* overload */ : System::Classes::TStringList() { }
 	/* TStringList.Create */ inline __fastcall TStringListEx(bool OwnsObjects)/* overload */ : System::Classes::TStringList(OwnsObjects) { }
+	/* TStringList.Create */ inline __fastcall TStringListEx(System::WideChar QuoteChar, System::WideChar Delimiter)/* overload */ : System::Classes::TStringList(QuoteChar, Delimiter) { }
+	/* TStringList.Create */ inline __fastcall TStringListEx(System::WideChar QuoteChar, System::WideChar Delimiter, System::Classes::TStringsOptions Options)/* overload */ : System::Classes::TStringList(QuoteChar, Delimiter, Options) { }
+	/* TStringList.Create */ inline __fastcall TStringListEx(System::Types::TDuplicates Duplicates, bool Sorted, bool CaseSensitive)/* overload */ : System::Classes::TStringList(Duplicates, Sorted, CaseSensitive) { }
 	/* TStringList.Destroy */ inline __fastcall virtual ~TStringListEx(void) { }
 	
 };
