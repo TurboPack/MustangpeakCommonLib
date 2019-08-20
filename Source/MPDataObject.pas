@@ -1217,20 +1217,15 @@ begin
   if Result then
   begin
     try
-      try
-        Handle := GetClipboardData(CF_SHELLIDLIST);
-        if Handle <> 0 then
+      Handle := GetClipboardData(CF_SHELLIDLIST);
+      if Handle <> 0 then
+      begin
+        Ptr := GlobalLock(Handle);
+        if Assigned(Ptr) then
         begin
-          Ptr := GlobalLock(Handle);
-          if Assigned(Ptr) then
-          begin
-            CIDA := Ptr;
-            Result := True;
-          end;
+          CIDA := Ptr;
+          Result := True;
         end;
-      except
-        Result := False;
-        raise;
       end;
     finally
       GlobalUnLock(Handle);

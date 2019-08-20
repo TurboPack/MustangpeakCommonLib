@@ -3098,30 +3098,25 @@ begin
   ShellLink := TVirtualShellLink.Create(nil);
   if Assigned(ShellLink) then
   try
-    try
-      ShellLink.FileName := ALnkFilePath;
-      ShellLink.TargetPath := ATargetFilePath;
-      if AnArguments <> '' then
-        ShellLink.Arguments := AnArguments;
-      if AWorkingDir <> '' then
-        ShellLink.WorkingDirectory := AWorkingDir;
-      if ADescription <> '' then
-        ShellLink.Description := ADescription;
-      if AShowCmd <> swShowNormal then
-        ShellLink.ShowCmd := AShowCmd;
-      if (AHotKey <> 0) then
-        ShellLink.HotKey := AHotKey;
-      if AHotKeyModifier <> [] then
-        ShellLink.HotKeyModifiers := AHotKeyModifier;
-      if AnIconLocation <> '' then
-        ShellLink.IconLocation := AnIconLocation;
-      if AnIconIndex <> 0 then
-        ShellLink.IconIndex := AnIconIndex;
-      ShellLink.WriteLink(ShellLink.FileName);
-    except
-      Result := False;
-      raise;
-    end
+    ShellLink.FileName := ALnkFilePath;
+    ShellLink.TargetPath := ATargetFilePath;
+    if AnArguments <> '' then
+      ShellLink.Arguments := AnArguments;
+    if AWorkingDir <> '' then
+      ShellLink.WorkingDirectory := AWorkingDir;
+    if ADescription <> '' then
+      ShellLink.Description := ADescription;
+    if AShowCmd <> swShowNormal then
+      ShellLink.ShowCmd := AShowCmd;
+    if (AHotKey <> 0) then
+      ShellLink.HotKey := AHotKey;
+    if AHotKeyModifier <> [] then
+      ShellLink.HotKeyModifiers := AHotKeyModifier;
+    if AnIconLocation <> '' then
+      ShellLink.IconLocation := AnIconLocation;
+    if AnIconIndex <> 0 then
+      ShellLink.IconIndex := AnIconIndex;
+    ShellLink.WriteLink(ShellLink.FileName);
   finally
     ShellLink.Free
   end
