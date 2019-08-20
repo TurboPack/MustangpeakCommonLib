@@ -122,7 +122,6 @@
         <IncludePath>..\Source\;$(IncludePath)</IncludePath>
         <SanitizedProjectName>MPCommonLibCD</SanitizedProjectName>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_HppOutput>..\source\hpp\$(Platform)\$(Config)</DCC_HppOutput>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
         <BCC_InlineFunctionExpansion>false</BCC_InlineFunctionExpansion>
         <UsePackages>true</UsePackages>

@@ -124,7 +124,6 @@
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
         <DllSuffix>260</DllSuffix>
-        <DCC_HppOutput>..\source\hpp\$(Platform)\$(Config)</DCC_HppOutput>
         <BCC_InlineFunctionExpansion>false</BCC_InlineFunctionExpansion>
         <UsePackages>true</UsePackages>
         <DynamicRTL>true</DynamicRTL>
