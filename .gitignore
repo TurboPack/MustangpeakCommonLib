@@ -5,3 +5,6 @@
 __history
 Win32
 *.hpp
+*.prjmgc
+*.tvsconfig
+*.identcache
