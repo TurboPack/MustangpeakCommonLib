@@ -2137,6 +2137,10 @@ var
 
 begin
   Result := False;
+  //see https://github.com/pyscripter/MustangpeakCommonLib/issues/6
+  if not Assigned(APIDL) then
+    Exit;
+
   Flags := SFGAO_FOLDER;
   if PIDLMgr.IsDesktopFolder(APIDL) then
     Result := True
@@ -2149,16 +2153,21 @@ begin
     end else
     begin
       PIDLMgr.StripLastID(APIDL, Last_CB, LastPIDL);
-      try
-        if Succeeded( Desktop.BindToObject(APIDL, nil, IShellFolder, Pointer( Parent))) then
-        begin
-          LastPIDL^.mkid.cb := Last_CB;
-          if Succeeded( Parent.GetAttributesOf(1, LastPIDL, Flags)) then
-            Result := Flags and SFGAO_FOLDER <> 0
+      //on some systems >= W7 a local service running on local account has nil here
+      //on one Win7 system we got an error report where LastPIDL was nil here, when run as regular application
+      if Assigned(LastPIDL) then
+      begin
+        try
+          if Succeeded( Desktop.BindToObject(APIDL, nil, IShellFolder, Pointer( Parent))) then
+          begin
+            LastPIDL^.mkid.cb := Last_CB;
+            if Succeeded( Parent.GetAttributesOf(1, LastPIDL, Flags)) then
+              Result := Flags and SFGAO_FOLDER <> 0
+          end
+        finally
+          if LastPIDL^.mkid.cb = 0 then
+            LastPIDL^.mkid.cb := Last_CB;
         end
-      finally
-        if LastPIDL^.mkid.cb = 0 then
-          LastPIDL^.mkid.cb := Last_CB;
       end
     end
   end
@@ -2168,7 +2177,7 @@ function SpecialVariableReplacePath(var Path: WideString): Boolean;
 
   function ReplacePath(Path, Variable, VarPath: WideString): WideString;
   begin
-    Result := WideStringReplace(Path, Variable, VarPath, [rfReplaceAll, rfIgnoreCase]); 
+    Result := WideStringReplace(Path, Variable, VarPath, [rfReplaceAll, rfIgnoreCase]);
   end;
 
 var
