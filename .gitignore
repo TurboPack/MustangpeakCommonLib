@@ -1,0 +1,14 @@
+
+*.dsk
+*.local
+*.~dsk
+*.prjmgc
+*.stat
+CBuilder/Berlin/Win32/
+CBuilder/Rio/Win32/
+CBuilder/Tokyo/Win32/
+*.tvsconfig
+*.identcache
+__history
+*.dcu
+*.hpp
