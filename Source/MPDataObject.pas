@@ -29,15 +29,8 @@ interface
   {$DEFINE GX_DEBUG}
 {$ENDIF}
 
-{$I Compilers.inc}
-{$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
-
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
 
 uses
   Windows,
@@ -56,15 +49,6 @@ uses
   MPShellTypes,
   MPCommonUtilities,
   MPCommonObjects,
-  {$IFDEF TNTSUPPORT}
-  TntStdCtrls,
-  TntClasses,
-    {$IFDEF COMPILER_10_UP}
-    WideStrings,
-    {$ELSE}
-    TntWideStrings,
-    {$ENDIF}
-  {$ENDIF}
   AxCtrls;
 
 const
@@ -100,10 +84,6 @@ type
   // many formats
   TeltArray = array[0..255] of TFormatEtc;
 
-  {$IFNDEF COMPILER_6_UP}
-  PCardinal = ^Cardinal;
-  {$ENDIF}
-  
 //------------------------------------------------------------------------------
 // TCommonEnumFormatEtc :
 //       Implements the IEnumFormatEtc interface for the IDataObject
@@ -332,14 +312,8 @@ type
     function FileName(Index: integer): WideString;
     function GetFormatEtc: TFormatEtc; override;
     procedure AssignFilesA(FileList: TStringList);
-    {$IFDEF TNTSUPPORT}
-    procedure AssignFilesW(FileList: TWideStrings);
-    procedure FileNamesW(FileList: TWideStrings);
-    {$ENDIF}
-    {$IFDEF  COMPILER_12_UP}
     procedure AssignFilesW(FileList: TStrings);
     procedure FileNamesW(FileList: TStrings);
-    {$ENDIF}
     procedure FileNamesA(FileList: TStrings);
 
     property HDropStruct: THandle read GetHDropStruct;
@@ -430,7 +404,7 @@ var
 implementation
 
 uses
-  MPShellUtilities, Math;
+  System.Math, System.AnsiStrings, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -790,7 +764,7 @@ begin
     if DropFiles.fWide then
       Result := FileNameW(Index)
     else
-      Result := FileNameA(Index)
+      Result := string(FileNameA(Index))
   end
 end;
 
@@ -822,57 +796,6 @@ begin
   end
 end;
 
-{$IFDEF TNTSUPPORT}
-procedure TCommonHDrop.AssignFilesW(FileList: TWideStrings);
-var
-  i: Integer;
-  Size: integer;
-  Path: PAnsiChar;
-  ByteSize: Integer;
-begin
-  if Assigned(FileList) then
-  begin
-    FreeStructure;
-    Size := 0;
-    if UnicodeStringLists then
-      ByteSize := 2
-    else
-      ByteSize := 1;
-    for i := 0 to FileList.Count - 1 do
-      Inc(Size, (Length(FileList[i])+1)*(SizeOf(AnsiChar)*ByteSize)); // add spot for the null
-    Inc(Size, SizeOf(TDropFiles));
-    Inc(Size, SizeOf(AnsiChar)*2); // room for the terminating null
-    AllocStructure(Size);
-    DropFiles.pFiles := SizeOf(TDropFiles);
-    DropFiles.pt.x := 0;
-    DropFiles.pt.y := 0;
-    DropFiles.fNC := False;
-    if UnicodeStringLists then
-      Integer( DropFiles.fWide ):= 1
-    else
-      Integer( DropFiles.fWide) := 0;
-    Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
-    for i := 0 to FileList.Count - 1 do
-    begin
-      MoveMemory(Path, Pointer(FileList[i]), Length(FileList[i])*ByteSize);
-      Inc(Path, (Length(FileList[i]) + 1)*ByteSize); // skip over the single null #0
-    end
-  end
-end;
-
-procedure TCommonHDrop.FileNamesW(FileList: TWideStrings);
-var
-  i: integer;
-begin
-  if Assigned(FileList) then
-  begin
-    for i := 0 to FileCount - 1 do
-      FileList.Add(FileNameW(i));
-  end;
-end;
-{$ENDIF}
-
-{$IFDEF COMPILER_12_UP}
 procedure TCommonHDrop.AssignFilesW(FileList: TStrings);
 var
   i: Integer;
@@ -884,10 +807,7 @@ begin
   begin
     FreeStructure;
     Size := 0;
-    if UnicodeStringLists then
-      ByteSize := 2
-    else
-      ByteSize := 1;
+    ByteSize := 2;
     for i := 0 to FileList.Count - 1 do
       Inc(Size, (Length(FileList[i])+1)*(SizeOf(AnsiChar)*ByteSize)); // add spot for the null
     Inc(Size, SizeOf(TDropFiles));
@@ -897,10 +817,7 @@ begin
     DropFiles.pt.x := 0;
     DropFiles.pt.y := 0;
     DropFiles.fNC := False;
-    if UnicodeStringLists then
-      Integer( DropFiles.fWide ):= 1
-    else
-      Integer( DropFiles.fWide) := 0;
+    Integer( DropFiles.fWide ):= 1;
     Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
     for i := 0 to FileList.Count - 1 do
     begin
@@ -920,8 +837,6 @@ begin
       FileList.Add(FileNameW(i));
   end;
 end;
-{$ENDIF}
-
 
 procedure TCommonHDrop.FileNamesA(FileList: TStrings);
 var
@@ -1302,20 +1217,15 @@ begin
   if Result then
   begin
     try
-      try
-        Handle := GetClipboardData(CF_SHELLIDLIST);
-        if Handle <> 0 then
+      Handle := GetClipboardData(CF_SHELLIDLIST);
+      if Handle <> 0 then
+      begin
+        Ptr := GlobalLock(Handle);
+        if Assigned(Ptr) then
         begin
-          Ptr := GlobalLock(Handle);
-          if Assigned(Ptr) then
-          begin
-            CIDA := Ptr;
-            Result := True;
-          end;
+          CIDA := Ptr;
+          Result := True;
         end;
-      except
-        Result := False;
-        raise;
       end;
     finally
       GlobalUnLock(Handle);
@@ -2173,7 +2083,7 @@ end;
 function TFileGroupDescriptorA.FillDescriptor(FileName: AnsiString): TFileDescriptorA;
 begin
   FillChar(Result, SizeOf(Result), #0);
-  StrCopy(Result.cFileName, PAnsiChar(FileName));
+  System.AnsiStrings.StrCopy(Result.cFileName, PAnsiChar(FileName));
 end;
 
 function TFileGroupDescriptorA.GetDescriptorCount: Integer;

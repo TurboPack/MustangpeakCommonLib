@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{3C4F2752-3E63-41C6-9EEE-4335D994549B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="MPCommonLibC.cbproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MPCommonLibCD.cbproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MPCommonLibC">
+        <MSBuild Projects="MPCommonLibC.cbproj"/>
+    </Target>
+    <Target Name="MPCommonLibC:Clean">
+        <MSBuild Projects="MPCommonLibC.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MPCommonLibC:Make">
+        <MSBuild Projects="MPCommonLibC.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="MPCommonLibCD">
+        <MSBuild Projects="MPCommonLibCD.cbproj"/>
+    </Target>
+    <Target Name="MPCommonLibCD:Clean">
+        <MSBuild Projects="MPCommonLibCD.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MPCommonLibCD:Make">
+        <MSBuild Projects="MPCommonLibCD.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MPCommonLibC;MPCommonLibCD"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MPCommonLibC:Clean;MPCommonLibCD:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MPCommonLibC:Make;MPCommonLibCD:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

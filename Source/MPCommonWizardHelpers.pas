@@ -27,13 +27,7 @@ unit MPCommonWizardHelpers;
 
 interface
 
-{$include Compilers.Inc}
 {$I ..\Include\Addins.inc}
-
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
 
 uses
   SysUtils,
@@ -43,27 +37,13 @@ uses
   ToolsApi,
   Dialogs,
   Menus,
-  {$IFDEF COMPILER_6_UP}
   DesignIntf,
   DesignEditors,
   TreeIntf,
   VCLEditors,
   TypInfo,
   Graphics,
-  {$ELSE}
-  DsgnIntf,
-  DsgnWnds,
-    {$IFDEF COMPILER_6_UP}
-    ParentageSupport, // Sprig support in DsnIDE5.dpk, D4 has no equivalent
-    {$ELSE}
-      {$IFDEF DELPHI_5}
-      ParentageSupport, // Sprig support in DsnIDE5.dpk, D4 has no equivalent
-      {$ENDIF}
-    {$ENDIF}
-  {$ENDIF}
-  {$IFDEF COMPILER_17_UP}
   PlatformAPI,
-  {$ENDIF}
   Classes,
   MPCommonWizardTemplates;
 
@@ -84,31 +64,6 @@ const
   );
 
 type
-  {$IFNDEF COMPILER_7_UP}
-  // ***************************************************************************
-  // TOTAFile
-  //   The implements the basic IOTAFile interface
-  // ***************************************************************************
-  TOTAFile = class(TInterfacedObject, IOTAFile)
-    FSource: string;
-    FAge: TDateTime;
-  public
-    constructor Create(const StringCode: String; const Age: TDateTime = -1);
-    function GetSource: string; virtual;
-    function GetAge: TDateTime; virtual;
-  end;
-  {$ENDIF}
-
-  {$IFNDEF COMPILER_5_UP}
-  TNotifierObject = class(TInterfacedObject)
-  public
-    procedure AfterSave;
-    procedure BeforeSave;
-    procedure Destroyed;
-    procedure Modified;
-  end;
-  {$ENDIF}
-
   // ---------------------------------------------------------------------------
   // OTAFile Module
   // ---------------------------------------------------------------------------
@@ -236,9 +191,9 @@ type
   // ***************************************************************************
   TCommonWizardNotifierObject = class(TNotifierObject,
     IOTARepositoryWizard,
-    {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
-    {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
-    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
+    IOTARepositoryWizard60,
+    IOTARepositoryWizard80,
+    IOTARepositoryWizard160,
     IOTAWizard,
     IOTAProjectWizard)
   private
@@ -249,9 +204,7 @@ type
     FPage: string;
     FState: TWizardState;
     FUniqueID: string;
-    {$IFDEF COMPILER_8_UP}
     FGalleryCategory: IOTAGalleryCategory;
-    {$ENDIF COMPILER_8_UP}
   protected
     function GetGlpyhResourceID: string; virtual;
   public
@@ -269,35 +222,21 @@ type
     function GetAuthor: string;
     function GetComment: string; virtual;
     function GetPage: string; virtual;
-    {$IFDEF COMPILER_6_UP}
     function GetGlyph: Cardinal;
-    {$ELSE}
-    function GetGlyph: HICON;
-    {$ENDIF}
 
-    {$IFDEF COMPILER_6_UP}
     // IOTARepositoryWizard60
     function GetDesigner: string;
-    {$ENDIF}
 
-    {$IFDEF COMPILER_8_UP}
     // IOTARepositoryWizard80
     function GetGalleryCategory: IOTAGalleryCategory; virtual;
     function GetPersonality: string; virtual; abstract;
-    {$ENDIF}
 
-    {$IFDEF COMPILER_17_UP}
     { IOTARepositoryWizard160 }
     function GetFrameworkTypes: TArray<string>;
     function GetPlatforms: TArray<string>;
-    {$ENDIF COMPILER_17_UP}
 
-    {$IFDEF COMPILER_6_UP}
     property Designer: string read GetDesigner;
-    {$ENDIF}
-    {$IFDEF COMPILER_8_UP}
     property Personality: string read GetPersonality;
-    {$ENDIF}
 
     // Set to the Author that will show up in the Details View of the Object
     property Author: string read GetAuthor write FAuthor;
@@ -306,10 +245,8 @@ type
     // Set to the Comment that will show up in the Details View of the Object
     property Comment: string read GetComment write FComment;
     // Set to the Resource ID (in the a *.res file) that defines the icon for the object
-    {$IFDEF COMPILER_8_UP}
     // Set the Gallery Category where the Wizard reside, it is the value returned from AddDelphiCategory or AddBuilderCategory
     property GalleryCategory: IOTAGalleryCategory read GetGalleryCategory write FGalleryCategory;
-    {$ENDIF COMPILER_8_UP}
     property GlyphResourceID: string read GetIDString write FGlyphResourceID;
     // Set to the Page that Object will show up on when selecting File>New>Other...
     property Page: string read GetPage write FPage;
@@ -321,9 +258,9 @@ type
 
    TCommonWizardModuleCreate = class(TCommonWizardNotifierObject,
     IOTARepositoryWizard,
-    {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
-    {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
-    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
+    IOTARepositoryWizard60,
+    IOTARepositoryWizard80,
+    IOTARepositoryWizard160,
     IOTAWizard,
 
     IOTAProjectWizard)
@@ -341,35 +278,30 @@ type
    // ***************************************************************************
   TCommonWizardDelphiForm = class(TCommonWizardModuleCreate,
   IOTARepositoryWizard,
-    {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
-    {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
-    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
+    IOTARepositoryWizard60,
+    IOTARepositoryWizard80,
+    IOTARepositoryWizard160,
     IOTAWizard,
     IOTAProjectWizard)
   protected
 
   public
     // IOTAWizard
-    {$IFDEF COMPILER_8_UP}
     function GetPersonality: string; override;
-    {$ENDIF COMPILER_8_UP}
   end;
 
   TCommonWizardBuilderForm = class(TCommonWizardDelphiForm,
      IOTARepositoryWizard,
-    {$IFDEF COMPILER_6_UP}IOTARepositoryWizard60, {$ENDIF}
-    {$IFDEF COMPILER_8_UP}IOTARepositoryWizard80, {$ENDIF}
-    {$IFDEF COMPILER_17_UP}IOTARepositoryWizard160, {$ENDIF}
+    IOTARepositoryWizard60,
+    IOTARepositoryWizard80,
+    IOTARepositoryWizard160,
     IOTAWizard,
     IOTAProjectWizard)
   public
     // IOTAWizard
-    {$IFDEF COMPILER_8_UP}
     function GetPersonality: string; override;
-    {$ENDIF COMPILER_8_UP}
   end;
 
-  {$IFDEF COMPILER_6_UP}
   TPersistentHack = class(TPersistent);
 
   // ***************************************************************************
@@ -397,22 +329,21 @@ type
     procedure PropDrawName(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
     procedure PropDrawValue(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
   end;
-{$ENDIF COMPILER_6_UP}
 
 
 function GetCurrentProjectGroup: IOTAProjectGroup;
 function GetCurrentProject: IOTAProject;
-{$IFDEF COMPILER_8_UP}
 // These must be called in the initialization section of a unit
 function AddDelphiCategory(CategoryID, CategoryCaption: string): IOTAGalleryCategory;
 function AddBuilderCategory(CategoryID, CategoryCaption: string): IOTAGalleryCategory;
 procedure RemoveCategory(Category: IOTAGalleryCategory);
 
 function IsDelphiPersonality: Boolean;
-{$ENDIF COMPILER_8_UP}
 
 implementation
 
+uses
+  System.UITypes;
 
 function GetCurrentProjectGroup: IOTAProjectGroup;
 var
@@ -447,7 +378,6 @@ begin
       Result := ProjectGroup.ActiveProject
 end;
 
-{$IFDEF COMPILER_8_UP}
 function AddDelphiCategory(CategoryID, CategoryCaption: string): IOTAGalleryCategory;
 var
   Manager: IOTAGalleryCategoryManager;
@@ -497,72 +427,21 @@ begin
   Personalities := BorlandIDEServices as IOTAPersonalityServices;
   Result := Personalities.CurrentPersonality = sDelphiPersonality;
 end;
-{$ENDIF}
 
-{$IFNDEF COMPILER_7_UP}
-{ TOTAFile }
-
-constructor TOTAFile.Create(const StringCode: String; const Age: TDateTime);
-begin
-  FSource := StringCode;
-  FAge := Age;
-end;
-
-function TOTAFile.GetSource: string;
-begin
-  Result := FSource;
-end;
-
-function TOTAFile.GetAge: TDateTime;
-begin
-  Result := FAge;
-end;
-{$ENDIF}
-
-
-{$IFNDEF COMPILER_5_UP}
-{ TNotifierObject }
-
-procedure TNotifierObject.AfterSave;
-begin
-  // do nothing stub implementation
-end;
-
-procedure TNotifierObject.BeforeSave;
-begin
-  // do nothing stub implementation
-end;
-
-procedure TNotifierObject.Destroyed;
-begin
-  // do nothing stub implementation
-end;
-
-procedure TNotifierObject.Modified;
-begin
-  // do nothing stub implementation
-end;
-{$ENDIF}
 
 { TCommonWizardDelphiForm }
 
-{$IFDEF COMPILER_8_UP}
 function TCommonWizardDelphiForm.GetPersonality: string;
 begin
   Result := sDelphiPersonality
 end;
-{$ENDIF COMPILER_8_UP}
 
 { TCommonWizardBuilderForm }
 
-{$IFDEF COMPILER_8_UP}
 function TCommonWizardBuilderForm.GetPersonality: string;
 begin
   Result := sCBuilderPersonality
 end;
-{$ENDIF COMPILER_8_UP}
-
-{$IFDEF COMPILER_6_UP}
 
 { TImageIndexProperty}
 
@@ -737,9 +616,6 @@ begin
     DefaultPropertyDrawValue(Self, ACanvas, ARect);
 end;
 
-{$ENDIF COMPILER_6_UP}
-
-
 { TCommonWizardNotifierObject }
 
 constructor TCommonWizardNotifierObject.Create;
@@ -758,14 +634,11 @@ begin
  Result := FComment
 end;
 
-{$IFDEF COMPILER_8_UP}
 function TCommonWizardNotifierObject.GetGalleryCategory: IOTAGalleryCategory;
 begin
   Result := FGalleryCategory
 end;
-{$ENDIF COMPILER_8_UP}
 
-{$IFDEF COMPILER_17_UP}
 function TCommonWizardNotifierObject.GetFrameworkTypes: TArray<string>;
 begin
   Result := TArray<string>.Create()
@@ -775,7 +648,6 @@ function TCommonWizardNotifierObject.GetPlatforms: TArray<string>;
 begin
   Result := TArray<string>.Create(cWin32Platform, cWin64Platform);
 end;
-{$ENDIF COMPILER_17_UP}
 
 function TCommonWizardNotifierObject.GetGlpyhResourceID: string;
 begin
@@ -802,25 +674,15 @@ begin
   Result := FState
 end;
 
-{$IFDEF COMPILER_6_UP}
 function TCommonWizardNotifierObject.GetGlyph: Cardinal;
 begin
   Result := LoadIconA(hInstance, PAnsiChar( AnsiString(GetGlpyhResourceID)));
 end;
-{$ELSE}
-function TCommonWizardNotifierObject.GetGlyph: HICON;
-begin
-  Result := LoadIcon(hInstance, PAnsiChar(GetGlpyhResourceID));
-end;
-{$ENDIF}
-
-{$IFDEF COMPILER_6_UP}
 
 function TCommonWizardNotifierObject.GetDesigner: string;
 begin
   Result := dVCL
 end;
-{$ENDIF}
 
 procedure TCommonWizardNotifierObject.InitializeWizard;
 begin
@@ -855,17 +717,13 @@ end;
 
 function TCommonWizardModuleCreator.GetIsDelphi: Boolean;
 begin
-{$IFDEF CPPB}
+{$IFDEF BCB}
   Result := False;
 {$ELSE}
-  {$IFDEF COMPILER_10_UP}
     if IsDelphiPersonality then
       Result := True
     else
       Result := False;
-  {$ELSE}
-    Result := True;
-  {$ENDIF}
 {$ENDIF}
 end;
 
@@ -1036,11 +894,10 @@ var
   i: Integer;
   IsBCB: Boolean;
 begin
-{$IFDEF CPPB}
+{$IFDEF BCB}
   Result := FILE_FORM_TEMPLATE_BCB;
   IsBCB := True;
 {$ELSE}
-  {$IFDEF COMPILER_10_UP}
     if IsDelphiPersonality then
     begin
       Result := FILE_FORM_TEMPLATE_DELPHI;
@@ -1050,10 +907,6 @@ begin
       Result := FILE_FORM_TEMPLATE_BCB;
       IsBCB := True
     end;
-  {$ELSE}
-    Result := FILE_FORM_TEMPLATE_DELPHI;
-    IsBCB := False;
-  {$ENDIF}
 {$ENDIF}
   Result := StringReplace(Result, '%FormIdent', FormIdent, [rfIgnoreCase, rfReplaceAll]);
   Result := StringReplace(Result, '%AncestorIdent', AncestorIdent, [rfIgnoreCase, rfReplaceAll]);

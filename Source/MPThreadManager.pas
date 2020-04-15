@@ -23,13 +23,8 @@ unit MPThreadManager;
 
 interface
 
-{$I Options.inc}
 {$I ..\Include\Addins.inc}
-
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
+{$WARN SYMBOL_PLATFORM OFF}
 
 {$B-}
 
@@ -117,7 +112,7 @@ type
     FID: WPARAM;                     // The ID that identifies the request type
     FPriority: TCommonThreadPriority;  // The Thread will sort the request list by Priority, 0 being highest 100 being the lowest
     FRefCount: Integer;
-    FTag: Integer;                   // User defineable field
+    FTag: NativeInt;                 // User defineable field
     FThread: TCommonThread;          // Reference to the thread handling the request
     FWindow: TWinControl;            // The control to send the Message to, set to nil to have the thread free the object without dispatching it to the main thread
     FItem: Pointer;                  // Identifier of the Item the threaded data is being extracted for
@@ -138,7 +133,7 @@ type
     property ID: WPARAM read FID write FID;
     property Priority: TCommonThreadPriority read FPriority write FPriority default 50;
     property RemainingRequests: Integer read FRemainingRequests write FRemainingRequests;
-    property Tag: Integer read FTag write FTag;
+    property Tag: NativeInt read FTag write FTag;
     property Thread: TCommonThread read FThread;
     property Window: TWinControl read FWindow write FWindow;
   end;
@@ -1018,7 +1013,7 @@ constructor TCommonThreadManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlList := TThreadList.Create;
-  AClassName := COMMONTHREADFILTERWNDCLASS + IntToStr( Integer( Self))
+  AClassName := AnsiString(COMMONTHREADFILTERWNDCLASS + IntToStr( Integer( Self)))
 end;
 
 procedure TCommonThreadManager.CreateThreadObject;
@@ -1607,5 +1602,7 @@ finalization
   FreeAndNil(GlobalThread);
   FreeAndNil(GlobalCallbackThread);
   FreeAndNil(PIDLMgr);
+
+{$WARN SYMBOL_PLATFORM ON}
 
 end.

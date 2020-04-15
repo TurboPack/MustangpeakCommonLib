@@ -25,19 +25,10 @@ unit MPCommonObjects;
 
 interface
 
-{$I Compilers.inc}
-{$I Options.inc}
 {$I ..\Include\Addins.inc}
 
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 uses
-  {$IFDEF COMPILER_10_UP}
   Types,
-  {$ENDIF}
   Windows,
   Messages,
   Classes,
@@ -49,28 +40,9 @@ uses
   Forms,
   ComCtrls,
   ExtCtrls,
-  {$IFDEF COMPILER_6_UP}
   RTLConsts,
-  {$ELSE}
-  Consts,
-  {$ENDIF}
-  {$IFDEF COMPILER_7_UP}
   Themes,
   UxTheme,
-  {$ELSE}
-    {$IFDEF USETHEMES}
-    TmSchema,
-    UxTheme,
-    {$ENDIF}
-  {$ENDIF}
-  {$IFDEF TNTSUPPORT}
-    TntClasses,
-    {$IFDEF COMPILER_10_UP}
-    WideStrings,
-    {$ELSE}
-    TntWideStrings,
-    {$ENDIF}
-  {$ENDIF}
   ShlObj,
   ShellAPI,
   ImgList,
@@ -89,20 +61,6 @@ type
   TCommonImageIndexInteger = type Integer;
 
   TStringListEx = class(TStringList)
-  private
-    {$IFNDEF COMPILER_7_UP}
-    FNameValueSeparator: Char;
-
-    function GetNameValueSeparator: Char;
-    function GetValueFromIndex(Index: Integer): string;
-    procedure SetNameValueSeparator(const Value: Char);
-    procedure SetValueFromIndex(Index: Integer; const Value: string);
-    {$ENDIF}
-  public
-    {$IFNDEF COMPILER_7_UP}
-    property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
-    property NameValueSeparator: Char read GetNameValueSeparator write SetNameValueSeparator;
-    {$ENDIF}
   end;
 
 type
@@ -151,7 +109,6 @@ type
   //
   // Encapsulates Theme handles for various objects
   //
-  {$IFDEF USETHEMES}
   TCommonThemeManager = class
   private
     FButtonTheme: HTHEME;    // Some useful Themes
@@ -192,7 +149,6 @@ type
     property TreeviewTheme: HTHEME read FTreeviewTheme write FTreeviewTheme;
     property WindowTheme: HTHEME read FWindowTheme write FWindowTheme;
   end;
-  {$ENDIF USETHEMES}
 
   //
   // TWinControl that has a canvas and a few methods/properites for
@@ -222,7 +178,7 @@ type
     FOnMouseEnter: TCommonMouseEnterEvent;
     FOnMouseExit: TNotifyEvent;
     FShowThemedBorder: Boolean;
-    {$IFDEF USETHEMES}FThemes: TCommonThemeManager;{$ENDIF USETHEMES}
+    FThemes: TCommonThemeManager;
     function GetCanvas: TControlCanvas;
     function GetThemed: Boolean;
     procedure SetBorderStyle(const Value: TBorderStyle);
@@ -259,7 +215,7 @@ type
     procedure WMNCCalcSize(var Msg: TWMNCCalcSize); message WM_NCCALCSIZE;
     procedure WMNCPaint(var Msg: TWMNCPaint); message WM_NCPAINT;
     procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
-    {$IFDEF USETHEMES}procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;{$ENDIF USETHEMES}
+    procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
     property BackBits: TBitmap read FBackBits write FBackBits;
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property CacheDoubleBufferBits: Boolean read FCacheDoubleBufferBits write SetCacheDoubleBufferBits default False;
@@ -288,7 +244,7 @@ type
     property DragCursor;
     property DragMode;
     property ForcePaint: Boolean read FForcePaint write FForcePaint;
-    {$IFDEF USETHEMES}property Themes: TCommonThemeManager read FThemes;{$ENDIF USETHEMES}
+    property Themes: TCommonThemeManager read FThemes;
     property UpdateCount: Integer read FUpdateCount;
   published
   end;
@@ -541,10 +497,6 @@ type
   function ILIsParent(PIDL1: PItemIDList; PIDL2: PItemIDList; ImmediateParent: LongBool): LongBool;
   function ILIsEqual(PIDL1: PItemIDList; PIDL2: PItemIDList): LongBool;
 
-  {$IFNDEF COMPILER_6_UP}
-  function GUIDToString(const GUID: TGUID): string;
-  {$ENDIF}
-  
 var
   StreamHelper: TCommonMemoryStreamHelper;
   Checks: TCommonCheckBoundManager;
@@ -569,20 +521,6 @@ var
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
   ILIsEqual_MP: TILIsEqual = nil;
-
-{$IFNDEF COMPILER_6_UP}
-function GUIDToString(const GUID: TGUID): string;
-var
-  P: PWideChar;
-begin
-  Result := '';
-  if Succeeded(StringFromCLSID(GUID, P)) then
-  begin
-    Result := P;
-    CoTaskMemFree(P);
-  end
-end;
-{$ENDIF}
 
 function MultiPathNamespaceListSort(Item1, Item2: Pointer): Integer;
 // Simply sorts the PIDLs by their length, it has nothing to do with the name 
@@ -677,10 +615,6 @@ end;
 
 procedure StripDuplicatesAndDesktops(NamespaceList: TList);
 
-{$IFDEF COMPILER_6_UP}
-  {$MESSAGE 'THIS IS DOG SLOW'}
-{$ENDIF}
-
 //
 // Sort and modifies the NamespaceList to work with SHFileOperation and other shell
 // operations.  The items in the List will be sorted and possibly removed but will NOT
@@ -749,9 +683,6 @@ var
   i: Integer;
   HDrop: TCommonHDrop;
   DragLoop: TCommonInShellDragLoop;
-  {$IFDEF TNTSUPPORT}
-  FileListW: TTntStringList;
-  {$ENDIF}
   FileListA: TStringList;
   NS: TNamespace;
   AbsolutePIDLs: TCommonPIDLList;
@@ -775,9 +706,6 @@ begin
     HDrop := TCommonHDrop.Create;
     AbsolutePIDLs := TCommonPIDLList.Create;
     AbsolutePIDLs.SharePIDLs := True;
-    {$IFDEF TNTSUPPORT}
-    FileListW := TTntStringList.Create;
-    {$ENDIF}
     FileListA := TStringList.Create;
     try
       // First PIDL must be the Desktop (root PIDL)
@@ -787,26 +715,12 @@ begin
         NS := TNamespace( NamespaceList[i]);
         if NS.FileSystem then
         begin
-          {$IFDEF TNTSUPPORT}
-          if IsUnicode then
-            FileListW.Add(NS.NameForParsing)
-          else
-            FileListA.Add(NS.NameForParsing);
-          {$ELSE}
           FileListA.Add(NS.NameForParsing);
-          {$ENDIF}
         end;
         AbsolutePIDLs.Add(NS.AbsolutePIDL);
       end;
       ShellIDList.AssignPIDLs(AbsolutePIDLs);
-      {$IFDEF TNTSUPPORT}
-      if IsUnicode then
-        HDrop.AssignFilesW(FileListW)
-      else
-        HDrop.AssignFilesA(FileListA);
-      {$ELSE}
       HDrop.AssignFilesA(FileListA);
-      {$ENDIF}
       ShellIDList.SaveToDataObject(ADataObject);
       HDrop.SaveToDataObject(ADataObject);
       if DragDropObject then
@@ -815,9 +729,6 @@ begin
       ShellIDList.Free;
       HDrop.Free;
       AbsolutePIDLs.Free;
-      {$IFDEF TNTSUPPORT}
-      FileListW.Free;
-      {$ENDIF}
       FileListA.Free;
       if DragDropObject then
         DragLoop.Free;
@@ -885,20 +796,14 @@ end;
 
 function TCommonCanvasControl.DrawWithThemes: Boolean;
 begin
-  {$IFDEF USETHEMES}
   Result := Themed and Themes.Loaded;
-  {$ELSE}
-  Result := False;
-  {$ENDIF USETHEMES}
 end;
 
 function TCommonCanvasControl.GetThemed: Boolean;
 begin
   Result := False;
-  {$IFDEF USETHEMES}
   if not (csLoading in ComponentState) then
     Result := FThemed and UseThemes;
-  {$ENDIF USETHEMES}
 end;
 
 procedure TCommonCanvasControl.AfterPaintRect(ACanvas: TCanvas; ClipRect: TRect);
@@ -928,16 +833,14 @@ begin
   // No notifications for font change
 //  Font.OnChange := nil;
   FBorderStyle := bsSingle;
-  {$IFDEF USETHEMES}
   FThemes := TCommonThemeManager.Create(Self);
-  {$ENDIF USETHEMES}
   FThemed := True;
 end;
 
 destructor TCommonCanvasControl.Destroy;
 begin
   inherited;
-  {$IFDEF USETHEMES}FreeAndNil(FThemes);{$ENDIF USETHEMES}
+  FreeAndNil(FThemes);
   FreeAndNil(FNCCanvas);
   FreeAndNil(FCanvas);
   FreeAndNil(FBackBits);
@@ -978,7 +881,7 @@ end;
 procedure TCommonCanvasControl.CreateWnd;
 begin
   inherited CreateWnd;
-  {$IFDEF USETHEMES}Themes.ThemesLoad;{$ENDIF USETHEMES}
+  Themes.ThemesLoad;
   ResizeBackBits(ClientWidth, ClientHeight);
 end;
 
@@ -1179,8 +1082,7 @@ begin
   if Value <> FThemed then
   begin
     FThemed := Value;
-    {$IFDEF USETHEMES}
-    if Value then    
+    if Value then
       Themes.ThemesLoad
     else
       Themes.ThemesFree;
@@ -1193,7 +1095,6 @@ begin
       RecreateWnd;
   //    SafeInvalidateRect(nil, True);
     end;
-    {$ENDIF USETHEMES}
   end
 end;
 
@@ -1244,7 +1145,7 @@ end;
 procedure TCommonCanvasControl.WMDestroy(var Msg: TMessage);
 begin
   FreeAndNil(FMouseTimer);
-  {$IFDEF USETHEMES}Themes.ThemesFree;{$ENDIF USETHEMES}
+  Themes.ThemesFree;
   inherited;
 end;
 
@@ -1282,10 +1183,8 @@ end;
 
 procedure TCommonCanvasControl.WMNCCalcSize(var Msg: TWMNCCalcSize);
 begin
-  {$IFDEF USETHEMES}
   if not Themes.Loaded then
     Themes.ThemesLoad;
-  {$ENDIF USETHEMES}
   if DrawWithThemes and ShowThemedBorder then
   begin
     DefaultHandler(Msg);
@@ -1457,14 +1356,12 @@ begin
   end
 end;
 
-{$IFDEF USETHEMES}
 procedure TCommonCanvasControl.WMThemeChanged(var Message: TMessage);
 begin
   inherited;
   Themes.ThemesFree;
   Themes.ThemesLoad;
 end;
-{$ENDIF USETHEMES}
 
 { TCoolPIDLList }
 
@@ -2241,7 +2138,6 @@ begin
 end;
 
 { TCommonThemeManager }
-{$IFDEF USETHEMES}
 constructor TCommonThemeManager.Create(AnOwner: TWinControl);
 begin
   inherited Create;
@@ -2324,9 +2220,6 @@ begin
     RedrawWindow(Owner.Handle, nil, 0, RDW_FRAME or RDW_INVALIDATE or RDW_NOERASE or RDW_NOCHILDREN);
   end
 end;
-{$ENDIF USETHEMES}
-
-
 
 { TCommonStream}
 
@@ -2361,7 +2254,7 @@ begin
   Result := TStringList.Create;
   ReadBuffer(Count, SizeOf(LongWord));
   for i := 0 to Count - 1 do
-    Result.Add(ReadString)
+    Result.Add(string(ReadString))
 end;
 
 function TCommonStream.ReadWideString: WideString;
@@ -2404,7 +2297,7 @@ begin
   Count := Value.Count;
   WriteBuffer(Count, SizeOf(Count));
   for i := 0 to Count - 1 do
-    WriteString(Value[i])
+    WriteString(AnsiString(Value[i]))
 end;
 
 procedure TCommonStream.WriteWideString(const Value: WideString);
@@ -2544,45 +2437,6 @@ begin
   FImageSize := Value;
   RecreateHandle;
 end;
-
-
-{$IFNDEF COMPILER_7_UP}
-{ TStringListEx }
-
-function TStringListEx.GetNameValueSeparator: Char;
-begin
-  if FNameValueSeparator = '' then
-    NameValueSeparator := '=';
-  Result := FNameValueSeparator;
-end;
-
-function TStringListEx.GetValueFromIndex(Index: Integer): string;
-begin
-  if Index >= 0 then
-    Result := Copy(Get(Index), Length(Names[Index]) + 2, MaxInt)
-  else
-    Result := '';
-end;
-
-procedure TStringListEx.SetNameValueSeparator(const Value: Char);
-begin
-  if (FNameValueSeparator <> Value) then
-    FNameValueSeparator := Value;
-end;
-
-procedure TStringListEx.SetValueFromIndex(Index: Integer;
-  const Value: string);
-begin
-  if Value <> '' then
-  begin
-    if Index < 0 then Index := Add('');
-    Put(Index, Names[Index] + NameValueSeparator + Value);
-  end
-  else
-    if Index >= 0 then Delete(Index);
-end;
-{$ENDIF}
-
 
 (*
 { TCommonHintWindow }

@@ -25,15 +25,8 @@ unit MPShellTypes;
 
 interface
 
-{$I Compilers.inc}
-{$I Options.inc}
 {$I ..\Include\Debug.inc}
 {$I ..\Include\Addins.inc}
-
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
- {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
@@ -45,9 +38,6 @@ uses
 {$HPPEMIT '#include <comcat.h>'}
 {$HPPEMIT '#include <comcat.h>'}
 
-{$IFDEF CPPB_6}
-  {$HPPEMIT '#include <shtypes.h>'} // if BCB6 or later
-{$ENDIF}
 {$HPPEMIT '#include <winioctl.h>'}
 
 (*$HPPEMIT 'namespace Mpshellutilities { class TNamespace; }' *)
@@ -66,33 +56,6 @@ uses
 //------------------------------------------------------------------------------
 // Missing Windows Message definitions
 //------------------------------------------------------------------------------
-
-{$IFDEF COMPILER_4}
-type
-  TWMContextMenu = packed record
-    Msg: Cardinal;
-    hWnd: HWND;
-    case Integer of
-      0: (
-        XPos: Smallint;
-        YPos: Smallint);
-      1: (
-        Pos: TSmallPoint;
-        Result: Longint);
-  end;
-{$ENDIF}
-
-{$IFNDEF DELPHI_7_UP}
-type
-  TWMPrint = packed record
-    Msg: Cardinal;
-    DC: HDC;
-    Flags: Cardinal;
-    Result: Integer;
-  end;
-
-  TWMPrintClient = TWMPrint;
-{$ENDIF}
 
 const
   {$EXTERNALSYM SEE_MASK_WAITFORINPUTIDLE}
@@ -125,11 +88,6 @@ const
 
   SID_IShellIconOverlayIdentifier = '{0C6C4200-C589-11D0-999A-00C04FD655E1}';
   IID_IShellIconOverlayIdentifier: TGUID = SID_IShellIconOverlayIdentifier;
-
-  {$IFNDEF COMPILER_14_UP}
-  SID_IShellLibrary = '{11A66EFA-382E-451A-9234-1E0E12EF3085}';
-  IID_IShellLibrary: TGUID = SID_IShellLibrary;
-  {$ENDIF}
 
   {$EXTERNALSYM ISIOI_ICONFILE}
   ISIOI_ICONFILE =  $00000001;         // path is returned through pwszIconFile
@@ -562,45 +520,6 @@ const
   'WNNC_NET_QUINCY'
   );
 
-{$IFNDEF COMPILER_7_UP}
-{$EXTERNALSYM TBSTYLE_BUTTON}
-  TBSTYLE_BUTTON          = $00;
-  {$EXTERNALSYM TBSTYLE_SEP}
-  TBSTYLE_SEP             = $01;
-  {$EXTERNALSYM TBSTYLE_CHECK}
-  TBSTYLE_CHECK           = $02;
-  {$EXTERNALSYM TBSTYLE_GROUP}
-  TBSTYLE_GROUP           = $04;
-  {$EXTERNALSYM TBSTYLE_CHECKGROUP}
-  TBSTYLE_CHECKGROUP      = TBSTYLE_GROUP or TBSTYLE_CHECK;
-  {$EXTERNALSYM TBSTYLE_DROPDOWN}
-  TBSTYLE_DROPDOWN        = $08;
-  {$EXTERNALSYM TBSTYLE_AUTOSIZE}
-  TBSTYLE_AUTOSIZE        = $0010;
-  {$EXTERNALSYM TBSTYLE_NOPREFIX}
-  TBSTYLE_NOPREFIX        = $0020;
-  {$EXTERNALSYM BTNS_BUTTON}
-  BTNS_BUTTON             = TBSTYLE_BUTTON;
-  {$EXTERNALSYM BTNS_SEP}
-  BTNS_SEP                = TBSTYLE_SEP;
-  {$EXTERNALSYM BTNS_CHECK}
-  BTNS_CHECK              = TBSTYLE_CHECK;
-  {$EXTERNALSYM BTNS_GROUP}
-  BTNS_GROUP              = TBSTYLE_GROUP;
-  {$EXTERNALSYM BTNS_CHECKGROUP}
-  BTNS_CHECKGROUP         = TBSTYLE_CHECKGROUP;
-  {$EXTERNALSYM BTNS_DROPDOWN}
-  BTNS_DROPDOWN           = TBSTYLE_DROPDOWN;
-  {$EXTERNALSYM BTNS_AUTOSIZE}
-  BTNS_AUTOSIZE           = TBSTYLE_AUTOSIZE;
-  {$EXTERNALSYM BTNS_NOPREFIX}
-  BTNS_NOPREFIX           = TBSTYLE_NOPREFIX;
-  {$EXTERNALSYM BTNS_SHOWTEXT}
-  BTNS_SHOWTEXT           = $0040;
-  {$EXTERNALSYM BTNS_WHOLEDROPDOWN}
-  BTNS_WHOLEDROPDOWN      = $0080;
-{$ENDIF}
-
 //------------------------------------------------------------------------------
 // New ImageList styles
 //------------------------------------------------------------------------------
@@ -612,12 +531,6 @@ const
 //------------------------------------------------------------------------------
 // Some new magic extended Listview Styles
 //------------------------------------------------------------------------------
-{$ifndef COMPILER_11_UP}
-const
-  {$EXTERNALSYM LVS_EX_DOUBLEBUFFER}
-  LVS_EX_DOUBLEBUFFER = $00010000;
-{$endif}
-
 //------------------------------------------------------------------------------
 // Undocumented SHChangeNotifier Registration Constants and Types
 //------------------------------------------------------------------------------
@@ -866,20 +779,6 @@ const
   HOTKEYF_ALT =         $04;
   {$EXTERNALSYM HOTKEYF_EXT}
   HOTKEYF_EXT =         $08;
-
-
-{$IFNDEF DELPHI_7_UP}
-// D7 defines this right, D5 and D6 do not
-// _FILEGROUPDESCRIPTORW Corrected definitions.
-type
-  PFileGroupDescriptorW = ^TFileGroupDescriptorW;
-  {$EXTERNALSYM _FILEGROUPDESCRIPTORW}
-  _FILEGROUPDESCRIPTORW = packed record
-    cItems: UINT;
-    fgd: array[0..0] of TFileDescriptorW;
-  end;
-  TFileGroupDescriptorW = _FILEGROUPDESCRIPTORW;
-{$ENDIF}
 
 // IShellLinkW Corrected definitions.
 type
@@ -1434,10 +1333,6 @@ const
 // *********************************************************************//
 // CommandStateChangeConstants constants
 type
-  {$IFNDEF COMPILER_5_UP}
-  TOleEnum = type Integer;
-  {$ENDIF}
-  
   CommandStateChangeConstants = TOleEnum;
 const
   {$EXTERNALSYM CSC_UPDATECOMMANDS}
@@ -1969,20 +1864,6 @@ type
     property Script: IDispatch read Get_Script;
     property ViewOptions: Integer read Get_ViewOptions;
   end;
-
-{$IFDEF CPPB_6}
-// *********************************************************************//
-// DispIntf:  DShellFolderViewEvents
-// *********************************************************************//
-  DShellFolderViewEvents = dispinterface
-    ['{62112AA2-EBE4-11CF-A5FB-0020AFE7292D}']
-    procedure SelectionChanged; dispid 200;
-    procedure EnumDone; dispid 201;
-    function VerbInvoked: WordBool; dispid 202;
-    function DefaultVerbInvoked: WordBool; dispid 203;
-    function BeginDrag: WordBool; dispid 204;
-  end;
-{$ENDIF CPPB_6}
 
 //------------------------------------------------------------------------------
 // SHCreateShellFolderViewEx
@@ -2577,39 +2458,6 @@ type
     function GetEnum(flags: DWORD; assocenum: DWORD; pszExtra: LPCWSTR; const riid: TGUID; out ppvOut: Pointer): HRESULT; stdcall;
   end;
 
-
-{$IFNDEF COMPILER_10_UP}
-type
-  {$EXTERNALSYM PStartupInfoW}
-  PStartupInfoW = ^TStartupInfoW;
-  _STARTUPINFOW = record
-    cb: DWORD;
-    lpReserved: PWideChar;
-    lpDesktop: PWideChar;
-    lpTitle: PWideChar;
-    dwX: DWORD;
-    dwY: DWORD;
-    dwXSize: DWORD;
-    dwYSize: DWORD;
-    dwXCountChars: DWORD;
-    dwYCountChars: DWORD;
-    dwFillAttribute: DWORD;
-    dwFlags: DWORD;
-    wShowWindow: Word;
-    cbReserved2: Word;
-    lpReserved2: PByte;
-    hStdInput: THandle;
-    hStdOutput: THandle;
-    hStdError: THandle;
-  end;
-  {$EXTERNALSYM TStartupInfoW}
-  TStartupInfoW = _STARTUPINFOW;
-  {$EXTERNALSYM STARTUPINFOW}
-  STARTUPINFOW = _STARTUPINFOW;
-
-{$ENDIF}
-
-
 //------------------------------------------------------------------------------
 // ImageList Helper Interfaces
 //------------------------------------------------------------------------------
@@ -3192,9 +3040,6 @@ const
   IID_IPersistIDList: TGUID = SID_IPersistIDList;
 
 type
-  {$IFDEF CPPB_6}
-    {$EXTERNALSYM IPersistIDList}
-  {$ENDIF}
   IPersistIDList = interface(IPersist)
   [SID_IPersistIDList]
     // sets or gets a fully qualifed idlist for an object
@@ -3396,17 +3241,6 @@ const
   SFGAO_CONTENTSMASK = $80000000;
   {$EXTERNALSYM SFGAO_STORAGECAPMASK}
   SFGAO_STORAGECAPMASK = $70C50008;
-
-  {$IFNDEF COMPILER_7_UP}
-    {$EXTERNALSYM BIF_SHAREABLE}
-    BIF_SHAREABLE          = $8000;
-    {$EXTERNALSYM BIF_BROWSEINCLUDEURLS}
-    BIF_BROWSEINCLUDEURLS  = $0080;
-    {$EXTERNALSYM BIF_NEWDIALOGSTYLE}
-    BIF_NEWDIALOGSTYLE     = $0040;
-    {$EXTERNALSYM BIF_USENEWUI}
-    BIF_USENEWUI = BIF_NEWDIALOGSTYLE or BIF_EDITBOX;
-  {$ENDIF COMPILER_6_UP}
 
   // ***********************************************************************
   //
@@ -3980,32 +3814,6 @@ const
   {$EXTERNALSYM LOF_MASK_ALL}
   LOF_MASK_ALL          = $00000001;
 
-
-  {$IFNDEF COMPILER_14_UP}
-type
-  {$EXTERNALSYM IShellLibrary}
-  IShellLibrary = interface(IUnknown)
-  [SID_IShellLibrary]
-     function LoadLibraryFromItem(psiLibrary: IShellItem; grfMode: DWORD): HRESULT; stdcall;
-     function LoadLibraryFromKonwnFolder(const kfidLibrary: TGUID; grfMode: DWORD): HRESULT; stdcall;
-     function AddFolder(psiLocation: IShellItem): HRESULT; stdcall;
-     function RemoveFolder(psiLocation: IShellItem): HRESULT; stdcall;
-     function GetFolders(lff: DWORD; const riid: TGUID; var psiLocation: IShellItem): HRESULT; stdcall;
-     function ResolveFolder(psiFolderToResolve: IShellItem; dwTimeOut: DWORD; const riid: TGUID; var ppv: IUnknown): HRESULT; stdcall;
-     function GetDefaultSaveFolder(dsft: DWORD; const riid: TGUID; ppv: IUnknown): HRESULT; stdcall;
-     function SetDefaultSaveFolder(dsft: DWORD; psi: IShellItem): HRESULT; stdcall;
-     function GetOptions(var plofOptions: DWORD): HRESULT; stdcall;
-     function SetOptions(loMask: DWORD; loOptions: DWORD): HRESULT; stdcall;
-     function GetFolderType(var pftid: TGUID): HRESULT; stdcall;
-     function SetFolderType(const pftid: TGUID): HRESULT; stdcall;
-     function GetIcon(out ppszIcon: LPWSTR): HRESULT; stdcall;
-     function SetIcon(pszIcon: LPCWSTR): HRESULT; stdcall;
-     function Commit: HRESULT; stdcall;
-     function Save(psiFolderToSaveIn: IShellItem; pszLibraryName: LPCWSTR; lsf: DWORD; out ppsiSavedTo: IShellItem): HRESULT; stdcall;
-     function SaveInKnownFolder(const dfidToSaveIn: TGUID; pszLibraryName: LPCWSTR; lsf: DWORD; out ppsiSavedTo): HRESULT; stdcall;
-  end;
-  {$ENDIF}
-
 type
   TSHSetThreadRef = function(punk: IUnknown): HRESULT; stdcall;
   TSHGetThreadRef = function(out ppunk: IUnknown): HRESULT; stdcall;
@@ -4040,6 +3848,8 @@ begin
 end;
 
 end.
+
+
 
 
 
