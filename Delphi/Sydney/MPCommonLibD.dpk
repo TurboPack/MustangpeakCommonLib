@@ -1,0 +1,46 @@
+package MPCommonLibD;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Mustangpeak Common Library Delphi Runtime Package'}
+{$LIBSUFFIX '270'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl;
+
+contains
+  MPShellTypes in '..\..\Source\MPShellTypes.pas',
+  MPCommonUtilities in '..\..\Source\MPCommonUtilities.pas',
+  MPResources in '..\..\Source\MPResources.pas',
+  MPCommonObjects in '..\..\Source\MPCommonObjects.pas',
+  MPDataObject in '..\..\Source\MPDataObject.pas',
+  MPThreadManager in '..\..\Source\MPThreadManager.pas',
+  MPShellUtilities in '..\..\Source\MPShellUtilities.pas';
+
+end.

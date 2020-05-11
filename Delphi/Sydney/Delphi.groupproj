@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{CDBAFAAA-0451-4599-9DF5-337F74D780BE}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="MPCommonLibD.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MPCommonLibDD.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MPCommonLibD">
+        <MSBuild Projects="MPCommonLibD.dproj"/>
+    </Target>
+    <Target Name="MPCommonLibD:Clean">
+        <MSBuild Projects="MPCommonLibD.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MPCommonLibD:Make">
+        <MSBuild Projects="MPCommonLibD.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MPCommonLibDD">
+        <MSBuild Projects="MPCommonLibDD.dproj"/>
+    </Target>
+    <Target Name="MPCommonLibDD:Clean">
+        <MSBuild Projects="MPCommonLibDD.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MPCommonLibDD:Make">
+        <MSBuild Projects="MPCommonLibDD.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MPCommonLibD;MPCommonLibDD"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MPCommonLibD:Clean;MPCommonLibDD:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MPCommonLibD:Make;MPCommonLibDD:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
