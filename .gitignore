@@ -13,3 +13,6 @@ __history
 *.dcu
 *.hpp
 CBuilder/Sydney/Win32/
+*.obj
+*.bpi
+*.lib
