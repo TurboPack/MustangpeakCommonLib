@@ -25,9 +25,6 @@ unit MPShellTypes;
 
 interface
 
-{$I ..\Include\Debug.inc}
-{$I ..\Include\Addins.inc}
-
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   ImgList, ShlObj, ShellAPI, ActiveX, ComObj, CommCtrl;
@@ -1561,7 +1558,7 @@ type
     procedure GoHome; safecall;
     procedure GoSearch; safecall;
     procedure Navigate(const URL: WideString; var Flags: OleVariant;
-                       var TargetFrameName: OleVariant; var PostData: OleVariant; 
+                       var TargetFrameName: OleVariant; var PostData: OleVariant;
                        var Headers: OleVariant); safecall;
     procedure Refresh; safecall;
     procedure Refresh2(var Level: OleVariant); safecall;
@@ -3241,26 +3238,6 @@ const
   SFGAO_CONTENTSMASK = $80000000;
   {$EXTERNALSYM SFGAO_STORAGECAPMASK}
   SFGAO_STORAGECAPMASK = $70C50008;
-
-  // ***********************************************************************
-  //
-  // For use with SHGetKnownFolderPath (or SHGetKnownFolderPath_MP in MPCommonUtilities)
-  // This function allow getting the real paths to special folders.  In Vista the
-  // TNamespace.NameForParsing will return a pseudo path for thing like Program Files folder.
-  // This function will get the real path using the KF_FLAG_DEFAULT_PATH flag.
-  //
-  // Don't link with this function unless only running on Vista or above.  Use
-  // if Assigned(SHGetKnownFolderPath_MP) then
-  //    SHGetKnownFolderPath_MP( )
-  // else
-  //    ..Get the path some other way
-  //
-  // ***********************************************************************
-type
-  {$EXTERNALSYM SHGetKnownFolderPath}
-  SHGetKnownFolderPath = function(const rfid: TGUID; dwFlags: DWord; hToken: THandle; out ppszPath: PWideChar): HRESULT;
-  {$EXTERNALSYM SHGetKnownFolderIDList}
-  SHGetKnownFolderIDList = function(const rfid: TGUID; dwFlags: DWord; hToken: THandle; out ppidl: PItemIDList): HRESULT;
 
 const
   // Known Folder Type GUIDs

@@ -29,9 +29,6 @@ interface
   {$DEFINE GX_DEBUG}
 {$ENDIF}
 
-{$I ..\Include\Debug.inc}
-{$I ..\Include\Addins.inc}
-
 uses
   Windows,
   Messages,
@@ -228,35 +225,7 @@ type
   end;
 
 // Simpifies dealing with the CFSTR_FILEGROUPDESCRIPTOR format
-  TDescriptorAArray = array of TFileDescriptorA;
   TDescriptorWArray = array of TFileDescriptorW;
-
-  TFileGroupDescriptorA = class(TCommonClipboardFormat)
-  private
-    FStream: TStream;
-    function GetDescriptorCount: Integer;
-    function GetFileDescriptorA(Index: Integer): TFileDescriptorA;
-    procedure SetFileDescriptor(Index: Integer;
-      const Value: TFileDescriptorA);
-  protected
-    FFileDescriptors: TDescriptorAArray;
-    property Stream: TStream read FStream write FStream;
-  public
-    destructor Destroy; override;
-    procedure AddFileDescriptor(FileDescriptor: TFileDescriptorA);
-    procedure DeleteFileDescriptor(Index: integer);
-    function GetFormatEtc: TFormatEtc; override;
-    function FillDescriptor(FileName: AnsiString): TFileDescriptorA;
-    function GetFileStream(const DataObject: IDataObject; FileIndex: Integer): TStream;
-    procedure LoadFileGroupDestriptor(FileGroupDiscriptor: PFileGroupDescriptorA);
-    function LoadFromClipboard: Boolean; override;
-    function LoadFromDataObject(DataObject: IDataObject): Boolean; override;
-    function SaveToClipboard: Boolean; override;
-    function SaveToDataObject(DataObject: IDataObject): Boolean; override;
-
-    property DescriptorCount: Integer read GetDescriptorCount;
-    property FileDescriptor[Index: Integer]: TFileDescriptorA read GetFileDescriptorA write SetFileDescriptor;
-  end;
 
   TFileGroupDescriptorW = class(TCommonClipboardFormat)
   private
@@ -272,7 +241,7 @@ type
     destructor Destroy; override;
     procedure AddFileDescriptor(FileDescriptor: TFileDescriptorW);
     procedure DeleteFileDescriptor(Index: integer);
-    function FillDescriptor(FileName: WideString): TFileDescriptorW;
+    function FillDescriptor(FileName: string): TFileDescriptorW;
     function GetFileStream(const DataObject: IDataObject; FileIndex: Integer): TStream;
     function GetFormatEtc: TFormatEtc; override;
     procedure LoadFileGroupDestriptor(FileGroupDiscriptor: PFileGroupDescriptorW);
@@ -301,7 +270,7 @@ type
     function FileCountA: Integer;
     function FileCountW: Integer;
     function FileNameA(Index: integer): AnsiString;
-    function FileNameW(Index: integer): WideString;
+    function FileNameW(Index: integer): string;
     procedure FreeStructure; // Frees memory allocated
   public
     destructor Destroy; override;
@@ -309,7 +278,7 @@ type
     function LoadFromClipboard: Boolean; override;
     function LoadFromDataObject(DataObject: IDataObject): Boolean; override;
     function FileCount: integer;
-    function FileName(Index: integer): WideString;
+    function FileName(Index: integer): string;
     function GetFormatEtc: TFormatEtc; override;
     procedure AssignFilesA(FileList: TStringList);
     procedure AssignFilesW(FileList: TStrings);
@@ -404,7 +373,7 @@ var
 implementation
 
 uses
-  System.Math, System.AnsiStrings, MPShellUtilities;
+  MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -757,14 +726,14 @@ begin
   end;
 end;
 
-function TCommonHDrop.FileName(Index: integer): WideString;
+function TCommonHDrop.FileName(Index: integer): string;
 begin
   if Assigned(DropFiles) then
   begin
     if DropFiles.fWide then
       Result := FileNameW(Index)
     else
-      Result := string(FileNameA(Index))
+      Result := string(FileNameA(Index));
   end
 end;
 
@@ -849,7 +818,7 @@ begin
   end;
 end;
 
-function TCommonHDrop.FileNameW(Index: integer): WideString;
+function TCommonHDrop.FileNameW(Index: integer): string;
 var
   Head: PAnsiChar;
   PathNameCount: integer;
@@ -2056,202 +2025,12 @@ begin
   IsMultiFolderVerified := IsVerified
 end;
 
-{ TFileGroupDescriptorA }
-destructor TFileGroupDescriptorA.Destroy;
-begin
-  FreeAndNil(FStream);
-  inherited Destroy;
-end;
-
-
-procedure TFileGroupDescriptorA.AddFileDescriptor(
-  FileDescriptor: TFileDescriptorA);
-begin
-  SetLength(FFileDescriptors, Length(FFileDescriptors) + 1);
-  FFileDescriptors[Length(FFileDescriptors) - 1] := FileDescriptor;
-end;
-
-procedure TFileGroupDescriptorA.DeleteFileDescriptor(Index: integer);
-var
-  i: Integer;
-begin
-  for i := Index to Length(FFileDescriptors) - 1 do
-    FileDescriptor[i] := FileDescriptor[i+1];
-  SetLength(FFileDescriptors, Length(FFileDescriptors) - 1);
-end;
-
-function TFileGroupDescriptorA.FillDescriptor(FileName: AnsiString): TFileDescriptorA;
-begin
-  FillChar(Result, SizeOf(Result), #0);
-  System.AnsiStrings.StrCopy(Result.cFileName, PAnsiChar(FileName));
-end;
-
-function TFileGroupDescriptorA.GetDescriptorCount: Integer;
-begin
-  Result := Length(FFileDescriptors)
-end;
-
-function TFileGroupDescriptorA.GetFileDescriptorA(Index: Integer): TFileDescriptorA;
-begin
-  FillChar(Result, SizeOf(Result), #0);
-  if (Index > -1) and (Index < Length(FFileDescriptors)) then
-    Result := FFileDescriptors[Index]
-end;
-
-function TFileGroupDescriptorA.GetFileStream(const DataObject: IDataObject;
-  FileIndex: Integer): TStream;
-var
- Format: TFormatEtc;
- Medium: TStgMedium;
- PMem : Pointer;
- Ok : boolean;
-begin
-  if Assigned(Stream) then
-    FreeAndNil(FStream);
-
-  if Assigned(DataObject) and (FileIndex > -1) and (FileIndex < DescriptorCount) then
-  begin
-    Format.cfFormat := CF_FILECONTENTS;
-    Format.ptd := nil;
-    Format.dwAspect := DVASPECT_CONTENT;
-    Format.lindex := FileIndex;
-    Format.tymed := TYMED_ISTREAM;
-    Ok := Succeeded(DataObject.GetData(Format, Medium));
-    if Ok then
-    begin
-      if Medium.tymed = TYMED_ISTREAM then
-      begin
-        FStream := TOLEStream.Create(IStream(Medium.stm));
-        ReleaseStgMedium(Medium);
-       end else
-         Ok := false;
-    end;
-    if not Ok then
-    begin
-      Format.tymed := TYMED_HGLOBAL;
-      if Succeeded(DataObject.GetData(Format, Medium)) then
-      begin
-        FStream := TMemoryStream.Create;
-        PMem := GlobalLock(Medium.hGlobal);
-        FStream.Size := GlobalSize(Medium.hglobal);
-        MoveMemory(TMemoryStream(FStream).Memory, PMem, FStream.Size);
-        GlobalUnLock(Medium.hGlobal);
-        ReleaseStgMedium(Medium);
-      end
-    end
-  end;
-  Result := Stream;
-end;
-
-function TFileGroupDescriptorA.GetFormatEtc: TFormatEtc;
-begin
-  Result := FileDescriptorAFormat 
-end;
-
-procedure TFileGroupDescriptorA.LoadFileGroupDestriptor(FileGroupDiscriptor: PFileGroupDescriptorA);
-var
-  i: Cardinal;
-begin
-  if Assigned(FileGroupDiscriptor) then
-  begin
-    SetLength(FFileDescriptors, FileGroupDiscriptor.cItems);
-    for i := 0 to FileGroupDiscriptor.cItems - 1 do
-    begin
-      FFileDescriptors[i] := FileGroupDiscriptor.fgd[i]
-    end
-  end else
-    FFileDescriptors := nil;
-end;
-
-function TFileGroupDescriptorA.LoadFromClipboard: Boolean;
-var
-  DataObject: IDataObject;
-begin
-  Result := False;
-  if Succeeded(OleGetClipboard(DataObject)) then
-    Result := LoadFromDataObject(DataObject);
-end;
-
-function TFileGroupDescriptorA.LoadFromDataObject(DataObject: IDataObject): Boolean;
-var
-  GroupDescriptor: PFileGroupDescriptorA;
-  Medium: TStgMedium;
-  i: Integer;
-begin
-  Result := False;
-  if Succeeded(DataObject.GetData(GetFormatEtc, Medium)) then
-  begin
-    GroupDescriptor := GlobalLock(Medium.hGlobal);
-    try
-      for i := 0 to GroupDescriptor^.cItems - 1 do
-        AddFileDescriptor(GroupDescriptor^.fgd[i])
-    finally
-      GlobalUnlock(Medium.hGlobal);
-      ReleaseStgMedium(Medium);
-      Result := True
-    end
-  end
-end;
-
-function TFileGroupDescriptorA.SaveToClipboard: Boolean;
-var
-  DataObject: IDataObject;
-begin
-  Result := False;
-  DataObject := TCommonDataObject.Create;
-  if SaveToDataObject(DataObject) then
-    Result := Succeeded(OleSetClipboard(DataObject))
-end;
-
-function TFileGroupDescriptorA.SaveToDataObject(DataObject: IDataObject): Boolean;
-var
-  Mem: THandle;
-  GroupDescriptor: PFileGroupDescriptorA;
-  Medium: TStgMedium;
-  Format: TFormatEtc;
-begin
-  Result := False;
-  if Assigned(DataObject) and (DescriptorCount > 0) then
-  begin
-    Mem := GlobalAlloc(GHND, DescriptorCount * SizeOf(TFileDescriptorA) + SizeOf(GroupDescriptor.cItems));
-    GroupDescriptor := GlobalLock(Mem);
-    try
-      GroupDescriptor.cItems := DescriptorCount;
-      CopyMemory(@GroupDescriptor^.fgd[0], @FFileDescriptors[0], DescriptorCount * SizeOf(TFileDescriptorA));
-    finally
-      GlobalUnlock(Mem)
-    end;
-    FillChar(Medium, SizeOf(Medium), #0);
-    Medium.tymed := TYMED_HGLOBAL;
-    Medium.hGlobal := Mem;
-
-    DataObject.SetData(GetFormatEtc, Medium, True);
-
-    Medium.tymed := TYMED_ISTREAM;
-    Medium.stm := nil;
-
-    Format.cfFormat := CF_FILECONTENTS;
-    Format.ptd := nil;
-    Format.dwAspect := DVASPECT_CONTENT;
-    Format.lindex := -1;
-    Format.tymed := TYMED_ISTREAM;
-    DataObject.SetData(Format, Medium, True);
-  end
-end;
-
-procedure TFileGroupDescriptorA.SetFileDescriptor(Index: Integer; const Value: TFileDescriptorA);
-begin
-  if (Index > -1) and (Index < Length(FFileDescriptors)) then
-    FFileDescriptors[Index] := Value
-end;
-
 { TFileGroupDescriptorW }
 destructor TFileGroupDescriptorW.Destroy;
 begin
   FreeAndNil(FStream);
   inherited Destroy;
 end;
-
 
 procedure TFileGroupDescriptorW.AddFileDescriptor(
   FileDescriptor: TFileDescriptorW);
@@ -2269,7 +2048,7 @@ begin
   SetLength(FFileDescriptors, Length(FFileDescriptors) - 1);
 end;
 
-function TFileGroupDescriptorW.FillDescriptor(FileName: WideString): TFileDescriptorW;
+function TFileGroupDescriptorW.FillDescriptor(FileName: string): TFileDescriptorW;
 begin
   FillChar(Result, SizeOf(Result), #0);
   StrCopyW(Result.cFileName, PWideChar(FileName));

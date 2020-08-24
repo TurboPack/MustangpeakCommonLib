@@ -23,8 +23,6 @@ unit MPCommonWizardTemplates;
 
 interface
 
-{$I ..\Include\Addins.inc}
-
 const
   FILE_FORM_TEMPLATE_DELPHI =
 

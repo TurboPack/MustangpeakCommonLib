@@ -98,7 +98,6 @@
         <ILINK_AppType>Windows</ILINK_AppType>
         <BRCC_IncludePath>..\Source;$(BDS)\include;$(BDS)\include\vcl;$(BRCC_IncludePath)</BRCC_IncludePath>
         <TASM_IncludePath>..\Source;$(BDS)\include;$(BDS)\include\vcl;$(TASM_IncludePath)</TASM_IncludePath>
-        <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <ILINK_WinAppType>Package</ILINK_WinAppType>
         <DCC_IncludePath>.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_IncludePath)</DCC_IncludePath>
         <BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
@@ -341,10 +340,7 @@
                 <Source>
                     <Source Name="MainSource">MPCommonLibC.cpp</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k270.bpl">Microsoft Office 2000 Beispiele für gekapselte Komponenten für Automatisierungsserver</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp270.bpl">Microsoft Office XP Beispiele für gekapselte Komponenten für Automation Server</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </CPlusPlusBuilder.Personality>
             <Platforms>
                 <Platform value="Android">False</Platform>

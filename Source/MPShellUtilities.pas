@@ -43,8 +43,6 @@ unit MPShellUtilities;
 
 interface
 
-{$I ..\Include\Addins.inc}
-
 {.$DEFINE GXDEBUG_DEFMENUCREATE_CALLBACK}
 {.$DEFINE GXDEBUG_VIRTUALCONTEXTMENU}
 {.$DEFINE GXDEBUG_EXPLORERTHREADINSTANCE}
@@ -95,7 +93,7 @@ uses
 const
   VET_DEFAULT_COLUMN_ARRAY_WIDTH = 37;    // XP Had 37 Columns;
 
-  COMMON_FOLDERTYPE_STRING: array[0..4] of WideString = (
+  COMMON_FOLDERTYPE_STRING: array[0..4] of string = (
     'cftUnknown',
     'cftFileSystem',
     'cftMyComputer',
@@ -115,7 +113,7 @@ const
   PATH_CONTROLPANEL = '::{26EE0668-A00A-44D7-9371-BEB064C98683}';
   PATH_NETWORK = '::';
 
-  ILLEGAL_FILENAME_CHARS: array[0..7] of WideString = (
+  ILLEGAL_FILENAME_CHARS: array[0..7] of string = (
     '\',
     '/',
     ':',
@@ -450,11 +448,11 @@ type
 
   TSHColumnIDArray = array of TSHColumnID;
   TGUIDArray = array of TGUID;
-  TWideStringArray = array of WideString;
+  TStringArray = array of string;
   TCategoryArray = array of ICategorizer;
 
   TCategoryInfo = record
-    Description: WideString;
+    Description: string;
     Collapsed: Boolean;
     Hidden: Boolean;
   end;
@@ -465,12 +463,12 @@ type
   TCategoriesInfo = record
     ColumnID: TSHColumnIDArray;
     CatGUID: TGUIDArray;
-    CategoryNames: TWideStringArray;
+    CategoryNames: TStringArray;
     Categories: TCategoryInfoArray;
     CanCatatorize: TBooleanArray;
     DefaultColumn: Integer; // Index into above arrays to the default grouping column
     CategoryCount: Integer;
-  end;               
+  end;
 
   TBtyeSize = (
     bsKiloBytes,
@@ -509,7 +507,7 @@ type
   PDetailsOfCacheRec = ^TDetailsOfCacheRec;
   TDetailsOfCacheRec = packed record
     Cached: TDetailsOfCacheFlags;
-    Caption: WideString;
+    Caption: string;
     States: TSHColumnStates;
   end;
 
@@ -527,7 +525,7 @@ type
     LastWriteTime,                 // String of the last write time in details mode
     FileSize,                      // String of the file size "23,0000"
     FileSizeKB,                    // String of the file size ala Explorer style i.e. "23 KB"
-    FileType: WideString;          // @@@@ FileType shown in Explorer details mode
+    FileType: string;          // @@@@ FileType shown in Explorer details mode
     FileSizeInt64: Int64;          // Actual File Size
     SupportedColumns: integer;     // Number of supported columns in details mode
     FolderSize: Int64;             // Recursivly calcuated size of folder contents
@@ -546,7 +544,7 @@ type
 
   PSHGetFileInfoRec = ^TSHGetFileInfoRec;
   TSHGetFileInfoRec = packed record
-    FileType: WideString;             // Holds the File Type column detail if not using ShellColumns (using VET or custom columns)
+    FileType: string;             // Holds the File Type column detail if not using ShellColumns (using VET or custom columns)
   end;
 
 
@@ -594,7 +592,7 @@ type
   EWow64RevertException = class(Exception)
   end;
 
-  
+
 {-------------------------------------------------------------------------------}
 { Persistent Storing and Recreating VET                                         }
 {-------------------------------------------------------------------------------}
@@ -603,10 +601,10 @@ type
   private
     FStreamVersion: integer;
   public
-    constructor Create; 
-    procedure LoadFromFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
+    constructor Create;
+    procedure LoadFromFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
     procedure LoadFromStream(S: TStream; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
-    procedure SaveToFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
+    procedure SaveToFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
     procedure SaveToStream(S: TStream; Version: integer = 0; WriteVerToStream: Boolean = False); virtual;
 
     property StreamVersion: integer read FStreamVersion;
@@ -617,9 +615,9 @@ type
     FStreamVersion: integer;
   public
     constructor Create;
-    procedure LoadFromFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
+    procedure LoadFromFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
     procedure LoadFromStream(S: TStream; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
-    procedure SaveToFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
+    procedure SaveToFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False); virtual;
     procedure SaveToStream(S: TStream; Version: integer = 0; WriteVerToStream: Boolean = False); virtual;
 
     property StreamVersion: integer read FStreamVersion;
@@ -646,21 +644,21 @@ type
 
   TColumnItem = class
   private
- //   FFolderName: WideString;
+ //   FFolderName: string;
  //   FFolderType: TCommonFolderMapType;
-    FFriendlyName: WideString;
-    FGUID: WideString;
+    FFriendlyName: string;
+    FGUID: string;
     FKey: TPropertyKey;
     FPosition: Integer;
     FVisible: Boolean;
     FWidth: Integer;
     FFolderType: TCommonFolderMapType;
-    FFolderName: WideString;
+    FFolderName: string;
   public
-    property FolderName: WideString read FFolderName write FFolderName;
+    property FolderName: string read FFolderName write FFolderName;
     property FolderType: TCommonFolderMapType read FFolderType write FFolderType;
-    property FriendlyName: WideString read FFriendlyName write FFriendlyName;
-    property GUID: WideString read FGUID write FGUID;
+    property FriendlyName: string read FFriendlyName write FFriendlyName;
+    property GUID: string read FGUID write FGUID;
     property Key: TPropertyKey read FKey write FKey;
     property Position: Integer read FPosition write FPosition;
     property Visible: Boolean read FVisible write FVisible;
@@ -672,7 +670,7 @@ type
     FList: TList;
     function GetColumnItem(Index: Integer): TColumnItem;
     function GetCount: Integer;
-    procedure RestoreDefaultNamespaceColumnMap(FolderName: WideString; ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray);
+    procedure RestoreDefaultNamespaceColumnMap(FolderName: string; ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray);
     procedure SetColumnItem(Index: Integer; Value: TColumnItem);
   protected
     function DefaultControlPanelColumnWidth(iColumn: Integer): Integer;
@@ -681,8 +679,8 @@ type
     function DefaultNetworkColumnWidth(iColumn: Integer): Integer;
     function MapColumnToDefaultSCID(FolderType: TCommonFolderMapType; i: Integer): TPropertyKey;
     procedure DefaultColumnWidth(FolderType: TCommonFolderMapType; i: Integer);
-    procedure ForceandLoadMapItem(FolderNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: WideString; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
-    procedure MimicColumnSCID(ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: WideString; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
+    procedure ForceandLoadMapItem(FolderNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
+    procedure MimicColumnSCID(ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
     property List: TList read FList write FList;
   public
     constructor Create;
@@ -738,7 +736,7 @@ type
     FOwner: TNamespace;                       // The Owner namespace
     FPathExtracted: Boolean;
     function GetImage: TBitmap;
-    function GetImagePath: WideString;
+    function GetImagePath: string;
     function GetExtractImageInterface: IExtractImage;
     function GetExtractImageInterface2: IExtractImage2;
   protected
@@ -746,7 +744,7 @@ type
   public
     constructor Create;
     property ColorDepth: Longword read FColorDepth write FColorDepth;
-    property ImagePath: WideString read GetImagePath;
+    property ImagePath: string read GetImagePath;
     property Image: TBitmap read GetImage;
     property ExtractImageInterface: IExtractImage read GetExtractImageInterface;
     property ExtractImage2Interface: IExtractImage2 read GetExtractImageInterface2;
@@ -767,44 +765,41 @@ type
   {$IFEND}
   TVirtualShellLink = class(TComponent)
   private
-    FFileName: WideString;            // File name of the lnk file
-    FShellLinkA: IShellLinkA;           // ShellLink interface
+    FFileName: string;            // File name of the lnk file
     FShellLinkW: IShellLinkW;         // ShellLinkW interface
     FIconIndex: integer;              // Index of the icon to be used with the link
     FTargetIDList: PItemIDList;       // If the Target is a virtual object the PIDL is the only way to make the link
     FShowCmd: TCmdShow;               // How to show the window of the target application
     FHotKeyModifiers: THotKeyModifiers;  // The key modifiers for short cuts
-    FTargetPath: WideString;          // The target that will be executed
-    FArguments: WideString;           // Any arguments to be passed to the target
-    FDescription: WideString;         // A description that will be shown in the properties dialog
-    FWorkingDirectory: WideString;    // The directory the target application will have set as its current directory
-    FIconLocation: WideString;        // The file that has the icon for the link
+    FTargetPath: string;          // The target that will be executed
+    FArguments: string;           // Any arguments to be passed to the target
+    FDescription: string;         // A description that will be shown in the properties dialog
+    FWorkingDirectory: string;    // The directory the target application will have set as its current directory
+    FIconLocation: string;        // The file that has the icon for the link
     FHotKey: Word;                    // The HotKey to execute the link, used with the FHotKeyModifiers
     FSilentWrite: Boolean;            // Do not check parameters before writing lnk file and show a warning
-    function GetShellLinkAInterface: IShellLinkA;
     function GetShellLinkWInterface: IShellLinkW;
   protected
     procedure FreeTargetIDList;
 
   public
     destructor Destroy; override;
-    function ReadLink(LinkFileName: WideString): Boolean;
-    function WriteLink(LinkFileName: WideString): Boolean;
+    function ReadLink(LinkFileName: string): Boolean;
+    function WriteLink(LinkFileName: string): Boolean;
 
-    property Arguments: WideString read FArguments write FArguments;
-    property Description: WideString read FDescription write FDescription;
-    property FileName: WideString read FFileName write FFileName;
+    property Arguments: string read FArguments write FArguments;
+    property Description: string read FDescription write FDescription;
+    property FileName: string read FFileName write FFileName;
     property HotKey: Word read FHotKey write FHotKey;
     property HotKeyModifiers: THotKeyModifiers read FHotKeyModifiers write FHotKeyModifiers;
     property IconIndex: integer read FIconIndex write FIconIndex;
-    property IconLocation: WideString read FIconLocation write FIconLocation;
+    property IconLocation: string read FIconLocation write FIconLocation;
     property TargetIDList: PItemIDList read FTargetIDList write FTargetIDList;
-    property ShellLinkAInterface: IShellLinkA read GetShellLinkAInterface;
     property ShellLinkWInterface: IShellLinkW read GetShellLinkWInterface;
     property ShowCmd: TCmdShow read FShowCmd write FShowCmd; // SW_XXXX contants
     property SilentWrite: Boolean read FSilentWrite write FSilentWrite;
-    property TargetPath: WideString read FTargetPath write FTargetPath;
-    property WorkingDirectory: WideString read FWorkingDirectory write FWorkingDirectory;
+    property TargetPath: string read FTargetPath write FTargetPath;
+    property WorkingDirectory: string read FWorkingDirectory write FWorkingDirectory;
   end;
 {-------------------------------------------------------------------------------}
 
@@ -818,7 +813,7 @@ type
     function DiscriminateFolders(NS1, NS2: TNamespace): Integer; virtual;
     function SortFileSize(NS1, NS2: TNamespace): Integer; virtual;
     function SortFileTime(FT1, FT2: TFileTime; NS1, NS2: TNamespace): Integer; virtual;
-    function SortString(S1, S2: WideString; NS1, NS2: TNamespace): Integer; virtual;
+    function SortString(S1, S2: string; NS1, NS2: TNamespace): Integer; virtual;
     function SortType(NS1, NS2: TNamespace): Integer; virtual;
 
     property FileSort: TFileSort read FFileSort write FFileSort;
@@ -832,11 +827,11 @@ type
   TEnumFolderCallback = function(MessageWnd: HWnd; APIDL: PItemIDList; AParent: TNamespace;
     Data: Pointer; var Terminate: Boolean): Boolean of object;
 
-  TContextMenuCmdCallback = procedure(Namespace: TNamespace; Verb: WideString;
+  TContextMenuCmdCallback = procedure(Namespace: TNamespace; Verb: string;
     MenuItemID: Integer;  var Handled: Boolean) of object;
   TContextMenuShowCallback = procedure(Namespace: TNamespace; Menu: hMenu;
     var Allow: Boolean) of object;
-  TContextMenuAfterCmdCallback = procedure(Namespace: TNamespace; Verb: WideString;
+  TContextMenuAfterCmdCallback = procedure(Namespace: TNamespace; Verb: string;
     MenuItemID: Integer; Successful: Boolean) of object;
 {-------------------------------------------------------------------------------}
 
@@ -876,7 +871,6 @@ type
     FTag: NativeInt;
     FTileDetail: TCommonIntegerDynArray; //
     FQueryInfoInterface: IQueryInfo;       // Interface for the popup InfoTips on folders in Win2k-WinME and up
-    FWin32FindDataA: PWin32FindDataA;      // pointer to an allocated structure for an ASCI window file information if is is a file object
     FWin32FindDataW: PWin32FindDataW;      // pointer to an allocated structure for an Unicode window file information if is is a file object
     FSystemIsSuperHidden: Boolean;         // Holds the result of if the system has the SuperHiddenFile flag set in the registry
     FShellIconOverlayInterface: IShellIconOverlay;
@@ -890,11 +884,11 @@ type
     function GetDelagateNS: TNamespace;
     function GetIsLibraryChild: Boolean;
     function GetJunctionPoint: Boolean;
-    function GetJunctionPointResolvePath: WideString;
+    function GetJunctionPointResolvePath: string;
     function GetParent: TNamespace;
     function GetPropertyStoreInterface: IPropertyStore;
     function GetSymbolicLink: Boolean;
-    function GetSymbolicLinkResolvePath: WideString;
+    function GetSymbolicLinkResolvePath: string;
     procedure SetCurrentContextMenu(const Value: IContextMenu);
     procedure SetCurrentContextMenu2(const Value: IContextMenu2);
   protected
@@ -909,7 +903,7 @@ type
     function DelegateNamespace: Boolean;
     { Virtual Property Setters }
     function GetArchive: Boolean; virtual;
-    function GetAttributesString: WideString; virtual;
+    function GetAttributesString: string; virtual;
     function GetBrowsable: Boolean; virtual;
     function GetBrowserFrameOptionsInterface: IBrowserFrameOptions; virtual;
     function GetCanCopy: Boolean; virtual;
@@ -925,7 +919,7 @@ type
     function GetContextMenu3Interface: IContextMenu3; virtual;
     function GetContextMenuInterface: IContextMenu; virtual;
     function GetCreationDateTime: TDateTime; virtual;
-    function GetCreationTime: WideString; virtual;
+    function GetCreationTime: string; virtual;
     function GetCreationTimeRaw: TFileTime; virtual;
     function GetDataObjectInterface: IDataObject; virtual;
     function GetDescription: TObjectDescription; virtual;
@@ -934,14 +928,14 @@ type
     function GetDropTarget: Boolean; virtual;
     function GetDropTargetInterface: IDropTarget; virtual;
     function GetEncrypted: Boolean; virtual;
-    function GetExtension: WideString; virtual;
+    function GetExtension: string; virtual;
     function GetExtractIconAInterface: IExtractIconA; virtual;
     function GetExtractIconWInterface: IExtractIconW; virtual;
     function GetExtractImage: TExtractImage; virtual;
-    function GetFileName: WideString; virtual;
+    function GetFileName: string; virtual;
     function GetFileSysAncestor: Boolean; virtual;
     function GetFileSystem: Boolean; virtual;
-    function GetFileType: WideString; virtual;
+    function GetFileType: string; virtual;
     function GetFolder: Boolean; virtual;
     function GetFreePIDLOnDestroy: Boolean; virtual;
     function GetGhosted: Boolean; virtual;
@@ -950,25 +944,25 @@ type
     function GetHasSubFolder: Boolean; virtual;
     function GetHidden: Boolean; virtual;
     function GetIconIndexChanged: Boolean; virtual;
-    function GetInfoTip: WideString; virtual;
+    function GetInfoTip: string; virtual;
     function GetIsSlow: Boolean; virtual;
     function GetLastAccessDateTime: TDateTime; virtual;
-    function GetLastAccessTime: WideString; virtual;
+    function GetLastAccessTime: string; virtual;
     function GetLastAccessTimeRaw: TFileTime; virtual;
     function GetLastWriteDateTime: TDateTime; virtual;
-    function GetLastWriteTime: WideString; virtual;
+    function GetLastWriteTime: string; virtual;
     function GetLastWriteTimeRaw: TFileTime; virtual;
     function GetLink: Boolean; virtual;
-    function GetNameAddressbar: WideString; virtual;
-    function GetNameAddressbarInFolder: WideString; virtual;
-    function GetNameForEditing: WideString; virtual;
-    function GetNameForEditingInFolder: WideString; virtual;
-    function GetNameForParsing: WideString; virtual;
-    function GetNameForParsingInFolder: WideString; virtual;
-    function GetNameInFolder: WideString; virtual;
-    function GetNameNormal: WideString; virtual;
-    function GetNameParseAddress: WideString; virtual;
-    function GetNameParseAddressInFolder: WideString; virtual;
+    function GetNameAddressbar: string; virtual;
+    function GetNameAddressbarInFolder: string; virtual;
+    function GetNameForEditing: string; virtual;
+    function GetNameForEditingInFolder: string; virtual;
+    function GetNameForParsing: string; virtual;
+    function GetNameForParsingInFolder: string; virtual;
+    function GetNameInFolder: string; virtual;
+    function GetNameNormal: string; virtual;
+    function GetNameParseAddress: string; virtual;
+    function GetNameParseAddressInFolder: string; virtual;
     function GetNewContent: Boolean; virtual;
     function GetNonEnumerated: Boolean; virtual;
     function GetNormal: Boolean; virtual;
@@ -991,11 +985,11 @@ type
     function GetShellIconInterface: IShellIcon; virtual;
     function GetShellIconOverlayInterface: IShellIconOverlay; virtual;
     function GetShellLink: TVirtualShellLink; virtual;
-    function GetShortFileName: WideString; virtual;
-    function GetSizeOfFile: WideString; virtual;
-    function GetSizeOfFileDiskUsage: WideString; virtual;
+    function GetShortFileName: string; virtual;
+    function GetSizeOfFile: string; virtual;
+    function GetSizeOfFileDiskUsage: string; virtual;
     function GetSizeOfFileInt64: Int64; virtual;
-    function GetSizeOfFileKB: WideString; virtual;
+    function GetSizeOfFileKB: string; virtual;
     function GetSparseFile: Boolean; virtual;
     function GetStorage: Boolean; virtual;
     function GetStorageAncestor: Boolean; virtual;
@@ -1013,7 +1007,7 @@ type
     function GetValid: Boolean; virtual;
     function ParentWnd: HWnd;
     procedure EnsureDetailCache;
-    procedure ExecuteContextMenuVerbMultiPath(Owner: TWinControl; Verb: WideString; Namespaces: TNamespaceArray; ShiftKeyState: TExecuteVerbShift = evsCurrent);
+    procedure ExecuteContextMenuVerbMultiPath(Owner: TWinControl; Verb: string; Namespaces: TNamespaceArray; ShiftKeyState: TExecuteVerbShift = evsCurrent);
     procedure LoadCategoryInfo;
     procedure SetFreePIDLOnDestroy(const Value: Boolean); virtual;
     procedure SetIconIndexChanged(const Value: Boolean); virtual;
@@ -1024,8 +1018,8 @@ type
 
     function CreateCategory(GUID: TGUID): ICategorizer;
     function EnumFuncDummy(MessageWnd: HWnd; APIDL: PItemIDList; AParent: TNamespace; Data: Pointer; var Terminate: Boolean): Boolean;
-    function ExplorerStyleAttributeStringList(CapitalLetters: Boolean): WideString;
-    function DisplayNameOf(Flags: Longword): WideString;
+    function ExplorerStyleAttributeStringList(CapitalLetters: Boolean): string;
+    function DisplayNameOf(Flags: Longword): string;
     procedure GetDataFromIDList;
     procedure GetFileTimes;
     procedure GetSHFileInfo;
@@ -1035,7 +1029,7 @@ type
     function InternalShowContextMenu(Owner: TWinControl; ContextMenuCmdCallback: TContextMenuCmdCallback;
       ContextMenuShowCallback: TContextMenuShowCallback; ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
       PIDLArray: TRelativePIDLArray; Position: PPoint;
-      CustomShellSubMenu: TPopupMenu; CustomSubMenuCaption: WideString): Boolean;
+      CustomShellSubMenu: TPopupMenu; CustomSubMenuCaption: string): Boolean;
     function InternalSubItems(Flags: Longword): Boolean;
     procedure ReplacePIDL(NewPIDL: PItemIDList; AParent: TNamespace);
     function ShowContextMenuMultiPath(Owner: TWinControl; Focused: TNamespace; Namespaces: TNamespaceArray; ShowPasteItem, ShowRenameItem, ShowShortCutMenuItem: Boolean; Position: PPoint = nil): Boolean;
@@ -1054,7 +1048,7 @@ type
     destructor Destroy; override;
 
     constructor CreateCustomNamespace(CustomID: Integer; AParent: TNamespace); virtual;
-    constructor CreateFromFileName(FileName: WideString); virtual;
+    constructor CreateFromFileName(FileName: string); virtual;
     function CanCopyAll(NamespaceArray: TNamespaceArray): Boolean; virtual;
     function CanCutAll(NamespaceArray: TNamespaceArray): boolean; virtual;
     function CanDeleteAll(NamespaceArray: TNamespaceArray): Boolean; virtual;
@@ -1063,20 +1057,20 @@ type
     function CanShowPropertiesOfAll(NamespaceArray: TNamespaceArray): Boolean; virtual;
     function Clone(ReleasePIDLOnDestroy: Boolean): TNameSpace; virtual;
     function ComparePIDL(PIDLToCompare: PItemIDList; IsAbsolutePIDL: Boolean; Column: Integer = 0): ShortInt; virtual;
-    function ContextMenuItemHelp(MenuItemID: LongWord): WideString; virtual;
-    function ContextMenuVerb(MenuItemID: LongWord): WideString; virtual;
+    function ContextMenuItemHelp(MenuItemID: LongWord): string; virtual;
+    function ContextMenuVerb(MenuItemID: LongWord): string; virtual;
     function Copy(Owner: TWinControl; NamespaceArray: TNamespaceArray): Boolean; virtual;
     function Cut(Owner: TWinControl; NamespaceArray: TNamespaceArray): Boolean; virtual;
     function DataObjectMulti(NamespaceArray: TNamespaceArray): IDataObject; virtual;
     function Delete(Owner: TWinControl; NamespaceArray: TNamespaceArray; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean; virtual;
     function DetailsAlignment(ColumnIndex: Integer): TAlignment; virtual;
-    function DetailsColumnTitle(ColumnIndex: integer): WideString; virtual;
-    function DetailsDefaultColumnTitle(ColumnIndex: integer): WideString; virtual;
-    function DetailsDefaultOf(ColumnIndex: integer): WideString; virtual;
+    function DetailsColumnTitle(ColumnIndex: integer): string; virtual;
+    function DetailsDefaultColumnTitle(ColumnIndex: integer): string; virtual;
+    function DetailsDefaultOf(ColumnIndex: integer): string; virtual;
     function DetailsDefaultSupportedColumns: integer; virtual;
     function DetailsGetDefaultColumnState(ColumnIndex: integer): TSHColumnStates; virtual;
-    function DetailsOf(ColumnIndex: integer): WideString; virtual;
-    function DetailsOfEx(ColumnIndex: integer): WideString; virtual;
+    function DetailsOf(ColumnIndex: integer): string; virtual;
+    function DetailsOfEx(ColumnIndex: integer): string; virtual;
     function DetailsSupportedColumns: integer; virtual;
     function DetailsSupportedVisibleColumns: TVisibleColumnIndexArray; virtual;
     function DetailsValidIndex(DetailsIndex: integer): Boolean; virtual;
@@ -1087,7 +1081,7 @@ type
     function Drop(const dataObj: IDataObject; grfKeyState: Integer; pt: TPoint; var dwEffect: Integer): HResult;  virtual;
     function EnumerateFolder(MessageWnd: HWnd; Folders, NonFolders, IncludeHidden: Boolean; EnumFunc: TEnumFolderCallback; UserData: pointer): integer;  virtual;
     function EnumerateFolderEx(MessageWnd: HWnd; FileObjects: TFileObjects; EnumFunc: TEnumFolderCallback; UserData: pointer; AfterValidEnumIDList: TNotifyEvent = nil): integer; virtual;
-    function ExecuteContextMenuVerb(Owner: TWinControl; AVerb: WideString; APIDLArray: TRelativePIDLArray; ShiftKeyState: TExecuteVerbShift = evsCurrent; WorkingDir: WideString = ''): Boolean; virtual;
+    function ExecuteContextMenuVerb(Owner: TWinControl; AVerb: string; APIDLArray: TRelativePIDLArray; ShiftKeyState: TExecuteVerbShift = evsCurrent; WorkingDir: string = ''): Boolean; virtual;
     function FolderSize(Invalidate: Boolean; RecurseFolder: Boolean = False): Int64;  virtual;
     function GetIconIndex(OpenIcon: Boolean; IconSize: TIconSize; ForceLoad: Boolean = True): integer; virtual;
     function GetImage: TBitmap;  virtual;
@@ -1113,22 +1107,22 @@ type
     function IsRecycleBin: Boolean;
     function OkToBrowse(ShowExplorerMsg: Boolean): Boolean;  virtual;
     function ParseDisplayName: PItemIDList;  overload;  virtual;
-    function ParseDisplayName(Path: WideString): PItemIDList; overload;  virtual;
+    function ParseDisplayName(Path: string): PItemIDList; overload;  virtual;
     function Paste(Owner: TWinControl; NamespaceArray: TNamespaceArray; AsShortCut: Boolean = False): Boolean; virtual;
-    procedure SetDetailByThread(ColumnIndex: Integer; Detail: WideString);
+    procedure SetDetailByThread(ColumnIndex: Integer; Detail: string);
     procedure SetIconIndexByThread(IconIndex: Integer; OverlayIndex: Integer; ClearThreadLoading: Boolean); virtual;
     procedure SetImageByThread(Bitmap: TBitmap; ClearThreadLoading: Boolean);  virtual;
-    function SetNameOf(NewName: WideString): Boolean;  virtual;
-    function ShellExecuteNamespace(WorkingDir, CmdLineArguments: WideString; ExecuteFolder: Boolean = False;
+    function SetNameOf(NewName: string): Boolean;  virtual;
+    function ShellExecuteNamespace(WorkingDir, CmdLineArguments: string; ExecuteFolder: Boolean = False;
       ExecuteFolderShortCut: Boolean = False; RunInThread: Boolean = False): Boolean;  virtual;
     function ShowContextMenu(Owner: TWinControl;
       ContextMenuCmdCallback: TContextMenuCmdCallback; ContextMenuShowCallback: TContextMenuShowCallback;
       ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback; Position: PPoint = nil;
-      CustomShellSubMenu: TPopupMenu = nil; CustomSubMenuCaption: WideString = ''): Boolean; virtual;
+      CustomShellSubMenu: TPopupMenu = nil; CustomSubMenuCaption: string = ''): Boolean; virtual;
     function ShowContextMenuMulti(Owner: TWinControl; ContextMenuCmdCallback: TContextMenuCmdCallback;
          ContextMenuShowCallback: TContextMenuShowCallback; ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
          NamespaceArray: TNamespaceArray; Position: PPoint = nil; CustomShellSubMenu: TPopupMenu = nil;
-         CustomSubMenuCaption: WideString = ''; Focused: TNamespace = nil; ShowPasteItem: Boolean = False;
+         CustomSubMenuCaption: string = ''; Focused: TNamespace = nil; ShowPasteItem: Boolean = False;
          ShowRenameItem: Boolean = False; ShowShortCutMenuItem: Boolean = False): Boolean; virtual;
     procedure ShowPropertySheet(Owner: TWinControl); virtual;
     procedure ShowPropertySheetMulti(Owner: TWinControl; NamespaceArray: TNamespaceArray; UseSHMultiFileProperties: Boolean = True; ForceNonMultiPath: Boolean = False); virtual;
@@ -1174,19 +1168,19 @@ type
     property IsLibraryChild: Boolean read GetIsLibraryChild;        // Win7 only
     property IsSlow: Boolean read GetIsSlow;
     property JunctionPoint: Boolean read GetJunctionPoint;
-    property JunctionPointResolvePath: WideString read GetJunctionPointResolvePath;
+    property JunctionPointResolvePath: string read GetJunctionPointResolvePath;
     property Link: Boolean read GetLink;
-    property InfoTip: WideString read GetInfoTip;
-    property NameAddressbar: WideString read GetNameAddressbar;
-    property NameAddressbarInFolder: WideString read GetNameAddressbarInFolder;
-    property NameForEditing: WideString read GetNameForEditing;
-    property NameForEditingInFolder: WideString read GetNameForEditingInFolder;
-    property NameForParsing: WideString read GetNameForParsing;
-    property NameForParsingInFolder: WideString read GetNameForParsingInFolder;
-    property NameInFolder: WideString read GetNameInFolder;
-    property NameNormal: WideString read GetNameNormal;
-    property NameParseAddress: WideString read GetNameParseAddress;
-    property NameParseAddressInFolder: WideString read GetNameParseAddressInFolder;
+    property InfoTip: string read GetInfoTip;
+    property NameAddressbar: string read GetNameAddressbar;
+    property NameAddressbarInFolder: string read GetNameAddressbarInFolder;
+    property NameForEditing: string read GetNameForEditing;
+    property NameForEditingInFolder: string read GetNameForEditingInFolder;
+    property NameForParsing: string read GetNameForParsing;
+    property NameForParsingInFolder: string read GetNameForParsingInFolder;
+    property NameInFolder: string read GetNameInFolder;
+    property NameNormal: string read GetNameNormal;
+    property NameParseAddress: string read GetNameParseAddress;
+    property NameParseAddressInFolder: string read GetNameParseAddressInFolder;
     property NamespaceID: integer read FNamespaceID;
     property NewContent: Boolean read GetNewContent;
     property NonEnumerated: Boolean read GetNonEnumerated;
@@ -1206,7 +1200,7 @@ type
     property ShellLink: TVirtualShellLink read GetShellLink;
     property ShellIconInterface: IShellIcon read GetShellIconInterface;
     property ShellIconOverlayInterface: IShellIconOverlay read GetShellIconOverlayInterface;
-    property ShortFileName: WideString read GetShortFileName;
+    property ShortFileName: string read GetShortFileName;
     property SparseFile: Boolean read GetSparseFile;
     property States: TNamespaceStates read FStates write FStates;
     property Storage: Boolean read GetStorage;
@@ -1215,7 +1209,7 @@ type
     property SubFolders: Boolean read GetSubFolders;
     property SubItems: Boolean read GetSubItems;
     property SymbolicLink: Boolean read GetSymbolicLink;
-    property SymbolicLinkResolvePath: WideString read GetSymbolicLinkResolvePath;
+    property SymbolicLinkResolvePath: string read GetSymbolicLinkResolvePath;
     property Tag: NativeInt read FTag write FTag;
     property ThreadedDetailLoaded[Column: Integer]: Boolean read GetThreadedDetailLoaded write SetThreadedDetailLoaded;
     property ThreadedDetailLoading[Column: Integer]: Boolean read GetThreadedDetailLoading write SetThreadedDetailLoading;
@@ -1225,24 +1219,23 @@ type
     property ThreadImageLoading: Boolean read GetThreadedImageLoading write SetThreadImageLoading;
     property TileDetail: TCommonIntegerDynArray read FTileDetail write FTileDetail;
     property QueryInfoInterface: IQueryInfo read GetQueryInfoInterface;
-    property Win32FindDataA: PWin32FindDataA read FWin32FindDataA;
     property Win32FindDataW: PWin32FindDataW read FWin32FindDataW;
     { Information on namespaces that are actual files.                          }
-    property AttributesString: WideString read GetAttributesString; // Explorer type 'RHSA'
+    property AttributesString: string read GetAttributesString; // Explorer type 'RHSA'
     property Archive: Boolean read GetArchive;
     property Compressed: Boolean read GetCompressed;
-    property CreationTime: WideString read GetCreationTime;
+    property CreationTime: string read GetCreationTime;
     property CreationDateTime: TDateTime read GetCreationDateTime;
     property CreationTimeRaw: TFileTime read GetCreationTimeRaw;
     property Directory: Boolean read GetDirectory;
-    property Extension: WideString read GetExtension;
-    property FileName: WideString read GetFileName;
-    property FileType: WideString read GetFileType;
+    property Extension: string read GetExtension;
+    property FileName: string read GetFileName;
+    property FileType: string read GetFileType;
     property Hidden: Boolean read GetHidden;
-    property LastAccessTime: WideString read GetLastAccessTime;
+    property LastAccessTime: string read GetLastAccessTime;
     property LastAccessDateTime: TDateTime read GetLastAccessDateTime;
     property LastAccessTimeRaw: TFileTime read GetLastAccessTimeRaw;
-    property LastWriteTime: WideString read GetLastWriteTime;
+    property LastWriteTime: string read GetLastWriteTime;
     property LastWriteDateTime: TDateTime read GetLastWriteDateTime;
     property LastWriteTimeRaw: TFileTime read GetLastWriteTimeRaw;
     property Normal: Boolean read GetNormal;
@@ -1251,10 +1244,10 @@ type
     property OverlayIconIndex: Integer read GetOverlayIconIndex;
     property ReadOnlyFile: Boolean read GetReadOnlyFile;
     property ReparsePoint: Boolean read GetReparsePoint;
-    property SizeOfFile: WideString read GetSizeOfFile;
+    property SizeOfFile: string read GetSizeOfFile;
     property SizeOfFileInt64: Int64 read GetSizeOfFileInt64;
-    property SizeOfFileKB: WideString read GetSizeOfFileKB;
-    property SizeOfFileDiskUsage: WideString read GetSizeOfFileDiskUsage;
+    property SizeOfFileKB: string read GetSizeOfFileKB;
+    property SizeOfFileDiskUsage: string read GetSizeOfFileDiskUsage;
     property SystemFile: Boolean read GetSystem;
     property Temporary: Boolean read GetTemporary;
     property Valid: Boolean read GetValid;
@@ -1355,7 +1348,7 @@ type
     function QueryInterface(const IID: TGUID; out Obj): HResult; override; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    
+
   // IShellFolder
     function ParseDisplayName(hwndOwner: HWND; pbcReserved: Pointer; lpszDisplayName: POLESTR; out pchEaten: ULONG; out ppidl: PItemIDList; var dwAttributes: ULONG): HResult; stdcall;
     function EnumObjects(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList): HResult; stdcall;
@@ -1375,7 +1368,7 @@ type
 
     function DefMenuCreateCallback(const psf: IShellfolder; wnd: HWND; const pdtObj: IDataObject; uMsg: UINT; WParm: WParam; lParm: LParam): HResult; stdcall;
 
-    procedure AddMenuKey(Key: WideString);
+    procedure AddMenuKey(Key: string);
     procedure AddMenuKeys(Keys: TStringList);
     procedure ClearKeys;
     procedure DoCopy(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
@@ -1396,7 +1389,7 @@ type
     function DuplicateKey(Key: HKEY): HKEY;
     function FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
     procedure HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT); stdcall;
-    function InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: WideString; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
+    function InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: string; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
     procedure LoadMultiFolderPIDLArray(Namespaces: TNamespaceArray; var PIDLs: TAbsolutePIDLArray);
     procedure LoadRegistryKeyStrings(Focused: TNamespace); virtual; abstract;
     procedure WindowProcForContextMenu(var Message: TMessage);
@@ -1567,64 +1560,63 @@ type
   function NamespaceToRelativePIDLArray(Namespaces: TNamespaceArray): TRelativePIDLArray;
   function NamespaceToAbsolutePIDLList(Namespaces: TNamespaceArray): TCommonPIDLList;
   function NamespaceToNamespaceList(Namespaces: TNamespaceArray): TList;
-  function PathToPIDL(APath: WideString; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
-  function PIDLToPath(APIDL: PItemIDList): WideString;
-  function DirExistsVET(APath: WideString; ShowSystemMessages: Boolean): Boolean; overload;
+  function PathToPIDL(APath: string; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
+  function PIDLToPath(APIDL: PItemIDList): string;
+  function DirExistsVET(APath: string; ShowSystemMessages: Boolean): Boolean; overload;
   function DirExistsVET(NS: TNamespace; ShowSystemMessages: Boolean): Boolean; overload;
   procedure PIDLListQuickSort(PIDLList: TCommonPIDLList; const ParentFolder: IShellFolder; L, R: Integer; SortColumn: Integer = 0);
   procedure PIDLQuickSort(PIDLList: TPIDLArray; const ParentFolder: IShellFolder; L, R: Integer);
 
   // Time Conversions
-  //** NOTE these are not WideString functions they will use ANSI strings internally
-  function ConvertLocalStrToTFileTime(LocalStr: WideString; var FileTime: TFileTime): Boolean;
-  function ConvertTFileTimeToLocalStr(AFileTime: TFILETIME): WideString;
+  //** NOTE these are not string functions they will use ANSI strings internally
+  function ConvertLocalStrToTFileTime(LocalStr: string; var FileTime: TFileTime): Boolean;
+  function ConvertTFileTimeToLocalStr(AFileTime: TFILETIME): string;
   function ConvertFileTimetoDateTime(AFileTime : TFileTime): TDateTime;
 
   // Various Functions
   function CreateSpecialNamespace(FolderID: integer): TNamespace;
   function CreateKnownFolderNamespace(FolderID: TGUID; ForceCreation: Boolean = False; NoAlias: Boolean = True): TNamespace;   // Use the FOLDERID_xxxxx constant in MPShellTypes
   function DefaultSystemImageIndex(FolderType: TDefaultFolderIcon): integer;
-  function DefaultSystemImageForFileExt(FileExt: WideString): Integer;
+  function DefaultSystemImageForFileExt(FileExt: string): Integer;
   function FileIconInit(FullInit: BOOL): BOOL; stdcall;
   function IENamespaceShown(PerUser: Boolean): Boolean;
   function GUIDToInterfaceStr(riid: TGUID): String;
   function CFM_FlagsToShellContextMenuFlags(Flags: DWORD): TShellContextMenuFlags;
   function ClipboardContainsShellFormats: Boolean;
-  function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: WideString; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
+  function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: string; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
   function StringListToNullSeparatedDoubleNullEndedString(StringList: TStringList): PChar;
 
 // IShellLink (ShortCut) helpers
   function CreateShellLink(
                            ALnkFilePath,
-                           ATargetFilePath: WideString;
-                           AnArguments: WideString = '';
-                           AWorkingDir: WideString = '';
-                           ADescription: WideString = '';
+                           ATargetFilePath: string;
+                           AnArguments: string = '';
+                           AWorkingDir: string = '';
+                           ADescription: string = '';
                            AShowCmd: TCmdShow = swShowNormal;
                            AHotKey: Word = 0;
                            AHotKeyModifier: THotKeyModifiers = [];
-                           AnIconLocation: WideString = '';
+                           AnIconLocation: string = '';
                            AnIconIndex: integer = 0
                          ): Boolean;
-  function HotKeyModifiersToStr(HotKeyMod: THotKeyModifiers): WideString;
+  function HotKeyModifiersToStr(HotKeyMod: THotKeyModifiers): string;
   function PotentialMappedDrive(NS: TNamespace): Boolean;
   function FileObjectsToFlags(FileObjects: TFileObjects): DWORD;
-  function FileObjectsToString(FileObjects: TFileObjects): WideString;
+  function FileObjectsToString(FileObjects: TFileObjects): string;
 
-  function GetDiskFreeSpaceMP(Drive: PWideChar; var SectorsperCluster, BytesperSector, FreeClusters, TotalClusters: DWORD): boolean;
   function DriveSize(Drive: PWideChar): Int64; overload;
-  function DriveSize(Drive: PWideChar; ByteSize: TBtyeSize): WideString; overload;
+  function DriveSize(Drive: PWideChar; ByteSize: TBtyeSize): string; overload;
   function DriveFreeSpace(Drive: PWideChar): Int64; overload;
-  function DriveFreeSpace(Drive: PWideChar; ByteSize: TBtyeSize): WideString; overload;
+  function DriveFreeSpace(Drive: PWideChar; ByteSize: TBtyeSize): string; overload;
 
-  function IsSpecialVariable(TestPath: WideString; var NS: TNamespace): Boolean;
-  function SpecialVariableReplacePath(var Path: WideString): Boolean;
+  function IsSpecialVariable(TestPath: string; var NS: TNamespace): Boolean;
+  function SpecialVariableReplacePath(var Path: string): Boolean;
 
   function PIDLIsFolder(APIDL: PItemIDList): Boolean;
 
-//  function MPBrowseForFolder(Title, InitialPath: WideString; BrowseFlags: TMPBrowseFlags): WideString; overload;
-  function MPBrowseForFolder(Title, RootFolder, InitialPath: WideString; BrowseFlags: TMPBrowseFlags; var SelectedPath: WideString): Boolean; overload;
-  function MPBrowseForFolder(Title: WideString; RootFolder, InitialPath: PItemIDList; BrowseFlags: TMPBrowseFlags; var SelectedPath: PItemIDList): Boolean; overload;
+//  function MPBrowseForFolder(Title, InitialPath: string; BrowseFlags: TMPBrowseFlags): string; overload;
+  function MPBrowseForFolder(Title, RootFolder, InitialPath: string; BrowseFlags: TMPBrowseFlags; var SelectedPath: string): Boolean; overload;
+  function MPBrowseForFolder(Title: string; RootFolder, InitialPath: PItemIDList; BrowseFlags: TMPBrowseFlags; var SelectedPath: PItemIDList): Boolean; overload;
 
    // Merges a TVirtualShellPopupMenu object into a Shell Context Menu
   function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
@@ -1693,7 +1685,7 @@ var
 implementation
 
 uses
-  System.AnsiStrings, System.Types, Vcl.Dialogs;
+  System.Types, Vcl.Dialogs;
 
 type
   TShellILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList;
@@ -1706,7 +1698,7 @@ var
   MprDLL: THandle = 0;
   ShellFunctionsLoaded: Boolean = False;
 
-function GUIDBinarySearch(FolderType: TCommonFolderMapType; TargetGUID: WideString; pid: Integer; List: TColumnMap; Min, Max: Longint) : Longint;
+function GUIDBinarySearch(FolderType: TCommonFolderMapType; TargetGUID: string; pid: Integer; List: TColumnMap; Min, Max: Longint) : Longint;
 //
 // List must be sorted first
 //
@@ -1853,7 +1845,6 @@ end;
 
 function DeleteFiles_MP(DataObject: IDataObject; ParentWnd: HWnd; AllowUndo, MultiFolderSource: Boolean): Boolean;
 var
-  SHFileOpStructA: TSHFileOpStructA;
   SHFileOpStructW: TSHFileOpStructW;
   ShellIDList: TCommonShellIDList;
   NSList: TList;
@@ -1880,11 +1871,7 @@ begin
         StripDuplicatesAndDesktops(NSList);
 
       Len := 0;
-      if IsUnicode then
-      begin
-        CharSize := SizeOf(Char);  // Works with D2009 as well
-      end else
-        CharSize := SizeOf(AnsiChar);
+      CharSize := SizeOf(Char);  // Works with D2009 as well
 
       for i := 0 to NSList.Count - 1 do
       begin
@@ -1914,32 +1901,16 @@ begin
       ShellIDList.Free;
     end;
 
-
-    if Assigned(SHFileOperationW_MP) and (CharSize = 2) then
-    begin
-      FillChar(SHFileOpStructW, SizeOf(SHFileOpStructW), #0);
-      SHFileOpStructW.pFrom := PFiles;
-      SHFileOpStructW.pTo := #0;
-      SHFileOpStructW.fFlags := 0;
-      if AllowUndo then
-        SHFileOpStructW.fFlags := SHFileOpStructW.fFlags or FOF_ALLOWUNDO;
-      SHFileOpStructW.Wnd := ParentWnd;
-      SHFileOpStructW.wFunc := FO_DELETE;
-      Result := SHFileOperationW_MP(SHFileOpStructW) = 0;
-      FreeMem(SHFileOpStructW.pFrom);
-    end
-    else
-    begin
-      FillChar(SHFileOpStructA, SizeOf(SHFileOpStructA), #0);
-      SHFileOpStructA.pFrom := PFiles;
-      SHFileOpStructA.pTo := #0;
-      if AllowUndo then
-        SHFileOpStructA.fFlags := SHFileOpStructA.fFlags or FOF_ALLOWUNDO;
-      SHFileOpStructA.Wnd := ParentWnd;
-      SHFileOpStructA.wFunc := FO_DELETE;
-      Result := SHFileOperationA(SHFileOpStructA) = 0;
-      FreeMem(SHFileOpStructA.pFrom);
-    end;
+    FillChar(SHFileOpStructW, SizeOf(SHFileOpStructW), #0);
+    SHFileOpStructW.pFrom := PFiles;
+    SHFileOpStructW.pTo := #0;
+    SHFileOpStructW.fFlags := 0;
+    if AllowUndo then
+      SHFileOpStructW.fFlags := SHFileOpStructW.fFlags or FOF_ALLOWUNDO;
+    SHFileOpStructW.Wnd := ParentWnd;
+    SHFileOpStructW.wFunc := FO_DELETE;
+    Result := SHFileOperation(SHFileOpStructW) = 0;
+    FreeMem(SHFileOpStructW.pFrom);
   except
     Result := False;
   end
@@ -1999,12 +1970,9 @@ var
   Flags: UINT;
   Last_CB: Word;
   LastPIDL: PItemIDList;
-
 begin
   Result := False;
-  //see https://github.com/pyscripter/MustangpeakCommonLib/issues/6
-  if not Assigned(APIDL) then
-    Exit;
+  if not Assigned(APIDL) then Exit;
 
   Flags := SFGAO_FOLDER;
   if PIDLMgr.IsDesktopFolder(APIDL) then
@@ -2018,10 +1986,7 @@ begin
     end else
     begin
       PIDLMgr.StripLastID(APIDL, Last_CB, LastPIDL);
-      //on some systems >= W7 a local service running on local account has nil here
-      //on one Win7 system we got an error report where LastPIDL was nil here, when run as regular application
       if Assigned(LastPIDL) then
-      begin
         try
           if Succeeded( Desktop.BindToObject(APIDL, nil, IShellFolder, Pointer( Parent))) then
           begin
@@ -2033,32 +1998,31 @@ begin
           if LastPIDL^.mkid.cb = 0 then
             LastPIDL^.mkid.cb := Last_CB;
         end
-      end
     end
   end
 end;
 
-function SpecialVariableReplacePath(var Path: WideString): Boolean;
+function SpecialVariableReplacePath(var Path: string): Boolean;
 
-  function ReplacePath(Path, Variable, VarPath: WideString): WideString;
+  function ReplacePath(Path, Variable, VarPath: string): string;
   begin
-    Result := WideStringReplace(Path, Variable, VarPath, [rfReplaceAll, rfIgnoreCase]);
+    Result := stringReplace(Path, Variable, VarPath, [rfReplaceAll, rfIgnoreCase]);
   end;
 
 var
-  OldPath: WideString;
+  OldPath: string;
 begin
   OldPath := Path;
 
   // Psudo Variables
-  Path := ReplacePath(Path, '%sysdir%', WideLowerCase(WideStripTrailingBackslash(SystemDirectory)));
-  Path := ReplacePath(Path, '%temp%', WideLowerCase(WideStripTrailingBackslash(WideGetTempDir)));
-  Path := ReplacePath(Path, '%appdata%', WideLowerCase(WideStripTrailingBackslash(UserDocumentsFolder.NameForParsing)));
-  Path := ReplacePath(Path, '%favorites%', WideLowerCase(WideStripTrailingBackslash(FavoritesFolder.NameForParsing)));
-  Path := ReplacePath(Path, '%personal%', WideLowerCase(WideStripTrailingBackslash(MyDocumentsFolder.NameForParsing)));
-  Path := ReplacePath(Path, '%templates%', WideLowerCase(WideStripTrailingBackslash(TemplatesFolder.NameForParsing)));
-  Path := ReplacePath(Path, '%history%', WideLowerCase(WideStripTrailingBackslash(HistoryFolder.NameForParsing)));
-  Path := ReplacePath(Path, '%desktopfolder%', WideLowerCase(WideStripTrailingBackslash(PhysicalDesktopFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%sysdir%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(SystemDirectory)));
+  Path := ReplacePath(Path, '%temp%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(WideGetTempDir)));
+  Path := ReplacePath(Path, '%appdata%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(UserDocumentsFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%favorites%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(FavoritesFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%personal%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(MyDocumentsFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%templates%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(TemplatesFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%history%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(HistoryFolder.NameForParsing)));
+  Path := ReplacePath(Path, '%desktopfolder%', SysUtils.AnsiLowerCase(WideStripTrailingBackslash(PhysicalDesktopFolder.NameForParsing)));
 
   // Environment variables
   Path := ReplacePath(Path, Path, WideStripTrailingBackslash(WideExpandEnviromentStringForUser(Path)));
@@ -2083,7 +2047,7 @@ begin
   Result := OldPath <> Path
 end;
 
-function IsSpecialVariable(TestPath: WideString; var NS: TNamespace): Boolean;
+function IsSpecialVariable(TestPath: string; var NS: TNamespace): Boolean;
 var
   PIDL: PItemIDList;
 begin
@@ -2091,20 +2055,20 @@ begin
 
   PIDL := nil;
 
-  if WideLowerCase(TestPath) = '%desktop%' then
+  if SysUtils.AnsiLowerCase(TestPath) = '%desktop%' then
     PIDL := PIDLMgr.CopyPIDL(DesktopFolder.AbsolutePIDL)
   else
-  if WideLowerCase(TestPath) = '%network%' then
+  if SysUtils.AnsiLowerCase(TestPath) = '%network%' then
     PIDL := PIDLMgr.CopyPIDL(NetworkNeighborHoodFolder.AbsolutePIDL)
   else
-  if WideLowerCase(TestPath) = '%printer%' then
+  if SysUtils.AnsiLowerCase(TestPath) = '%printer%' then
     PIDL := PIDLMgr.CopyPIDL(PrinterFolder.AbsolutePIDL)
   else
-  if (WideLowerCase(TestPath) = '%drives%') or (WideLowerCase(TestPath) = '%mycomputer%') then
+  if (SysUtils.AnsiLowerCase(TestPath) = '%drives%') or (SysUtils.AnsiLowerCase(TestPath) = '%mycomputer%') then
     PIDL := PIDLMgr.CopyPIDL(DrivesFolder.AbsolutePIDL)
   else begin
     if SpecialVariableReplacePath(TestPath) then
-      if WideDirectoryExists(TestPath) then
+      if DirectoryExists(TestPath) then
         PIDL := PathToPIDL(TestPath)
   end;
 
@@ -2112,7 +2076,7 @@ begin
     NS := TNamespace.Create(PIDL, nil)
   else
 
-  if not Assigned(NS) and not WideDirectoryExists(TestPath) then
+  if not Assigned(NS) and not DirectoryExists(TestPath) then
   begin
     // See if it a specially formated CLSID
     PIDL := PathToPIDL(TestPath);
@@ -2126,7 +2090,7 @@ type
   IdentityUnmarshal = interface(IUnknown)
     ['{0000001B-0000-0000-C000-000000000046}']
   end;
-  
+
 function GUIDToInterfaceStr(riid: TGUID): String;
 begin
   if IsEqualGUID(riid, IUnknown) then
@@ -2258,9 +2222,6 @@ begin
    if IsEqualGUID(riid, IShellLinkW) then
      Result := 'IShellLinkW'
    else
-   if IsEqualGUID(riid, IShellLinkA) then
-     Result := 'IShellLinkW'  
-   else
      Result := 'Unknown GUID: ' + GUIDToString(riid)
 end;
 
@@ -2315,7 +2276,7 @@ begin
   Result := 0;
 end;
 
-function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: WideString; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
+function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: string; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
 //
 // Pass the Verb "VIRTUAL_DEFAULT" to select the Default Menu Item
 //
@@ -2327,8 +2288,7 @@ var
   VerbFound: Boolean;
   i: Integer;
   MenuID: LongWord;
-  VerbW: WideString;
-  VerbA: AnsiString;
+  VerbW: string;
   StrFound: Boolean;
   defaultID: Longword;
 begin
@@ -2336,10 +2296,7 @@ begin
   if Verb <> '' then
   begin
 
-    if IsUnicode then
-      SetLength(VerbW, LEN_MAXVERB)
-    else
-      SetLength(VerbA, LEN_MAXVERB);
+    SetLength(VerbW, LEN_MAXVERB);
 
     defaultID := $FFFFFFFF;
     if Verb = 'VIRTUAL_DEFAULT' then
@@ -2356,45 +2313,23 @@ begin
       MenuID := GetMenuItemID(Menu, i);
       if (MenuID <> $FFFFFFFF) and (MenuID > 0) then
       begin
-        if IsUnicode then
+        FillChar(PWideChar(VerbW)^, Length(VerbW) * 2, #0);
+        StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERBW, nil, Pointer(@VerbW[1]), LEN_MAXVERB));
+        if StrFound or (defaultID = MenuID) then
         begin
-          FillChar(PWideChar(VerbW)^, Length(VerbW) * 2, #0);
-          StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERBW, nil, Pointer(@VerbW[1]), LEN_MAXVERB));
-          if StrFound or (defaultID = MenuID) then
+          SetLength(VerbW, lstrlenW(PWideChar( VerbW)));
+          if defaultID = MenuID then
+            Verb := VerbW;
+          if lstrcmpi(PWideChar(VerbW), PWideChar(Verb)) = 0 then
           begin
-            SetLength(VerbW, lstrlenW(PWideChar( VerbW)));
-            if defaultID = MenuID then
-              Verb := VerbW;
-            if lstrcmpiW_MP(PWideChar(VerbW), PWideChar(Verb)) = 0 then
-            begin
-              // Here we directly modify the pointer since the resource is not
-              // a pointer to a string but a flag (upper bits = 0) that this is
-              // a menu command
-              IntResVerbA := MakeIntResourceA(MenuID-1);
-              IntResVerbW := MakeIntResourceW(MenuID-1);
-              VerbFound := True
-            end;
-            SetLength(VerbW, LEN_MAXVERB);
-          end
-        end else
-        begin
-          FillChar(PAnsiChar(VerbA)^, Length(VerbA), #0);
-          StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERB, nil, Pointer(@VerbA[1]), LEN_MAXVERB));
-          if StrFound or (defaultID = MenuID) then
-          begin
-            SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
-            if defaultID = MenuID then
-              Verb := string(VerbA);
-            if lstrcmpiA(PAnsiChar( VerbA), PAnsiChar(AnsiString(Verb))) = 0 then
-            begin
-              // Here we directly modify the pointer since the resource is not
-              // a pointer to a string but a flag (upper bits = 0) that this is
-              // a menu command
-              IntResVerbA := MakeIntResourceA(MenuID-1);
-              VerbFound := True
-            end;
-            SetLength(VerbA, LEN_MAXVERB);
-          end
+            // Here we directly modify the pointer since the resource is not
+            // a pointer to a string but a flag (upper bits = 0) that this is
+            // a menu command
+            IntResVerbA := MakeIntResourceA(MenuID-1);
+            IntResVerbW := MakeIntResourceW(MenuID-1);
+            VerbFound := True
+          end;
+          SetLength(VerbW, LEN_MAXVERB);
         end
       end;
       Inc(i)
@@ -2403,13 +2338,12 @@ begin
     begin
       // move the string into the supplied buffer
       lstrcpyA(IntResVerbA, PAnsiChar( AnsiString( Verb)));
-      if IsUnicode then
-        lstrcpyW_MP(IntResVerbW, PWideChar( Verb));
+      lstrcpyW(IntResVerbW, PWideChar( Verb));
     end;
   end;
 end;
 
-function MPBrowseForFolder(Title: WideString; RootFolder, InitialPath: PItemIDList; BrowseFlags: TMPBrowseFlags; var SelectedPath: PItemIDList): Boolean;
+function MPBrowseForFolder(Title: string; RootFolder, InitialPath: PItemIDList; BrowseFlags: TMPBrowseFlags; var SelectedPath: PItemIDList): Boolean;
 
   function FlagsToTMPBrowseFlags(Flags: TMPBrowseFlags): DWORD;
   begin
@@ -2442,45 +2376,25 @@ function MPBrowseForFolder(Title: WideString; RootFolder, InitialPath: PItemIDLi
 
 var
   BrowseInfoW: TBrowseInfoW;
-  BrowseInfoA: TBrowseInfoA;
-  DisplayNameA: array [0..MAX_PATH] of AnsiChar;
   DisplayNameW: array [0..MAX_PATH] of WideChar;
 begin
-  if IsUnicode then
-  begin
-    FillChar(BrowseInfoW, SizeOf(BrowseInfoW), #0);
-    BrowseInfoW.hwndOwner := GetActiveWindow;
-    BrowseInfoW.pidlRoot := RootFolder;
-    BrowseInfoW.lParam := Integer( InitialPath);
-    BrowseInfoW.pszDisplayName := DisplayNameW;
-    {$IFDEF BCB}
-    BrowseInfoW.lpfn := MPBrowseForFolderCallback;
-    {$ELSE}
-    BrowseInfoW.lpfn := @MPBrowseForFolderCallback;
-    {$ENDIF}
-    BrowseInfoW.lpszTitle := PWideChar(Title);
-    BrowseInfoW.ulFlags := FlagsToTMPBrowseFlags(BrowseFlags);
-    SelectedPath := SHBrowseForFolderW_MP(BrowseInfoW);
-  end else
-  begin
-    FillChar(BrowseInfoA, SizeOf(BrowseInfoA), #0);
-    BrowseInfoA.hwndOwner := GetActiveWindow;
-    BrowseInfoW.pidlRoot := RootFolder;
-    BrowseInfoA.lParam := Integer( InitialPath);
-    BrowseInfoA.pszDisplayName := DisplayNameA;
-    {$IFDEF BCB}
-    BrowseInfoA.lpfn := MPBrowseForFolderCallback;
-    {$ELSE}
-    BrowseInfoA.lpfn := @MPBrowseForFolderCallback;
-    {$ENDIF}
-    BrowseInfoA.lpszTitle := PAnsiChar(AnsiString(Title));
-    BrowseInfoA.ulFlags := FlagsToTMPBrowseFlags(BrowseFlags);
-    SelectedPath := SHBrowseForFolderA(BrowseInfoA);
-  end;
+  FillChar(BrowseInfoW, SizeOf(BrowseInfoW), #0);
+  BrowseInfoW.hwndOwner := GetActiveWindow;
+  BrowseInfoW.pidlRoot := RootFolder;
+  BrowseInfoW.lParam := Integer( InitialPath);
+  BrowseInfoW.pszDisplayName := DisplayNameW;
+  {$IFDEF BCB}
+  BrowseInfoW.lpfn := MPBrowseForFolderCallback;
+  {$ELSE}
+  BrowseInfoW.lpfn := @MPBrowseForFolderCallback;
+  {$ENDIF}
+  BrowseInfoW.lpszTitle := PWideChar(Title);
+  BrowseInfoW.ulFlags := FlagsToTMPBrowseFlags(BrowseFlags);
+  SelectedPath := SHBrowseForFolder(BrowseInfoW);
   Result := Assigned(SelectedPath)
 end;
 
-function MPBrowseForFolder(Title, RootFolder, InitialPath: WideString; BrowseFlags: TMPBrowseFlags; var SelectedPath: WideString): Boolean; overload;
+function MPBrowseForFolder(Title, RootFolder, InitialPath: string; BrowseFlags: TMPBrowseFlags; var SelectedPath: string): Boolean; overload;
 var
   NS: TNamespace;
   RootPIDL, InitialPathPIDL, ReturnPIDL: PItemIDList;
@@ -2610,7 +2524,7 @@ begin
 end;
 { ----------------------------------------------------------------------------- }
 
-function PathToPIDL(APath: WideString; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
+function PathToPIDL(APath: string; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
 // Takes the passed Path and attempts to convert it to the equavalent PIDL
 var
   Desktop: IShellFolder;
@@ -2631,7 +2545,7 @@ end;
 { ----------------------------------------------------------------------------- }
 
 { ----------------------------------------------------------------------------- }
-function PIDLToPath(APIDL: PItemIDList): WideString;
+function PIDLToPath(APIDL: PItemIDList): string;
 var
   Folder: TNamespace;
 begin
@@ -2673,7 +2587,7 @@ begin
       if Reg.OpenKeyReadOnly(IE_KEYPATH) then
       begin
         if Reg.ValueExists(IE_KEYVALUE) then
-          if RegQueryValueExA(Reg.CurrentKey, PAnsiChar( AnsiString(IE_KEYVALUE)), nil, @KeyType, nil, nil) = ERROR_SUCCESS then
+          if RegQueryValueEx(Reg.CurrentKey, PWideChar(IE_KEYVALUE), nil, @KeyType, nil, nil) = ERROR_SUCCESS then
           begin
             // Once in while there is a system that does not have an integer in this slot
             if KeyType = REG_DWORD then
@@ -2702,7 +2616,7 @@ begin
 end;
 
 { ----------------------------------------------------------------------------- }
-function DirExistsVET(APath: WideString; ShowSystemMessages: Boolean): Boolean; overload;
+function DirExistsVET(APath: string; ShowSystemMessages: Boolean): Boolean; overload;
 const
   FLAGS = SHCONTF_FOLDERS or SHCONTF_NONFOLDERS or SHCONTF_INCLUDEHIDDEN;
 var
@@ -2710,7 +2624,7 @@ var
   TempPIDL, PIDL: PItemIDList;
   EnumIDList: IEnumIDList;
   hWndOwner: THandle;
-  TempPath: WideString;
+  TempPath: string;
 begin
   Result := False;
   PIDL := nil;
@@ -2766,10 +2680,7 @@ begin
   Result := False;
   if WideIsDrive(NS.NameForParsing) then
   begin
-    if Assigned(GetDriveTypeW_MP) then
-      DriveType := GetDriveTypeW_MP(PWideChar(NS.NameForParsing))
-    else
-      DriveType := GetDriveTypeA(PAnsiChar(AnsiString(NS.NameForParsing)));
+    DriveType := GetDriveType(PWideChar(NS.NameForParsing));
     Result := (DriveType = DRIVE_NO_ROOT_DIR) or (DriveType = DRIVE_REMOTE)
   end
 end;
@@ -2806,7 +2717,7 @@ begin
         Result := Result or SHCONTF_INCLUDESUPERHIDDEN;
     end;
   end;
-  if IsUnicode and not IsWinNT4 then
+  if not IsWinNT4 then
   begin
     if foShareable in FileObjects then
       Result := Result or SHCONTF_SHAREABLE;
@@ -2815,7 +2726,7 @@ begin
   end;
 end;
 
-function FileObjectsToString(FileObjects: TFileObjects): WideString;
+function FileObjectsToString(FileObjects: TFileObjects): string;
 begin
   Result := '';
   if foFolders in FileObjects then
@@ -2851,7 +2762,7 @@ end;
 
 { ----------------------------------------------------------------------------- }
 // ANSI
-function ConvertLocalStrToTFileTime(LocalStr: WideString;
+function ConvertLocalStrToTFileTime(LocalStr: string;
   var FileTime: TFileTime): Boolean;
 var
   SystemTime: TSystemTime;
@@ -2878,7 +2789,7 @@ end;
 // the local function ValidFileTime then trying to convert the UTC time to Local
 // UTC time.  Then finally changing the UTC time to System time.
 // ANSI/
-function ConvertTFileTimeToLocalStr(AFileTime: TFILETIME): WideString;
+function ConvertTFileTimeToLocalStr(AFileTime: TFILETIME): string;
 var
   SysTime: TSystemTime;
   LocalFileTime: TFILETIME;
@@ -2896,7 +2807,7 @@ begin
 end;
 { ----------------------------------------------------------------------------- }
 
-         
+
 function ConvertFileTimetoDateTime(AFileTime : TFileTime): TDateTime;
 var
   SysTime: TSystemTime;
@@ -2918,8 +2829,7 @@ end;
 
 { -----------------------------------------------------------------------------}
 function CreateKnownFolderNamespace(FolderID: TGUID; ForceCreation: Boolean = False; NoAlias: Boolean = True): TNamespace;
-// Creates a TNamespace based on the SpecialFolders defined by
-// SHSHGetKnownFolderIDList.
+// Creates a TNamespace based on the SpecialFolders defined by SHSHGetKnownFolderIDList.
 //
 //  - If Force Creation is true then the folder will be created
 //  - If NoAlias then the namespace represents the folder on the physical file path (if applicable
@@ -2935,18 +2845,14 @@ var
 begin
   Result := nil;
   Flags := 0;
-  if Assigned(SHGetKnownFolderIDList_MP) then
+  if ForceCreation then
+    Flags := Flags or (KF_FLAG_CREATE or KF_FLAG_INIT);
+  if NoAlias then
+    Flags := Flags or KF_FLAG_NO_ALIAS;
+  if (SHGetKnownFolderIDList(FolderID, Flags, 0, PIDL) = S_OK) and Assigned(PIDL) then
   begin
-    if ForceCreation then
-      Flags := Flags or (KF_FLAG_CREATE or KF_FLAG_INIT);
-    if NoAlias then
-      Flags := Flags or KF_FLAG_NO_ALIAS;  
-    if SHGetKnownFolderIDList_MP(FolderID, Flags, 0, PIDL) = S_OK then
-     if Assigned(PIDL) then
-      begin
-        Result := TNamespace.Create(PIDL, nil);
-        F := Result.ParentShellFolder // just force the namespace to have Parent
-      end
+    Result := TNamespace.Create(PIDL, nil);
+    F := Result.ParentShellFolder // just force the namespace to have Parent
   end
 end;
 { ----------------------------------------------------------------------------- }
@@ -2970,10 +2876,9 @@ end;
 { ----------------------------------------------------------------------------- }
 
 { ----------------------------------------------------------------------------- }
-function DefaultSystemImageForFileExt(FileExt: WideString): Integer;
+function DefaultSystemImageForFileExt(FileExt: string): Integer;
 // FileExt is the file extension in this format '*.xxx'
 var
-  FileInfoA: TSHFileInfoA;
   FileInfoW: TSHFileInfoW;
   Attrib, Flags: DWORD;
 begin
@@ -2981,17 +2886,9 @@ begin
   begin
     Attrib := FILE_ATTRIBUTE_NORMAL;
     Flags := SHGFI_USEFILEATTRIBUTES or SHGFI_SHELLICONSIZE or SHGFI_SYSICONINDEX;
-    if IsUnicode then
-    begin
-      FillChar(FileInfoW, SizeOf(FileInfoW), #0);
-      SHGetFileInfoW_MP(PWideChar(FileExt), Attrib, FileInfoW, SizeOf(TSHFileInfoW), Flags);
-      Result := FileInfoW.iIcon;
-    end else
-    begin
-      FillChar(FileInfoA, SizeOf(FileInfoA), #0);
-      SHGetFileInfoA(PAnsiChar( AnsiString(FileExt)), Attrib, FileInfoA, SizeOf(TSHFileInfoA), Flags);
-      Result := FileInfoA.iIcon;
-    end
+    FillChar(FileInfoW, SizeOf(FileInfoW), #0);
+    SHGetFileInfo(PWideChar(FileExt), Attrib, FileInfoW, SizeOf(TSHFileInfoW), Flags);
+    Result := FileInfoW.iIcon;
   end else
     Result := DefaultSystemImageIndex(diUnknownFile)
 end;
@@ -3002,10 +2899,8 @@ function DefaultSystemImageIndex(FolderType: TDefaultFolderIcon): integer;
 { Extracts the default Icon for the given folder type passed to it.             }
 
 var
-  FileInfoA: TSHFileInfoA;
   FileInfoW: TSHFileInfoW;
-  FileExampleW: WideString;
-  FileExampleA: AnsiString;
+  FileExampleW: string;
   Attrib, Flags: DWORD;
 {  PIDL: PItemIDList;
   NS: TNamespace;   }
@@ -3057,18 +2952,9 @@ begin
   end;
   if FileExampleW <> '' then
   begin
-    if IsUnicode then
-    begin
-      FillChar(FileInfoW, SizeOf(FileInfoW), #0);
-      SHGetFileInfoW_MP(PWideChar(FileExampleW), Attrib, FileInfoW, SizeOf(TSHFileInfoW), Flags);
-      Result := FileInfoW.iIcon;
-    end else
-    begin
-      FileExampleA := AnsiString(FileExampleW);
-      FillChar(FileInfoA, SizeOf(FileInfoA), #0);
-      SHGetFileInfoA(PAnsiChar(FileExampleA), Attrib, FileInfoA, SizeOf(TSHFileInfoA), Flags);
-      Result := FileInfoA.iIcon;
-    end
+    FillChar(FileInfoW, SizeOf(FileInfoW), #0);
+    SHGetFileInfo(PWideChar(FileExampleW), Attrib, FileInfoW, SizeOf(TSHFileInfoW), Flags);
+    Result := FileInfoW.iIcon;
   end
 end;
 { ----------------------------------------------------------------------------- }
@@ -3084,21 +2970,18 @@ var
   PFileIconInit: TFileIconInit;
 begin
   Result := False;
-  if (Win32Platform = VER_PLATFORM_WIN32_NT) then
-  begin
-    ShellDLL := GetModuleHandleA(PAnsiChar( AnsiString(Shell32)));
-    PFileIconInit := GetProcAddress(ShellDLL, PAnsiChar(660));
-    if (Assigned(PFileIconInit)) then
-      Result := PFileIconInit(FullInit);
-  end;
+  ShellDLL := GetModuleHandle(PWideChar(Shell32));
+  PFileIconInit := GetProcAddress(ShellDLL, PAnsiChar(660));
+  if (Assigned(PFileIconInit)) then
+    Result := PFileIconInit(FullInit);
 end;
 { ----------------------------------------------------------------------------- }
 
 // IShellLink (ShortCut) helpers
 { ----------------------------------------------------------------------------- }
-function CreateShellLink(ALnkFilePath, ATargetFilePath: WideString; AnArguments: WideString = '';
- AWorkingDir: WideString = ''; ADescription: WideString = ''; AShowCmd: TCmdShow = swShowNormal;
- AHotKey: Word = 0; AHotKeyModifier: THotKeyModifiers = []; AnIconLocation: WideString = '';
+function CreateShellLink(ALnkFilePath, ATargetFilePath: string; AnArguments: string = '';
+ AWorkingDir: string = ''; ADescription: string = ''; AShowCmd: TCmdShow = swShowNormal;
+ AHotKey: Word = 0; AHotKeyModifier: THotKeyModifiers = []; AnIconLocation: string = '';
  AnIconIndex: integer = 0): Boolean;
 var
   ShellLink: TVirtualShellLink;
@@ -3133,7 +3016,7 @@ end;
 { ----------------------------------------------------------------------------- }
 
 { ----------------------------------------------------------------------------- }
-function HotKeyModifiersToStr(HotKeyMod: THotKeyModifiers): WideString;
+function HotKeyModifiersToStr(HotKeyMod: THotKeyModifiers): string;
 begin
   Result := '';
   if hkmAlt in HotKeyMod then
@@ -3340,12 +3223,8 @@ begin
     reg_Flags := 1; //set carry flag to assume error.
   end;
 
-  if IsUnicode then
-    DevIoHandle := CreateFileW_MP( '\\.\vwin32', Generic_Read,
-      File_Share_Read or File_Share_Write, nil, Open_Existing, File_Attribute_Normal, 0)
-  else
-    DevIoHandle := CreateFile( '\\.\vwin32', Generic_Read,
-      File_Share_Read or File_Share_Write, nil, Open_Existing, File_Attribute_Normal, 0);
+  DevIoHandle := CreateFile( '\\.\vwin32', Generic_Read,
+    File_Share_Read or File_Share_Write, nil, Open_Existing, File_Attribute_Normal, 0);
 
   if DevIoHandle <> Invalid_Handle_Value then begin
     result := DeviceIoControl(DevIoHandle, VWIN32_DIOC_DOS_IOCTL,
@@ -3370,31 +3249,16 @@ begin
 end; {GetDiskFreeSpaceFAT32}
 { ----------------------------------------------------------------------------- }
 
-function GetDiskFreeSpaceMP(Drive: PWideChar; var SectorsperCluster,
-    BytesperSector, FreeClusters, TotalClusters: DWORD): boolean;
-begin
-  if Assigned(GetDiskFreeSpaceW_MP) then
-    Result := GetDiskFreeSpaceW_MP(
-      PWideChar( Drive), SectorsPerCluster, BytesPerSector, FreeClusters, TotalClusters)
-  else
-  if not IsWin95_SR1 then
-    Result := GetDiskFreeSpaceFAT32(
-      PAnsiChar( AnsiString(Drive)), SectorsPerCluster, BytesPerSector, FreeClusters, TotalClusters)
-  else
-    Result := GetDiskFreeSpaceA(
-      PAnsiChar( AnsiString(Drive)), SectorsPerCluster, BytesPerSector, FreeClusters, TotalClusters);
-end;
-
 function DriveSize(Drive: PWideChar): Int64;
 var
   SectorsperCluster, BytesperSector, FreeClusters, TotalClusters: DWORD;
 begin
   Result := 0;
-  if GetDiskFreeSpaceMP(Drive, SectorsperCluster, BytesperSector, FreeClusters, TotalClusters) then
+  if GetDiskFreeSpace(Drive, SectorsperCluster, BytesperSector, FreeClusters, TotalClusters) then
       Result := Int64(BytesperSector) * Int64(SectorsperCluster) * Int64(TotalClusters)
 end;
 
-function DriveSize(Drive: PWideChar; ByteSize: TBtyeSize): WideString;
+function DriveSize(Drive: PWideChar; ByteSize: TBtyeSize): string;
 begin
   case ByteSize of
     bsKiloBytes: Result := Format('%0.0n '+ 'KB', [DriveSize(Drive) / 1024]);
@@ -3409,11 +3273,11 @@ var
   SectorsperCluster, BytesperSector, FreeClusters, TotalClusters: DWORD;
 begin
   Result := 0;
-  if GetDiskFreeSpaceMP(Drive, SectorsperCluster, BytesperSector, FreeClusters, TotalClusters) then
+  if GetDiskFreeSpace(Drive, SectorsperCluster, BytesperSector, FreeClusters, TotalClusters) then
       Result := Int64(BytesperSector) * Int64(SectorsperCluster) * Int64(FreeClusters)
 end;
 
-function DriveFreeSpace(Drive: PWideChar; ByteSize: TBtyeSize): WideString; 
+function DriveFreeSpace(Drive: PWideChar; ByteSize: TBtyeSize): string;
 begin
   case ByteSize of
     bsKiloBytes: Result := Format('%0.0n '+ 'KB', [DriveFreeSpace(Drive) / 1024]);
@@ -3432,11 +3296,10 @@ begin
   if not ShellFunctionsLoaded then
   begin
     Result := False;
-    { Don't see a point in making this all WideString compatible }
-    Shell32DLL := GetModuleHandleA(PAnsiChar( AnsiString(Shell32)));
+    { Don't see a point in making this all string compatible }
+    Shell32DLL := GetModuleHandle(Shell32);
     if Shell32DLL <> 0 then
     begin
-      SHGetKnownFolderIDList_MP := GetProcAddress(Shell32DLL, 'SHGetKnownFolderIDList');
       ShellILIsEqual := GetProcAddress(Shell32DLL, PAnsiChar(21));
       ShellILIsParent := GetProcAddress(Shell32DLL, PAnsiChar(23));
       SHLimitInputEdit := GetProcAddress(Shell32DLL, PAnsiChar(747));
@@ -3444,7 +3307,7 @@ begin
       MP_SHGetInstanceExplorer := GetProcAddress(Shell32DLL, 'SHGetInstanceExplorer');
       Result := Assigned(ShellILIsEqual) and Assigned(ShellILIsParent)
     end;
-    ShlWapiDLL := GetModuleHandleA(PAnsiChar( AnsiString(shlwapi)));
+    ShlWapiDLL := GetModuleHandle(shlwapi);
     if ShlWapiDLL <> 0 then
     begin
       MP_SHSetThreadRef := GetProcAddress(ShlWapiDLL, 'SHSetThreadRef');
@@ -3458,7 +3321,7 @@ begin
     begin
       AnimateWindow := GetProcAddress(User32DLL, 'AnimateWindow');
     end;
-    MprDLL := CommonLoadLibrary(AnsiString(Mpr));
+    MprDLL := CommonLoadLibrary(Mpr);
     if MprDLL <> 0 then
     begin
       MP_WNetGetResourceInformationA := GetProcAddress(MprDLL, 'WNetGetResourceInformationA');
@@ -3627,7 +3490,7 @@ begin
     Result := -1 // If the pidl is not assigned then we clearly are greater!
 end;
 
-function TNamespace.ContextMenuItemHelp(MenuItemID: LongWord): WideString;
+function TNamespace.ContextMenuItemHelp(MenuItemID: LongWord): string;
 const
   BufferLen = 128;
 var
@@ -3635,17 +3498,13 @@ var
   Found: Boolean;
   P: Pointer;
 begin
-  Found := False;
   if Assigned(CurrentContextMenu) and (MenuItemID <> $FFFFFFFF) and (MenuItemID > 0)then
   begin
-    if IsUnicode then
-    begin
-      SetLength(Result, BufferLen);
-      { Keep D6 from complaining about suspicious PChar cast }
-      P := @Result[1];
-      Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_HELPTEXTW, nil, PAnsiChar(P),
-        BufferLen) = NOERROR
-    end;
+    SetLength(Result, BufferLen);
+    { Keep D6 from complaining about suspicious PChar cast }
+    P := @Result[1];
+    Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_HELPTEXTW, nil, PAnsiChar(P),
+      BufferLen) = NOERROR;
     if not Found then
     begin
       SetLength(S, BufferLen);
@@ -3654,15 +3513,15 @@ begin
       then
         Result := ''
       else begin
-        SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
+        SetLength(S, Length(PAnsiChar(S)));
         Result := string(S)
       end
     end else
-      SetLength(Result,  lstrlenW(PWideChar( Result)))
+      SetLength(Result,  lstrlenW(PWideChar(Result)))
   end;
 end;
 
-function TNamespace.ContextMenuVerb(MenuItemID: Longword): WideString;
+function TNamespace.ContextMenuVerb(MenuItemID: Longword): string;
 { Returns the cononical (or not) verb that is equal to the MenuItemID, which is }
 { the HMenu identifer for a menu item.                                          }
 const
@@ -3672,17 +3531,13 @@ var
   Found: Boolean;
   P: Pointer;
 begin
-  Found := False;
   if Assigned(CurrentContextMenu) and (MenuItemID <> $FFFFFFFF) and (MenuItemID > 0) then
   begin
-    if IsUnicode then
-    begin
-      SetLength(Result, BufferLen);
-     { Keep D6 from complaining about suspicious PChar cast }
-      P := @Result[1];
-      Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_VERBW, nil, PAnsiChar(P),
-        BufferLen) = NOERROR
-    end;
+    SetLength(Result, BufferLen);
+   { Keep D6 from complaining about suspicious PChar cast }
+    P := @Result[1];
+    Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_VERBW, nil, PAnsiChar(P),
+      BufferLen) = NOERROR;
     if not Found then
     begin
       SetLength(S, BufferLen);
@@ -3691,7 +3546,7 @@ begin
       then
         Result := ''
       else begin
-        SetLength(S, System.AnsiStrings.StrLen( PAnsiChar(S)));
+        SetLength(S, Length(PAnsiChar(S)));
         Result := string(S)
       end
     end else
@@ -3774,7 +3629,7 @@ begin
   FParent := AParent
 end;
 
-constructor TNamespace.CreateFromFileName(FileName: WideString);
+constructor TNamespace.CreateFromFileName(FileName: string);
 var
   PIDL: PItemIDList;
 begin
@@ -3838,15 +3693,8 @@ begin
   // Remember RelativePIDL points to end of AbsolutePIDL so only 1 actual PIDL.
   if FreePIDLOnDestroy and Assigned(PIDLMgr) then
     PIDLMgr.FreePIDL(FAbsolutePIDL);
-  if IsUnicode then
-  begin
-    if Assigned(FWin32FindDataW) then
-      FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
-  end else
-    if Assigned(FWin32FindDataA) then
-      FreeMem(FWin32FindDataA, SizeOf(TWin32FindDataA));
-  begin
-  end;
+  if Assigned(FWin32FindDataW) then
+    FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
   if Assigned(FSHGetFileInfoRec) then
   begin
     Finalize(FSHGetFileInfoRec^);
@@ -3910,7 +3758,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsColumnTitle(ColumnIndex: integer): WideString;
+function TNamespace.DetailsColumnTitle(ColumnIndex: integer): string;
 { Returns the Text that is in the Header of the Explorer Listview based on what }
 { the folder in the Treeview is displaying.  Only implemented partially on      }
 { different versions of Windows.  It was undocumented until about Win98.        }
@@ -3939,7 +3787,7 @@ begin
       except
         Found := False;
       end;
-      
+
       if Found then
         Result := StrRetToStr(Details.str, RelativePIDL)
       else
@@ -3949,7 +3797,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsDefaultColumnTitle(ColumnIndex: integer): WideString;
+function TNamespace.DetailsDefaultColumnTitle(ColumnIndex: integer): string;
 { If IShellDetails is not implemented then these are returned for the Header    }
 { text as a default.  Can be overridden.                                        }
 begin
@@ -3967,7 +3815,7 @@ begin
   end;
 end;
 
-function TNamespace.DetailsDefaultOf(ColumnIndex: integer): WideString;
+function TNamespace.DetailsDefaultOf(ColumnIndex: integer): string;
 { If IShellDetail is not implemented the call to DetailsOf calls this and       }
 { returns what it can to mimic the values in columns for a plain file, Name,    }
 { size, type, date, attributes.                                                 }
@@ -3978,31 +3826,16 @@ begin
     Result := DelagateNS.DetailsDefaultOf(ColumnIndex)
   else begin
     Result := '';
-    if IsUnicode then
-    begin
-      if not Assigned(FWin32FindDataW) then
-        GetDataFromIDList;
-      if Assigned(FWin32FindDataW) then
-        { This is totally undocumented. It works on Win98 will test on NT 4 soon }
-        { Not a valid file so it has no size.  #8 appears to mean "System File" }
-        IsSystemFolder := not ((FWin32FindDataW^.cFileName[0] = WideChar(#8)) or
-                              (FWin32FindDataW^.cFileName[0] = WideChar(#0)) or
-                               not FileSystem)
-      else
-        IsSystemFolder := False;
-    end else
-    begin
-      if not Assigned(FWin32FindDataA) then
-        GetDataFromIDList;
-      if Assigned(FWin32FindDataA) then
-        { This is totally undocumented. It works on Win98 will test on NT 4 soon }
-        { Not a valid file so it has no size.  #8 appears to mean "System File" }
-        IsSystemFolder := not ((FWin32FindDataA^.cFileName[0] = #8) or
-                              (FWin32FindDataA^.cFileName[0] = #0) or
-                               not FileSystem)
-      else
-        IsSystemFolder := False;
-    end;
+    if not Assigned(FWin32FindDataW) then
+      GetDataFromIDList;
+    if Assigned(FWin32FindDataW) then
+      { This is totally undocumented. It works on Win98 will test on NT 4 soon }
+      { Not a valid file so it has no size.  #8 appears to mean "System File" }
+      IsSystemFolder := not ((FWin32FindDataW^.cFileName[0] = WideChar(#8)) or
+                            (FWin32FindDataW^.cFileName[0] = WideChar(#0)) or
+                             not FileSystem)
+    else
+      IsSystemFolder := False;
     case ColumnIndex of
       -1, 0:  Result := NameInFolder;
       1:  Result := SizeOfFileKB;
@@ -4072,7 +3905,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsOf(ColumnIndex: integer): WideString;
+function TNamespace.DetailsOf(ColumnIndex: integer): string;
 { Returns the text for the desired column (detail view in the listview in       }
 { Explorer) using IShellDetail or using information pulled from the namespace   }
 { by other means.                                                               }
@@ -4081,7 +3914,7 @@ function TNamespace.DetailsOf(ColumnIndex: integer): WideString;
 // Threading only works on Namespaces that support IShellFolder2 (WinME, Win2k and up)
 var
   Details: TShellDetails;
-  OldError: Integer;   
+  OldError: Integer;
   TempCache: PDetailsOfCacheRec;
   PIDL: PItemIDList;
   NS: TNamespace;
@@ -4166,7 +3999,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsOfEx(ColumnIndex: integer): WideString;
+function TNamespace.DetailsOfEx(ColumnIndex: integer): string;
 var
   ColumnID: TSHColumnID;
   V, V2: OLEVariant;
@@ -4176,7 +4009,7 @@ begin
     Result := DelagateNS.DetailsOfEx(ColumnIndex)
   else begin
     Result := '';
-    V := Null;   
+    V := Null;
     if Assigned(ParentShellFolder2) then
     begin
       FillChar(ColumnID, SizeOf(ColumnID), #0);
@@ -4201,7 +4034,7 @@ begin
           end else
              Result := VarToWideStr(V);
         end
-      end  
+      end
     end
   end
 end;
@@ -4232,7 +4065,7 @@ begin
       FShellCache.Data.SupportedColumns := 0;
       ShellFolder2Succeeded := False;
       ShellDetailsSucceeded := False;
-      
+
       if Assigned(ShellFolder2) then
       begin
         try
@@ -4347,7 +4180,7 @@ begin
     Result := DROPEFFECT_NONE;
 end;
 
-function TNamespace.DisplayNameOf(Flags: Longword): WideString;
+function TNamespace.DisplayNameOf(Flags: Longword): string;
 var
   StrRet: TSTRRET;
 begin
@@ -4509,7 +4342,7 @@ begin
   { This fixed a problem Rik Baker had:                                         }
   { "The error message is "C:\WINDOWS\SYSTEM\ODBCINST.DLL is not a valid        }
   { Windows Image", however the file appears fine and I've now seen the same    }
-  { message on 9 different 2000 boxes spread across the country.                }    
+  { message on 9 different 2000 boxes spread across the country.                }
   OldError := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
   try
     if not MP_UseModalDialogs then
@@ -4553,9 +4386,9 @@ begin
   end
 end;
 
-function TNamespace.ExecuteContextMenuVerb(Owner: TWinControl; AVerb: WideString;
+function TNamespace.ExecuteContextMenuVerb(Owner: TWinControl; AVerb: string;
   APIDLArray: TRelativePIDLArray; ShiftKeyState: TExecuteVerbShift = evsCurrent;
-  WorkingDir: WideString = ''): Boolean;
+  WorkingDir: string = ''): Boolean;
 //
 // Pass the Verb "VIRTUAL_DEFAULT" to select the Default Menu Item
 //
@@ -4628,11 +4461,7 @@ begin
 
         InvokeInfo.lpVerbW := lpVerbStrW;
         InvokeInfo.lpVerb := lpVerbStrA;
-
-        if IsUnicode then
-          InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfoEx)
-        else
-          InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfo);
+        InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfoEx);
 
         InvokeInfo.hWnd := Owner.Handle;
 
@@ -4681,7 +4510,7 @@ begin
   Result := FShellCache.Data.FolderSize
 end;
 
-function TNamespace.ExplorerStyleAttributeStringList(CapitalLetters: Boolean): WideString;
+function TNamespace.ExplorerStyleAttributeStringList(CapitalLetters: Boolean): string;
 begin
   Result := '';
   if Archive then
@@ -4695,33 +4524,21 @@ begin
   if Compressed then
     Result := Result + STR_COMPRESS;
   if not CapitalLetters then
-    Result := WideLowerCase(Result)
-
+    Result := SysUtils.AnsiLowerCase(Result)
 end;
 
 function TNamespace.GetArchive: Boolean;
 { GETTER: Does the file attributes contain Archive?                             }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_ARCHIVE <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_ARCHIVE <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_ARCHIVE <> 0
+  else
+    Result := False;
 end;
 
-function TNamespace.GetAttributesString: WideString;
+function TNamespace.GetAttributesString: string;
 begin
   if FileSystem then
     Result := ExplorerStyleAttributeStringList(True)
@@ -4825,21 +4642,11 @@ function TNamespace.GetCompressed: Boolean;
 begin
   if not (scCompressed in ShellCache.ShellCacheFlags) then
   begin
-    if IsUnicode then
-    begin
-      if not Assigned(FWin32FindDataW) then
-        GetDataFromIDList;
-      if Assigned(FWin32FindDataW) and FileSystem then
-        if FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_COMPRESSED <> 0 then
-          Include(FShellCache.Data.Attributes, caCompressed)
-    end else
-    begin
-      if not Assigned(FWin32FindDataA) then
-        GetDataFromIDList;
-      if Assigned(FWin32FindDataA) and FileSystem then
-        if FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_COMPRESSED <> 0 then
-          Include(FShellCache.Data.Attributes, caCompressed)
-    end;
+    if not Assigned(FWin32FindDataW) then
+      GetDataFromIDList;
+    if Assigned(FWin32FindDataW) and FileSystem then
+      if FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_COMPRESSED <> 0 then
+        Include(FShellCache.Data.Attributes, caCompressed);
     Include(FShellCache.ShellCacheFlags, scCompressed);
   end;
   Result := caCompressed in ShellCache.Data.Attributes;
@@ -4889,7 +4696,7 @@ begin
     Result := nil
 end;
 
-function TNamespace.GetCreationTime: WideString;
+function TNamespace.GetCreationTime: string;
 { GETTER: Creation time of the file.                                            }
 begin
   if not (scCreationTime in ShellCache.ShellCacheFlags) then
@@ -4897,19 +4704,10 @@ begin
     { Don't use Win32FindData cache, re-read the file times }
     GetFileTimes;
 
-    if IsUnicode then
-    begin
-      if Assigned(FWin32FindDataW) and FileSystem then
-        FShellCache.Data.CreationTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftCreationTime)
-      else
-        FShellCache.Data.CreationTime := '';
-    end else
-    begin
-      if Assigned(FWin32FindDataA) and FileSystem then
-        FShellCache.Data.CreationTime := ConvertTFileTimeToLocalStr(FWin32FindDataA^.ftCreationTime)
-      else
-        FShellCache.Data.CreationTime := '';
-    end;
+    if Assigned(FWin32FindDataW) and FileSystem then
+      FShellCache.Data.CreationTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftCreationTime)
+    else
+      FShellCache.Data.CreationTime := '';
     Include(FShellCache.ShellCacheFlags, scCreationTime);
   end;
   Result := ShellCache.Data.CreationTime
@@ -4925,19 +4723,10 @@ begin
   { Don't use Win32FindData cache, re-read the file times }
   GetFileTimes;
 
-  if IsUnicode then
-  begin
-    if Assigned(FWin32FindDataW) then
-      Result := FWin32FindDataW^.ftCreationTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end else
-  begin
-    if Assigned(FWin32FindDataA) then
-      Result := FWin32FindDataA^.ftCreationTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end
+  if Assigned(FWin32FindDataW) then
+    Result := FWin32FindDataW^.ftCreationTime
+  else
+    FillChar(Result, SizeOf(Result), #0);
 end;
 
 function TNamespace.GetCurrentContextMenu: IContextMenu;
@@ -4975,27 +4764,16 @@ begin
   Result := False;
   if FileSystem then
   begin
-    if IsUnicode then
-    begin
-      if not Assigned(FWin32FindDataW) then
-        GetDataFromIDList;
-      if Assigned(Win32FindDataW) then
-        Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_MOUNT_POINT) and
-                  (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-                  (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0)
-    end else
-    begin
-      if not Assigned(FWin32FindDataA) then
-        GetDataFromIDList;
-      if Assigned(Win32FindDataA) then
-        Result := (Win32FindDataA.dwReserved0 = IO_REPARSE_TAG_MOUNT_POINT) and
-                  (Win32FindDataA.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-                  (Win32FindDataA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0)
-    end
+    if not Assigned(FWin32FindDataW) then
+      GetDataFromIDList;
+    if Assigned(Win32FindDataW) then
+      Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_MOUNT_POINT) and
+                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
+                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0);
   end
 end;
 
-function TNamespace.GetJunctionPointResolvePath: WideString;
+function TNamespace.GetJunctionPointResolvePath: string;
 var
   hLink, hMem: THandle;
   ReparseDataBuffer: PReparseDataBuffer;
@@ -5004,10 +4782,7 @@ begin
   Result := '';
   if JunctionPoint then
   begin
-    if IsUnicode then
-      hLink := CreateFileW(PWideChar( NameForParsing), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0)
-    else
-      hLink := CreateFileA(PAnsiChar( AnsiString( NameForParsing)), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0);
+    hLink := CreateFileW(PWideChar( NameForParsing), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0);
     if hLink <> INVALID_HANDLE_VALUE then
     try
       BytesReturned := 0;
@@ -5024,7 +4799,7 @@ begin
               ZeroMemory(Pointer( @Result[1]), MAX_PATH * 2);
               MoveMemory(Pointer( @Result[1]), Pointer( @ReparseDataBuffer^.PathBuffer[ReparseDataBuffer^.SubstituteNameOffset * 2]), ReparseDataBuffer^.SubstituteNameLength);
               SetLength(Result, lstrlenW(PWideChar(Result)));
-              if Pos(WideString( '\??\'), Result) > 0 then
+              if Pos(string( '\??\'), Result) > 0 then
               begin
                 MoveMemory(Pointer( @Result[1]), @Result[5], (Length(Result) - 4) * 2);
                 SetLength(Result, Length(Result) - 4);
@@ -5073,25 +4848,15 @@ begin
   Result := False;
   if FileSystem then
   begin
-    if IsUnicode then
-    begin
-      if not Assigned(FWin32FindDataW) then
-        GetDataFromIDList;
-      Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_SYMLINK) and
-                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0)
-    end else
-    begin
-      if not Assigned(FWin32FindDataA) then
-        GetDataFromIDList;
-      Result := (Win32FindDataA.dwReserved0 = IO_REPARSE_TAG_SYMLINK) and
-                (Win32FindDataA.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-                (Win32FindDataA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0)
-    end
+    if not Assigned(FWin32FindDataW) then
+      GetDataFromIDList;
+    Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_SYMLINK) and
+              (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
+              (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0);
   end
 end;
 
-function TNamespace.GetSymbolicLinkResolvePath: WideString;
+function TNamespace.GetSymbolicLinkResolvePath: string;
 var
   hLink, hMem: THandle;
   ReparseDataBuffer: PReparseDataBuffer;
@@ -5100,10 +4865,7 @@ begin
   Result := '';
   if SymbolicLink then
   begin
-    if IsUnicode then
-      hLink := CreateFileW(PWideChar( NameForParsing), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0)
-    else
-      hLink := CreateFileA(PAnsiChar( AnsiString( NameForParsing)), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0);
+    hLink := CreateFileW(PWideChar( NameForParsing), 0, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OPEN_REPARSE_POINT, 0);
     if hLink <> INVALID_HANDLE_VALUE then
     try
       BytesReturned := 0;
@@ -5120,7 +4882,7 @@ begin
               ZeroMemory(Pointer( @Result[1]), MAX_PATH * 2);
               MoveMemory(Pointer( @Result[1]), Pointer( @ReparseDataBuffer^.PathBuffer[ReparseDataBuffer^.SubstituteNameOffset * 2]), ReparseDataBuffer^.SubstituteNameLength);
               SetLength(Result, lstrlenW(PWideChar(Result)));
-              if Pos(WideString( '\??\'), Result) > 0 then
+              if Pos(string( '\??\'), Result) > 0 then
               begin
                 MoveMemory(Pointer( @Result[1]), @Result[5], (Length(Result) - 4) * 2);
                 SetLength(Result, Length(Result) - 4);
@@ -5193,7 +4955,7 @@ begin
 end;
 
 procedure TNamespace.ExecuteContextMenuVerbMultiPath(Owner: TWinControl;
-  Verb: WideString; Namespaces: TNamespaceArray;
+  Verb: string; Namespaces: TNamespaceArray;
   ShiftKeyState: TExecuteVerbShift = evsCurrent);
 var
   Menu: TCommonShellMultiParentContextMenu;
@@ -5212,81 +4974,40 @@ var
   Error: Boolean;
   hFile: THandle;
 begin
-  if IsUnicode then
+  if not Assigned(FWin32FindDataW) and not IsDesktop then
   begin
-    if not Assigned(FWin32FindDataW) and not IsDesktop then
+    if not (scInvalidIDListData in ShellCache.ShellCacheFlags) then
     begin
-      if not (scInvalidIDListData in ShellCache.ShellCacheFlags) then
-      begin
-        Error := True;
-        try
-          if Assigned(ParentShellFolder) then
+      Error := True;
+      try
+        if Assigned(ParentShellFolder) then
+        begin
+          GetMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
+          FillChar(FWin32FindDataW^, SizeOf(FWin32FindDataW^), #0);
+          { Children of the Desktop won't work if accessed from the Desktop       }
+          { ShellFolder, they must use the physical Desktop folder.               }
+          if Assigned(Parent) and (Parent.IsDesktop) and Assigned(PhysicalDesktopFolder) then
           begin
-            GetMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
-            FillChar(FWin32FindDataW^, SizeOf(FWin32FindDataW^), #0);
-            { Children of the Desktop won't work if accessed from the Desktop       }
-            { ShellFolder, they must use the physical Desktop folder.               }
-            if Assigned(Parent) and (Parent.IsDesktop) and Assigned(PhysicalDesktopFolder) then
-            begin
-              Error := SHGetDataFromIDListW_MP(PhysicalDesktopFolder.ShellFolder, RelativePIDL,
-                SHGDFIL_FINDDATA, FWin32FindDataW, SizeOf(TWin32FindDataW)) <> NOERROR;
-            end else
-              Error := SHGetDataFromIDListW_MP(ParentShellFolder, RelativePIDL, SHGDFIL_FINDDATA,
-                         FWin32FindDataW, SizeOf(TWin32FindDataW)) <> NOERROR;
-          end
-        finally
-          if Error and not Removable then  // Wait for when the data is really needed for removable drives
+            Error := SHGetDataFromIDList(PhysicalDesktopFolder.ShellFolder, RelativePIDL,
+              SHGDFIL_FINDDATA, FWin32FindDataW, SizeOf(TWin32FindDataW)) <> NOERROR;
+          end else
+            Error := SHGetDataFromIDList(ParentShellFolder, RelativePIDL, SHGDFIL_FINDDATA,
+                       FWin32FindDataW, SizeOf(TWin32FindDataW)) <> NOERROR;
+        end
+      finally
+        if Error and not Removable then  // Wait for when the data is really needed for removable drives
+        begin
+          hFile := FindFirstFile(PWideChar(NameForParsing), FWin32FindDataW^);
+          if hFile = INVALID_HANDLE_VALUE then
           begin
-            hFile := FindFirstFileW_MP(PWideChar( NameForParsing), FWin32FindDataW^);
-            if hFile = INVALID_HANDLE_VALUE then
-            begin
-              if Assigned(FWin32FindDataW) then
-                FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
-              FWin32FindDataW := nil;
-            end else
-              Windows.FindClose(hFile);
-            Include(FShellCache.ShellCacheFlags, scInvalidIDListData)
-          end
-        end;
-      end
-    end
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) and not IsDesktop then
-    begin
-      if not (scInvalidIDListData in ShellCache.ShellCacheFlags) then
-      begin
-        Error := True;
-        try
-          if Assigned(ParentShellFolder) then
-          begin
-            GetMem(FWin32FindDataA, SizeOf(TWin32FindDataA));
-            FillChar(FWin32FindDataA^, SizeOf(TWin32FindDataA), #0);
-            { Children of the Desktop won't work if accessed from the Desktop       }
-            { ShellFolder, they must use the physical Desktop folder.               }
-            if Assigned(Parent) and (Parent.IsDesktop) and Assigned(PhysicalDesktopFolder) then
-            begin
-              Error := SHGetDataFromIDListA(PhysicalDesktopFolder.ShellFolder, RelativePIDL,
-                SHGDFIL_FINDDATA, FWin32FindDataA, SizeOf(TWin32FindDataA)) <> NOERROR;
-            end else
-              Error := SHGetDataFromIDListA(ParentShellFolder, RelativePIDL, SHGDFIL_FINDDATA,
-                         FWin32FindDataA, SizeOf(TWin32FindDataA)) <> NOERROR;
-          end
-        finally
-          if Error and not Removable then  // Wait for when the data is really needed for removable drives
-          begin
-            hFile := FindFirstFileA(PAnsiChar( AnsiString( NameForParsing)), FWin32FindDataA^);
-            if hFile = INVALID_HANDLE_VALUE then
-            begin
-              if Assigned(FWin32FindDataA) then
-                FreeMem(FWin32FindDataA, SizeOf(TWin32FindDataA));
-              FWin32FindDataA := nil;
-            end else
-              Windows.FindClose(hFile);
-            Include(FShellCache.ShellCacheFlags, scInvalidIDListData)
-          end
-        end;
-      end
+            if Assigned(FWin32FindDataW) then
+              FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
+            FWin32FindDataW := nil;
+          end else
+            Windows.FindClose(hFile);
+          Include(FShellCache.ShellCacheFlags, scInvalidIDListData)
+        end
+      end;
     end
   end
 end;
@@ -5320,23 +5041,12 @@ end;
 function TNamespace.GetDirectory: Boolean;
 { GETTER: Does the file attributes contain Directory?                           }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetDropTarget: Boolean;
@@ -5366,7 +5076,7 @@ begin
   Result := FDropTargetInterface
 end;
 
-function TNamespace.GetExtension: WideString;
+function TNamespace.GetExtension: string;
 begin
   Result := WideExtractFileExt(NameForParsingInFolder);
 end;
@@ -5409,26 +5119,15 @@ begin
   end
 end;
 
-function TNamespace.GetFileName: WideString;
+function TNamespace.GetFileName: string;
 { GETTER: FileName from the file system (FindFirst)                             }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.cFileName
-    else
-      Result := '';
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := string(FWin32FindDataA^.cFileName)
-    else
-      Result := '';
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.cFileName
+  else
+    Result := '';
 end;
 
 function TNamespace.GetFileSysAncestor: Boolean;
@@ -5458,48 +5157,26 @@ end;
 procedure TNamespace.GetFileTimes;
 var
   Handle: THandle;
-  FileDataA: TWin32FindDataA;
   FileDataW: TWin32FindDataW;
-  S: AnsiString;
   OldMode: UINT;
 begin
   if not (scFileTimes in ShellCache.ShellCacheFlags) then
   begin
     OldMode := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
     try
-      if IsUnicode then
+      if not Assigned(FWin32FindDataW) then
+        GetDataFromIDList;
+      if FileSystem and Assigned(FWin32FindDataW)  then
       begin
-        if not Assigned(FWin32FindDataW) then
-          GetDataFromIDList;
-        if FileSystem and Assigned(FWin32FindDataW)  then
+        FillChar(FileDataW, SizeOf(FileDataW), #0);
+        Handle := FindFirstFile(PWideChar( NameParseAddress), FileDataW);
+        if Handle <> INVALID_HANDLE_VALUE then
         begin
-          FillChar(FileDataW, SizeOf(FileDataW), #0);
-          Handle := FindFirstFileW_MP(PWideChar( NameParseAddress), FileDataW);
-          if Handle <> INVALID_HANDLE_VALUE then
-          begin
-            Windows.FindClose(Handle); // There is no FindCloseW
-            FWin32FindDataW.ftLastAccessTime := FileDataW.ftLastAccessTime;
-            FWin32FindDataW.ftCreationTime := FileDataW.ftCreationTime;
-            FWin32FindDataW.ftLastWriteTime := FileDataW.ftLastWriteTime
-          end
-        end;
-      end else
-      begin
-        if not Assigned(FWin32FindDataA) then
-          GetDataFromIDList;
-        if FileSystem and Assigned(FWin32FindDataA)  then
-        begin
-          FillChar(FileDataA, SizeOf(FileDataA), #0);
-          S := AnsiString(NameParseAddress);
-          Handle := FindFirstFileA(PAnsiChar( S), FileDataA);
-          if Handle <> INVALID_HANDLE_VALUE then
-          begin
-            Windows.FindClose(Handle);  // There is no ASCI and Wide version
-            FWin32FindDataA.ftLastAccessTime := FileDataA.ftLastAccessTime;
-            FWin32FindDataA.ftCreationTime := FileDataA.ftCreationTime;
-            FWin32FindDataA.ftLastWriteTime := FileDataA.ftLastWriteTime
-          end
-        end;
+          Windows.FindClose(Handle); // There is no FindCloseW
+          FWin32FindDataW.ftLastAccessTime := FileDataW.ftLastAccessTime;
+          FWin32FindDataW.ftCreationTime := FileDataW.ftCreationTime;
+          FWin32FindDataW.ftLastWriteTime := FileDataW.ftLastWriteTime
+        end
       end;
       Include(FShellCache.ShellCacheFlags, scFileTimes);
     finally
@@ -5508,7 +5185,7 @@ begin
   end;
 end;
 
-function TNamespace.GetFileType: WideString;
+function TNamespace.GetFileType: string;
 // File type string shown in column 3 of Explorer Listview
 begin
   if not (scFileType in ShellCache.ShellCacheFlags) then
@@ -5521,7 +5198,7 @@ begin
      { NT only half-assed supports the SHGetFileInfo...only if the ext is      }
      { associated with a program. So we build it ourselves                     }
       if FShellCache.Data.FileType = '' then
-        FShellCache.Data.FileType := WideUpperCase(WideExtractFileExt(NameForParsing)) + STR_FILE;
+        FShellCache.Data.FileType := SysUtils.AnsiUpperCase(WideExtractFileExt(NameForParsing)) + STR_FILE;
     end else
       FShellCache.Data.FileType := '';
     Include(FShellCache.ShellCacheFlags, scFileType);
@@ -5531,7 +5208,7 @@ end;
 
 function TNamespace.GetFolder: Boolean;
 // Ask the Folder if it is a Folder, as opposed to files.  Folders can  contain
-// other objects.                                                        
+// other objects.
 begin
   if not (scFolder in ShellCache.ShellCacheFlags) then
   begin
@@ -5572,23 +5249,12 @@ end;
 
 function TNamespace.GetHidden: Boolean;
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_HIDDEN <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_HIDDEN <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_HIDDEN <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetIconIndexChanged: Boolean;
@@ -5623,7 +5289,6 @@ function TNamespace.GetIconIndex(OpenIcon: Boolean; IconSize: TIconSize; ForceLo
   { UPDATE: Unfortunatly this does not work well in Win98 :^(                   }
   var
     Flags: integer;
-    InfoA: TSHFileInfoA;
     InfoW: TSHFileInfoW;
   begin
     Flags := SHGFI_PIDL or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE;
@@ -5633,21 +5298,11 @@ function TNamespace.GetIconIndex(OpenIcon: Boolean; IconSize: TIconSize; ForceLo
       Flags := Flags or SHGFI_SMALLICON;
     if AnOpenIcon then
       Flags := Flags or SHGFI_OPENICON;
-    if IsUnicode then
-    begin
-      FillChar(InfoW, SizeOf(InfoW), #0);
-      if SHGetFileInfoW_MP(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), Flags) <> 0 then
-        Index := InfoW.iIcon
-      else
-        Index := 0
-    end else
-    begin
-      FillChar(InfoA, SizeOf(InfoA), #0);
-      if SHGetFileInfoA(PAnsiChar(AbsolutePIDL), 0, InfoA, SizeOf(InfoA), Flags) <> 0 then
-        Index := InfoA.iIcon
-      else
-        Index := 0
-    end
+    FillChar(InfoW, SizeOf(InfoW), #0);
+    if SHGetFileInfo(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), Flags) <> 0 then
+      Index := InfoW.iIcon
+    else
+      Index := 0;
   end;
 
   function GetIcon(IsOpen: Boolean; IconSize: TIconSize): integer;
@@ -5687,7 +5342,7 @@ begin
   end;
 end;
 
-function TNamespace.GetInfoTip: WideString;
+function TNamespace.GetInfoTip: string;
 { Retrieves the text from the IInfoTip interface in Win2k.                      }
 var
   Buffer: PWideChar;
@@ -5705,31 +5360,22 @@ begin
     end;
   except
     // Vista gives a floating point exception here once in a while
-    Result := ''             
+    Result := ''
   end
 end;
 
-function TNamespace.GetLastAccessTime: WideString;
+function TNamespace.GetLastAccessTime: string;
 { GETTER: Last Access time of the file.                                         }
 begin
   if not (scLastAccessTime in ShellCache.ShellCacheFlags) then
   begin
     { Don't use Win32FindData cache, re-read the file times }
     GetFileTimes;
-    
-    if IsUnicode then
-    begin
-      if Assigned(FWin32FindDataW) and FileSystem then
-        FShellCache.Data.LastAccessTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftLastAccessTime)
-      else
-        FShellCache.Data.LastAccessTime := '';
-    end else
-    begin
-      if Assigned(FWin32FindDataA) and FileSystem then
-        FShellCache.Data.LastAccessTime := ConvertTFileTimeToLocalStr(FWin32FindDataA^.ftLastAccessTime)
-      else
-        FShellCache.Data.LastAccessTime := '';
-    end;
+
+    if Assigned(FWin32FindDataW) and FileSystem then
+      FShellCache.Data.LastAccessTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftLastAccessTime)
+    else
+      FShellCache.Data.LastAccessTime := '';
     Include(FShellCache.ShellCacheFlags, scLastAccessTime);
   end;
   Result := FShellCache.Data.LastAccessTime
@@ -5745,23 +5391,14 @@ begin
   { Don't use Win32FindData cache, re-read the file times }
   GetFileTimes;
 
-  if IsUnicode then
-  begin
-    if Assigned(FWin32FindDataW) then
-      Result := FWin32FindDataW^.ftLastAccessTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end else
-  begin
-    if Assigned(FWin32FindDataA) then
-      Result := FWin32FindDataA^.ftLastAccessTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end
+  if Assigned(FWin32FindDataW) then
+    Result := FWin32FindDataW^.ftLastAccessTime
+  else
+    FillChar(Result, SizeOf(Result), #0);
 end;
 
 
-function TNamespace.GetLastWriteTime: WideString;
+function TNamespace.GetLastWriteTime: string;
 { GETTER: Last write time for the file.                                         }
 begin
   if not (scLastWriteTime in ShellCache.ShellCacheFlags) then
@@ -5769,19 +5406,10 @@ begin
     { Don't use Win32FindData cache, re-read the file times }
     GetFileTimes;
 
-    if IsUnicode then
-    begin
-      if Assigned(FWin32FindDataW) and FileSystem then
-        FShellCache.Data.LastWriteTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftLastWriteTime)
-      else
-        FShellCache.Data.LastWriteTime := '';
-    end else
-    begin
-      if Assigned(FWin32FindDataA) and FileSystem then
-        FShellCache.Data.LastWriteTime := ConvertTFileTimeToLocalStr(FWin32FindDataA^.ftLastWriteTime)
-      else
-        FShellCache.Data.LastWriteTime := '';
-    end;
+    if Assigned(FWin32FindDataW) and FileSystem then
+      FShellCache.Data.LastWriteTime := ConvertTFileTimeToLocalStr(FWin32FindDataW^.ftLastWriteTime)
+    else
+      FShellCache.Data.LastWriteTime := '';
     Include(FShellCache.ShellCacheFlags, scLastWriteTime);
   end;
   Result := FShellCache.Data.LastWriteTime
@@ -5798,19 +5426,10 @@ begin
   { Don't use Win32FindData cache, re-read the file times }
   GetFileTimes;
 
-  if IsUnicode then
-  begin
-    if Assigned(FWin32FindDataW) then
-      Result := FWin32FindDataW^.ftLastWriteTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end else
-  begin
-    if Assigned(FWin32FindDataA) then
-      Result := FWin32FindDataA^.ftLastWriteTime
-    else
-      FillChar(Result, SizeOf(Result), #0);
-  end
+  if Assigned(FWin32FindDataW) then
+    Result := FWin32FindDataW^.ftLastWriteTime
+  else
+    FillChar(Result, SizeOf(Result), #0);
 end;
 
 function TNamespace.GetLink: Boolean;
@@ -5824,27 +5443,27 @@ begin
   Result := caLink in ShellCache.Data.Attributes
 end;
 
-function TNamespace.GetNameAddressbar: WideString;
+function TNamespace.GetNameAddressbar: string;
 begin
   Result := DisplayNameOf(SHGDN_FORADDRESSBAR or SHGDN_NORMAL)
 end;
 
-function TNamespace.GetNameAddressbarInFolder: WideString;
+function TNamespace.GetNameAddressbarInFolder: string;
 begin
   Result := DisplayNameOf(SHGDN_INFOLDER or SHGDN_FORADDRESSBAR)
 end;
 
-function TNamespace.GetNameForEditing: WideString;
+function TNamespace.GetNameForEditing: string;
 begin
   Result := DisplayNameOf(SHGDN_FOREDITING)
 end;
 
-function TNamespace.GetNameForEditingInFolder: WideString;
+function TNamespace.GetNameForEditingInFolder: string;
 begin
   Result := DisplayNameOf(SHGDN_FOREDITING or SHGDN_INFOLDER)
 end;
 
-function TNamespace.GetNameForParsing: WideString;
+function TNamespace.GetNameForParsing: string;
 begin
   // Early versions of Windows returned "Desktop" instead of the full path
   if IsDesktop then
@@ -5853,7 +5472,7 @@ begin
     Result := DisplayNameOf(SHGDN_FORPARSING or SHGDN_NORMAL)
 end;
 
-function TNamespace.GetNameForParsingInFolder: WideString;
+function TNamespace.GetNameForParsingInFolder: string;
 begin
 // Early versions of Windows returned "Desktop" instead of the full path
   if IsDesktop then
@@ -5862,7 +5481,7 @@ begin
   Result := DisplayNameOf(SHGDN_INFOLDER or SHGDN_FORPARSING)
 end;
 
-function TNamespace.GetNameInFolder: WideString;
+function TNamespace.GetNameInFolder: string;
 begin
   if not (scInFolderName in ShellCache.ShellCacheFlags) then
   begin
@@ -5872,7 +5491,7 @@ begin
   Result := FShellCache.Data.InFolderName
 end;
 
-function TNamespace.GetNameNormal: WideString;
+function TNamespace.GetNameNormal: string;
 begin
   if not (scNormalName in ShellCache.ShellCacheFlags) then
   begin
@@ -5882,7 +5501,7 @@ begin
   Result := FShellCache.Data.NormalName
 end;
 
-function TNamespace.GetNameParseAddress: WideString;
+function TNamespace.GetNameParseAddress: string;
 begin
   if not (scParsedName in ShellCache.ShellCacheFlags) then
   begin
@@ -5892,7 +5511,7 @@ begin
   Result := FShellCache.Data.ParsedName
 end;
 
-function TNamespace.GetNameParseAddressInFolder: WideString;
+function TNamespace.GetNameParseAddressInFolder: string;
 begin
   Result := DisplayNameOf(SHGDN_FORADDRESSBAR or SHGDN_FORPARSING or SHGDN_INFOLDER)
 end;
@@ -5912,45 +5531,23 @@ end;
 function TNamespace.GetNormal: Boolean;
 { GETTER: Does the file attributes contain Normal?                             }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_NORMAL <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_NORMAL <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_NORMAL <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetOffLine: Boolean;
 { GETTER: Does the file attributes contain OffLine?                             }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_OFFLINE <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_OFFLINE <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_OFFLINE <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetImage: TBitmap;
@@ -6017,7 +5614,7 @@ begin
         begin
           if Parent.ShellIconOverlayInterface.GetOverlayIndex(FRelativePIDL, FShellCache.Data.OverlayIndex) <> S_OK then
           begin
-            if MP_UseSpecialReparsePointOverlay and IsUnicode and not IsWinNT4 and ReparsePoint then
+            if MP_UseSpecialReparsePointOverlay and not IsWinNT4 and ReparsePoint then
               FShellCache.Data.OverlayIndex := 4
             else
               FShellCache.Data.OverlayIndex := -1;
@@ -6076,7 +5673,7 @@ end;
 
 function TNamespace.GetParentShellFolder: IShellFolder;
 begin
-  Result  := nil;                                 
+  Result  := nil;
   if Assigned(Parent) then
     Result := Parent.ShellFolder
 end;
@@ -6124,45 +5721,23 @@ end;
 function TNamespace.GetReadOnlyFile: Boolean;
 { GETTER: Does the file attributes contain ReadOnly?                           }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_READONLY <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_READONLY <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_READONLY <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetReparsePoint: Boolean;
 { GETTER: Does the file attributes contain ReadOnly?                           }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetRemovable: Boolean;
@@ -6239,7 +5814,7 @@ begin
       PIDLMgr.FreePIDL(P)
     end else
       ParentFolder := Desktop;
-      
+
     if Assigned(ParentFolder) then
     begin
       // 12.9.2007 The call to Folder caused a cascade of GetParent?'s causing delay and unnecesary objects being created
@@ -6285,7 +5860,7 @@ begin
   Result := FShellLink
 end;
 
-function TNamespace.GetSizeOfFile: WideString;
+function TNamespace.GetSizeOfFile: string;
 { GETTER: Get the size of the file in string format}
 begin
   if not (scFileSize in ShellCache.ShellCacheFlags) then
@@ -6293,7 +5868,6 @@ begin
     if (not Folder or Browsable) and FileSystem then
     begin
       FShellCache.Data.FileSize := Format('%0.0n', [SizeOfFileInt64 + 0.0]);
-  //    FShellCache.Data.FileSize := AddCommas(WideIntToStr(SizeOfFileInt64));
       Include(FShellCache.ShellCacheFlags, scFileSize);
     end else
       FShellCache.Data.FileSize := ''
@@ -6301,11 +5875,11 @@ begin
   Result := ShellCache.Data.FileSize
 end;
 
-function TNamespace.GetSizeOfFileDiskUsage: WideString;
+function TNamespace.GetSizeOfFileDiskUsage: string;
 var
   Size, BytesPerCluster: Int64;
   Drive: string;
-  DriveW: WideString;
+  DriveW: string;
   SectorsPerCluster,
   BytesPerSector,
   FreeClusters,
@@ -6318,9 +5892,9 @@ begin
     Size := SizeOfFileInt64;
     DriveW := WideExtractFileDrive(Self.NameForParsing) + '\';
     Drive := DriveW;
-    if WideDirectoryExists(Drive) then
+    if DirectoryExists(Drive) then
     begin
-      ValidData := GetDiskFreeSpaceMP(PWideChar( DriveW), SectorsPerCluster, BytesPerSector, FreeClusters, TotalClusters);
+      ValidData := GetDiskFreeSpace(PWideChar(DriveW), SectorsPerCluster, BytesPerSector, FreeClusters, TotalClusters);
 
       if ValidData then
       begin
@@ -6347,7 +5921,6 @@ function TNamespace.GetSizeOfFileInt64: Int64;
 var
   H: THandle;
   FindDataW: TWin32FindDataW;
-  FindDataA: TWin32FindDataA;
 { GETTER: Get the file size in bytes.                                           }
 // The PIDL does not store the file size for > 4G files, need to use FindFirstFile
 begin
@@ -6355,38 +5928,23 @@ begin
   begin
     if (not Folder or Browsable) and FileSystem then
     begin
-      if IsUnicode then
+      H := FindFirstFile(PWideChar(NameForParsing), FindDataW);
+      if H <> INVALID_HANDLE_VALUE then
       begin
-        H := FindFirstFileW_MP(PWideChar(NameForParsing), FindDataW);
-        if H <> INVALID_HANDLE_VALUE then
-        begin
-          Windows.FindClose(H);
-          FShellCache.Data.FileSizeInt64 := FindDataW.nFileSizeLow;
-          if FShellCache.Data.FileSizeInt64 < 0 then
-            FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + 4294967296;
-          if FindDataW.nFileSizeHigh > 0 then
-              FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + (FindDataW.nFileSizeHigh * 4294967296)
-        end
-      end else
-      begin
-        H := FindFirstFileA(PAnsiChar(AnsiString(NameForParsing)), FindDataA);
-        if H <> INVALID_HANDLE_VALUE then
-        begin
-          Windows.FindClose(H);
-          FShellCache.Data.FileSizeInt64 := FindDataA.nFileSizeLow;
-          if FShellCache.Data.FileSizeInt64 < 0 then
-            FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + 4294967296;
-          if FindDataA.nFileSizeHigh > 0 then
-            FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + (FindDataA.nFileSizeHigh * 4294967296)
-        end
-      end
+        Windows.FindClose(H);
+        FShellCache.Data.FileSizeInt64 := FindDataW.nFileSizeLow;
+        if FShellCache.Data.FileSizeInt64 < 0 then
+          FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + 4294967296;
+        if FindDataW.nFileSizeHigh > 0 then
+            FShellCache.Data.FileSizeInt64 := FShellCache.Data.FileSizeInt64 + (FindDataW.nFileSizeHigh * 4294967296)
+      end;
     end;
     Include(FShellCache.ShellCacheFlags, scFileSizeInt64)
   end;
   Result := FShellCache.Data.FileSizeInt64
 end;
 
-function TNamespace.GetSizeOfFileKB: WideString;
+function TNamespace.GetSizeOfFileKB: string;
 { GETTER: Get the file  size in Explorer KiloByte format.                       }
 begin
   if not (scFileSizeKB in ShellCache.ShellCacheFlags) then
@@ -6410,23 +5968,12 @@ end;
 function TNamespace.GetSparseFile: Boolean;
 { GETTER: Does the file attributes contain ReadOnly?                           }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_SPARSE_FILE <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_SPARSE_FILE <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_SPARSE_FILE <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetShare: Boolean;
@@ -6438,67 +5985,36 @@ procedure TNamespace.GetSHFileInfo;
 { Retrieves and caches the some information about the namespace with            }
 { ShGetFileInfo.                                                                }
 var
-  InfoA: TSHFileInfoA;
   InfoW: TSHFileInfoW;
 begin
   if not Assigned(FSHGetFileInfoRec) then
   begin
-    if IsUnicode then
+    GetMem(FSHGetFileInfoRec, SizeOf(FSHGetFileInfoRec^));
+    Initialize(FSHGetFileInfoRec^.FileType);
+    if Assigned(FSHGetFileInfoRec) then
     begin
-      GetMem(FSHGetFileInfoRec, SizeOf(FSHGetFileInfoRec^));
-      Initialize(FSHGetFileInfoRec^.FileType);
-      if Assigned(FSHGetFileInfoRec) then
-      begin
-        SHGetFileInfoW_MP(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), SHGFI_TYPENAME or SHGFI_PIDL);
-        FSHGetFileInfoRec^.FileType := InfoW.szTypeName;
-        { NT only half-assed supports the SHGetFileInfo...only if the ext is      }
-        { associated with a program. So we build it ourselves                     }
-        if FSHGetFileInfoRec^.FileType = '' then
-          FSHGetFileInfoRec^.FileType := WideUpperCase(WideExtractFileExt(NameForParsing)) + STR_FILE;
-      end
-    end else
-    begin
-      GetMem(FSHGetFileInfoRec, SizeOf(FSHGetFileInfoRec^));
-      Initialize(FSHGetFileInfoRec^.FileType);
-      if Assigned(FSHGetFileInfoRec) then
-      begin
-        SHGetFileInfoA(PAnsiChar(AbsolutePIDL), 0, InfoA, SizeOf(InfoA), SHGFI_TYPENAME or SHGFI_PIDL);
-        FSHGetFileInfoRec^.FileType := string(InfoA.szTypeName);
-        { NT only half-assed supports the SHGetFileInfo...only if the ext is      }
-        { associated with a program. So we build it ourselves                     }
-        if FSHGetFileInfoRec^.FileType = '' then
-          FSHGetFileInfoRec^.FileType := WideUpperCase(WideExtractFileExt(NameForParsing)) + STR_FILE;
-      end
+      SHGetFileInfo(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), SHGFI_TYPENAME or SHGFI_PIDL);
+      FSHGetFileInfoRec^.FileType := InfoW.szTypeName;
+      { NT only half-assed supports the SHGetFileInfo...only if the ext is      }
+      { associated with a program. So we build it ourselves                     }
+      if FSHGetFileInfoRec^.FileType = '' then
+        FSHGetFileInfoRec^.FileType := SysUtils.AnsiUpperCase(WideExtractFileExt(NameForParsing)) + STR_FILE;
     end;
   end;
 end;
 
-function TNamespace.GetShortFileName: WideString;
+function TNamespace.GetShortFileName: string;
 { GETTER: Get the 8:3 short file name (DOS)                                     }
 begin
-  if IsUnicode then
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
   begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-    begin
-      Result := FWin32FindDataW^.cAlternateFileName;
-      if Result = '' then
-        Result := WideUpperCase(FWin32FindDataW^.CFileName)
-    end else
-      Result := '';
+    Result := FWin32FindDataW^.cAlternateFileName;
+    if Result = '' then
+      Result := FWin32FindDataW^.CFileName;
   end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-    begin
-      Result := string(FWin32FindDataA^.cAlternateFileName);
-      if Result = '' then
-        Result := WideUpperCase(string(FWin32FindDataA^.CFileName))
-    end else
-      Result := '';
-  end
+    Result := '';
 end;
 
 function TNamespace.GetSubFolders: Boolean;
@@ -6518,45 +6034,23 @@ end;
 function TNamespace.GetSystem: Boolean;
 { GETTER: Does the file attributes contain System?                             }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_SYSTEM <> 0
-    else
-      Result := False;
-  end else
-  begin
-if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_SYSTEM <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_SYSTEM <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetTemporary: Boolean;
 { GETTER: Does the file attributes contain Temporary?                           }
 begin
-  if IsUnicode then
-  begin
-    if not Assigned(FWin32FindDataW) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataW) and FileSystem then
-      Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_TEMPORARY <> 0
-    else
-      Result := False;
-  end else
-  begin
-    if not Assigned(FWin32FindDataA) then
-      GetDataFromIDList;
-    if Assigned(FWin32FindDataA) and FileSystem then
-      Result := FWin32FindDataA^.dwFileAttributes and FILE_ATTRIBUTE_TEMPORARY <> 0
-    else
-      Result := False;
-  end
+  if not Assigned(FWin32FindDataW) then
+    GetDataFromIDList;
+  if Assigned(FWin32FindDataW) and FileSystem then
+    Result := FWin32FindDataW^.dwFileAttributes and FILE_ATTRIBUTE_TEMPORARY <> 0
+  else
+    Result := False;
 end;
 
 function TNamespace.GetThreadedIconLoaded: Boolean;
@@ -6645,7 +6139,6 @@ const
 
 var
   ItemCount, i: integer;
-  ItemInfoA: TMenuItemInfoA;
   ItemInfoW: TMenuItemInfoW;
   LastID: cardinal;
 begin
@@ -6655,137 +6148,69 @@ begin
   ItemCount := GetMenuItemCount(Menu);
   SubMenu := CreatePopupMenu;
 
-  if IsUnicode then
+  FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
+  ItemInfoW.cbSize := SizeOf(ItemInfoW);
+  ItemInfoW.fmask := MIIM_TYPE;
+  ItemInfoW.fType := MFT_SEPARATOR;
+  InsertMenuItemW(Menu, ItemCount, True, ItemInfoW);
+
+  FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
+  ItemInfoW.cbSize := SizeOf(ItemInfoW);
+  ItemInfoW.fmask := MIIM_SUBMENU or MIIM_TYPE;
+  ItemInfoW.hSubMenu := SubMenu;
+  ItemInfoW.dwTypeData := PWideChar(Caption);
+  // Insert the Root Menu Item
+  if InsertMenuItemW(Menu, ItemCount + 1, True, ItemInfoW) then
   begin
-    FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
-    ItemInfoW.cbSize := SizeOf(ItemInfoW);
-    ItemInfoW.fmask := MIIM_TYPE;
-    ItemInfoW.fType := MFT_SEPARATOR;
-    InsertMenuItemW(Menu, ItemCount, True, ItemInfoW);
+    SetLength(Result, PopupMenu.Items.Count);
 
-    FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
-    ItemInfoW.cbSize := SizeOf(ItemInfoW);
-    ItemInfoW.fmask := MIIM_SUBMENU or MIIM_TYPE;
-    ItemInfoW.hSubMenu := SubMenu;
-    ItemInfoW.dwTypeData := PWideChar( WideString(Caption));
-    // Insert the Root Menu Item
-    if InsertMenuItemW(Menu, ItemCount + 1, True, ItemInfoW) then
+    for i := PopupMenu.Items.Count - 1 downto 0 do
     begin
-      SetLength(Result, PopupMenu.Items.Count);
+      FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
 
-      for i := PopupMenu.Items.Count - 1 downto 0 do
-      begin
-        FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
+      ItemInfoW.cbSize := SizeOf(ItemInfoW);
 
-        ItemInfoW.cbSize := SizeOf(ItemInfoW);
+      ItemInfoW.fmask := MENUMASK;
 
-        ItemInfoW.fmask := MENUMASK;
-
-        if PopupMenu.Items[i].Caption <> '-' then
-          ItemInfoW.fType := MFT_STRING
-        else
-          ItemInfoW.fType := MFT_SEPARATOR;
+      if PopupMenu.Items[i].Caption <> '-' then
+        ItemInfoW.fType := MFT_STRING
+      else
+        ItemInfoW.fType := MFT_SEPARATOR;
 
 
-        if PopupMenu.Items[i].RadioItem then
-          ItemInfoW.fType := ItemInfoW.fType or MFT_RADIOCHECK;
-        if PopupMenu.BiDiMode = bdRightToLeft then
-          ItemInfoW.fType := ItemInfoW.fType or MFT_RIGHTJUSTIFY;
-        if PopupMenu.Items[i].Break = mbBreak then
-          ItemInfoW.fType := ItemInfoW.fType or MFT_MENUBREAK;
-        if PopupMenu.Items[i].Break = mbBarBreak then
-          ItemInfoW.fType := ItemInfoW.fType or MFT_MENUBARBREAK;
+      if PopupMenu.Items[i].RadioItem then
+        ItemInfoW.fType := ItemInfoW.fType or MFT_RADIOCHECK;
+      if PopupMenu.BiDiMode = bdRightToLeft then
+        ItemInfoW.fType := ItemInfoW.fType or MFT_RIGHTJUSTIFY;
+      if PopupMenu.Items[i].Break = mbBreak then
+        ItemInfoW.fType := ItemInfoW.fType or MFT_MENUBREAK;
+      if PopupMenu.Items[i].Break = mbBarBreak then
+        ItemInfoW.fType := ItemInfoW.fType or MFT_MENUBARBREAK;
 
-        if PopupMenu.Items[i].Checked then
-          ItemInfoW.fState := ItemInfoW.fState or MFS_CHECKED
-        else
-          ItemInfoW.fState := ItemInfoW.fState or MFS_UNCHECKED;
-        if PopupMenu.Items[i].Default then
-          ItemInfoW.fState := ItemInfoW.fState or MFS_DEFAULT;
-        if PopupMenu.Items[i].Enabled then
-          ItemInfoW.fState := ItemInfoW.fState or MFS_ENABLED
-        else
-          ItemInfoW.fState := ItemInfoW.fState or MFS_DISABLED;
+      if PopupMenu.Items[i].Checked then
+        ItemInfoW.fState := ItemInfoW.fState or MFS_CHECKED
+      else
+        ItemInfoW.fState := ItemInfoW.fState or MFS_UNCHECKED;
+      if PopupMenu.Items[i].Default then
+        ItemInfoW.fState := ItemInfoW.fState or MFS_DEFAULT;
+      if PopupMenu.Items[i].Enabled then
+        ItemInfoW.fState := ItemInfoW.fState or MFS_ENABLED
+      else
+        ItemInfoW.fState := ItemInfoW.fState or MFS_DISABLED;
 
-        ItemInfoW.wID := FindUniqueMenuID(Menu, LastID + 1);
-        LastID := ItemInfoW.wID;
-        Result[i] := ItemInfoW.wID;
+      ItemInfoW.wID := FindUniqueMenuID(Menu, LastID + 1);
+      LastID := ItemInfoW.wID;
+      Result[i] := ItemInfoW.wID;
 
-        // Store the TMenuItem so we can get it later
-        ItemInfoW.dwItemData := Cardinal( PopupMenu.Items[i]);
+      // Store the TMenuItem so we can get it later
+      ItemInfoW.dwItemData := Cardinal( PopupMenu.Items[i]);
 
-        if not( ItemInfoW.fType and MFT_SEPARATOR <> 0) then
-          ItemInfoW.dwTypeData := PWideChar( WideString(PopupMenu.Items[i].Caption));
+      if not( ItemInfoW.fType and MFT_SEPARATOR <> 0) then
+        ItemInfoW.dwTypeData := PWideChar(PopupMenu.Items[i].Caption);
 
-        InsertMenuItemW(SubMenu, 0, True, ItemInfoW)
-      end
+      InsertMenuItemW(SubMenu, 0, True, ItemInfoW)
     end
-  end else
-  begin
-    FillChar(ItemInfoA, SizeOf(ItemInfoA), #0);
-    ItemInfoA.cbSize := SizeOf(ItemInfoA);
-    ItemInfoA.fmask := MIIM_TYPE;
-    ItemInfoA.fType := MFT_SEPARATOR;
-    InsertMenuItemA(Menu, ItemCount, True, ItemInfoA);
-
-    FillChar(ItemInfoA, SizeOf(ItemInfoA), #0);
-    ItemInfoA.cbSize := SizeOf(ItemInfoA);
-    ItemInfoA.fmask := MIIM_SUBMENU or MIIM_TYPE;
-    ItemInfoA.hSubMenu := SubMenu;
-    ItemInfoA.dwTypeData := PAnsiChar( AnsiString(Caption));
-    // Insert the Root Menu Item
-    if InsertMenuItemA(Menu, ItemCount + 1, True, ItemInfoA) then
-    begin
-      SetLength(Result, PopupMenu.Items.Count);
-
-      for i := PopupMenu.Items.Count - 1 downto 0 do
-      begin
-        FillChar(ItemInfoA, SizeOf(ItemInfoA), #0);
-
-        ItemInfoA.cbSize := SizeOf(ItemInfoA);
-
-        ItemInfoA.fmask := MENUMASK;
-
-        if PopupMenu.Items[i].Caption <> '-' then
-          ItemInfoA.fType := MFT_STRING
-        else
-          ItemInfoA.fType := MFT_SEPARATOR;
-
-
-        if PopupMenu.Items[i].RadioItem then
-          ItemInfoA.fType := ItemInfoA.fType or MFT_RADIOCHECK;
-        if PopupMenu.BiDiMode = bdRightToLeft then
-          ItemInfoA.fType := ItemInfoA.fType or MFT_RIGHTJUSTIFY;
-        if PopupMenu.Items[i].Break = mbBreak then
-          ItemInfoA.fType := ItemInfoA.fType or MFT_MENUBREAK;
-        if PopupMenu.Items[i].Break = mbBarBreak then
-          ItemInfoA.fType := ItemInfoA.fType or MFT_MENUBARBREAK;
-
-        if PopupMenu.Items[i].Checked then
-          ItemInfoA.fState := ItemInfoA.fState or MFS_CHECKED
-        else
-          ItemInfoA.fState := ItemInfoA.fState or MFS_UNCHECKED;
-        if PopupMenu.Items[i].Default then
-          ItemInfoA.fState := ItemInfoA.fState or MFS_DEFAULT;
-        if PopupMenu.Items[i].Enabled then
-          ItemInfoA.fState := ItemInfoA.fState or MFS_ENABLED
-        else
-          ItemInfoA.fState := ItemInfoA.fState or MFS_DISABLED;
-
-        ItemInfoA.wID := FindUniqueMenuID(Menu, LastID + 1);
-        LastID := ItemInfoA.wID;
-        Result[i] := ItemInfoA.wID;
-
-        // Store the TMenuItem so we can get it later
-        ItemInfoA.dwItemData := Cardinal( PopupMenu.Items[i]);
-
-        if not( ItemInfoA.fType and MFT_SEPARATOR <> 0) then
-          ItemInfoA.dwTypeData := PAnsiChar( AnsiString(PopupMenu.Items[i].Caption));
-
-        InsertMenuItemA(SubMenu, 0, True, ItemInfoA)
-      end
-    end
-  end
+  end;
 end;
 
 function TNamespace.InternalGetContextMenuInterface(PIDLArray: TRelativePIDLArray): IContextMenu;
@@ -6850,7 +6275,7 @@ function TNamespace.InternalShowContextMenu(Owner: TWinControl;
   ContextMenuShowCallback: TContextMenuShowCallback;
   ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
   PIDLArray: TRelativePIDLArray; Position: PPoint; CustomShellSubMenu: TPopupMenu;
-  CustomSubMenuCaption: WideString): Boolean;
+  CustomSubMenuCaption: string): Boolean;
 // Displays the ContextMenu of the namespace.
 const
   MaxVerbLen = 128;
@@ -6860,8 +6285,7 @@ var
   MenuCmd: Cardinal;
   x, y, i: integer;
   OldErrorMode: integer;
-  VerbA: AnsiString;
-  VerbW: WideString;
+  VerbW: string;
   GenericVerb: Pointer;
   Handled, AllowShow: Boolean;
   Flags: Longword;
@@ -6965,23 +6389,14 @@ begin
                   FOldWndProcForContextMenu := nil;
                 end
               end else
-                MenuCmd := 0;      
+                MenuCmd := 0;
 
               if MenuCmd <> 0 then
               begin
-                if IsUnicode then
-                begin
-                  SetLength(VerbW, MaxVerbLen);
-                  FillChar(VerbW[1], MaxVerbLen*2, #0);
-                  GenericVerb := @VerbW[1];
-                  Flags := GCS_VERBW
-                end else
-                begin
-                  SetLength(VerbA, MaxVerbLen);
-                  FillChar(VerbA[1], MaxVerbLen, #0);
-                  GenericVerb := @VerbA[1];
-                  Flags := GCS_VERBA
-                end;
+                SetLength(VerbW, MaxVerbLen);
+                FillChar(VerbW[1], MaxVerbLen*2, #0);
+                GenericVerb := @VerbW[1];
+                Flags := GCS_VERBW;
                 if Assigned(ContextMenu3) then
                   Result := Succeeded(ContextMenu3.GetCommandString(MenuCmd-1, Flags, nil, GenericVerb, MaxVerbLen))
                 else
@@ -6991,12 +6406,7 @@ begin
                 if Assigned(ContextMenu) then
                   Result := Succeeded(ContextMenu.GetCommandString(MenuCmd-1, Flags, nil, GenericVerb, MaxVerbLen));
 
-                if IsUnicode then
-                  SetLength(VerbW, lstrlenW(PWideChar( VerbW)))
-                else begin
-                  SetLength(VerbA, System.AnsiStrings.StrLen(PAnsiChar( VerbA)));
-                  VerbW := string(VerbA)
-                end;
+                SetLength(VerbW, lstrlenW(PWideChar(VerbW)));
 
                 if not Result then
                   VerbW := STR_UNKNOWNCOMMAN;
@@ -7024,22 +6434,16 @@ begin
                   ContextMenuCmdCallBack(Self, VerbW, MenuCmd, Handled);
 
                 if not Handled then
-                begin      
+                begin
                   FillChar(InvokeInfo, SizeOf(InvokeInfo), #0);
                   with InvokeInfo do
                   begin
                     { For some reason the lpVerbW won't work }
                     lpVerb := MakeIntResourceA(MenuCmd-1);
-                    if IsUnicode then
-                    begin
-                      fMask := CMIC_MASK_UNICODE;
-                      lpVerbW := MakeIntResourceW(MenuCmd-1)
-                    end;
+                    fMask := CMIC_MASK_UNICODE;
+                    lpVerbW := MakeIntResourceW(MenuCmd-1);
                     // Win95 get confused if size = TCMInvokeCommandInfoEx
-                    if IsUnicode then
-                      cbSize := SizeOf(TCMInvokeCommandInfoEx)
-                    else
-                      cbSize := SizeOf(TCMInvokeCommandInfo);
+                    cbSize := SizeOf(TCMInvokeCommandInfoEx);
 
                     hWnd := Owner.Handle;
                     nShow := SW_SHOWNORMAL;
@@ -7089,12 +6493,12 @@ end;
 
 function TNamespace.OkToBrowse(ShowExplorerMsg: Boolean): Boolean;
 var
-  S: WideString;
+  S: string;
 begin
   Result := True;
   S := NameForParsing;
   if ((Length(S) = 3) and (S[2] = ':') and (S[3] = '\')) then
-    Result := DiskInDrive(AnsiChar(AnsiString( S)[1]));
+    Result := DiskInDrive(AnsiChar(AnsiString(S)[1]));
   if not Result then
   begin
     if ShowExplorerMsg then
@@ -7121,7 +6525,7 @@ begin
     { is something in the bin.  If not when it is clicked it will clear the "+"    }
     if IsRecycleBin then
       Result := True
-    else 
+    else
    // if ILIsParent(HistoryFolder.AbsolutePIDL, AbsolutePIDL, False) then
    //   Result := True
    // else
@@ -7211,17 +6615,9 @@ begin
   if Assigned(Parent) then
     if Parent.IsDesktop then
       PhysicalDesktopFolder.InvalidateNamespace;
-  if IsUnicode then
-  begin
-    if Assigned(FWin32FindDataW) then
-      FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
-    FWin32FindDataW := nil;
-  end else
-  begin
-    if Assigned(FWin32FindDataA) then
-      FreeMem(FWin32FindDataA, SizeOf(TWin32FindDataA));
-    FWin32FindDataA := nil;
-  end;
+  if Assigned(FWin32FindDataW) then
+    FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
+  FWin32FindDataW := nil;
   if Assigned(FSHGetFileInfoRec) then
   begin
     Finalize(FSHGetFileInfoRec^);
@@ -7414,7 +6810,7 @@ begin
   Result := ParseDisplayName(NameForParsing)
 end;
 
-function TNamespace.ParseDisplayName(Path: WideString): PItemIDList;
+function TNamespace.ParseDisplayName(Path: string): PItemIDList;
 var
   chEaten: ULONG;
   Attrib: ULONG;
@@ -7470,7 +6866,7 @@ procedure TNamespace.LoadCategoryInfo;
 var
   ColumnID: TSHColumnID;
   CatGUID: TGUID;
-  Buffer: WideString;
+  Buffer: string;
   i: Integer;
   Done: Boolean;
 begin
@@ -7547,7 +6943,7 @@ begin
   FCurrentContextMenu2 := Value;
 end;
 
-procedure TNamespace.SetDetailByThread(ColumnIndex: Integer; Detail: WideString);
+procedure TNamespace.SetDetailByThread(ColumnIndex: Integer; Detail: string);
 var
   TempCache: PDetailsOfCacheRec;
 begin
@@ -7603,7 +6999,7 @@ begin
     Exclude(FStates, nsThreadedImageLoading);
 end;
 
-function TNamespace.SetNameOf(NewName: WideString): Boolean;
+function TNamespace.SetNameOf(NewName: string): Boolean;
 const
   ALL_FOLDERS = SHCONTF_FOLDERS or SHCONTF_NONFOLDERS or SHCONTF_INCLUDEHIDDEN;
 var
@@ -7692,7 +7088,7 @@ begin
     Exclude(FStates, nsThreadedImageLoading)
 end;
 
-function TNamespace.ShellExecuteNamespace(WorkingDir, CmdLineArguments: WideString;
+function TNamespace.ShellExecuteNamespace(WorkingDir, CmdLineArguments: string;
   ExecuteFolder: Boolean = False; ExecuteFolderShortCut: Boolean = False;
   RunInThread: Boolean = False): Boolean;
 { Attempts execute the object that the namespace is representing.  WorkingDir   }
@@ -7703,9 +7099,7 @@ function TNamespace.ShellExecuteNamespace(WorkingDir, CmdLineArguments: WideStri
 { ExecuteFolder stops the call from being performed if the namespace is a folder}
 { Doing so usually opens an explorer window to Explore the folder.              }
 var
-  ShellExecuteInfoA: TShellExecuteInfoA;
   ShellExecuteInfoW: TShellExecuteInfoW;
-  ShortWorkingDir, ShortCmdLine: AnsiString;
   DoExecute: Boolean;
   ShellLink: TVirtualShellLink;
   ShellExecuteThread: TCommonShellExecuteThread;
@@ -7723,7 +7117,7 @@ begin
       ShellLink := TVirtualShellLink.Create(nil);
       try
         ShellLink.ReadLink(NameParseAddress);
-        DoExecute := not WideDirectoryExists(ShellLink.TargetPath);
+        DoExecute := not DirectoryExists(ShellLink.TargetPath);
       finally
         ShellLink.Free
       end
@@ -7732,77 +7126,38 @@ begin
 
   if DoExecute then
   begin
-    if Win32Platform = VER_PLATFORM_WIN32_NT then
+    FillChar(ShellExecuteInfoW, SizeOf(TShellExecuteInfoW), #0);
+    if DirectoryExists(WorkingDir) then
+      ShellExecuteInfoW.lpDirectory := PWideChar(WorkingDir)
+    else // This should always be a file not a folder so this is ok
+      ShellExecuteInfoW.lpDirectory := PWideChar(ExtractFileDir(NameParseAddress));
+    ShellExecuteInfoW.cbSize := SizeOf(TShellExecuteInfoW);
+    ShellExecuteInfoW.fMask := SEE_MASK_INVOKEIDLIST or SEE_MASK_NOCLOSEPROCESS;
+    if RunInThread then
+      ShellExecuteInfoW.fMask := ShellExecuteInfoW.fMask or SEE_MASK_FLAG_DDEWAIT;
+    ShellExecuteInfoW.Wnd:= ParentWnd;
+    ShellExecuteInfoW.nShow := SW_SHOWNORMAL;
+    ShellExecuteInfoW.lpIDList:= AbsolutePIDL;
+    ShellExecuteInfoW.lpParameters := PWideChar(CmdLineArguments);
+    if RunInThread then
     begin
-      FillChar(ShellExecuteInfoW, SizeOf(TShellExecuteInfoW), #0);
-      if WideDirectoryExists(WorkingDir) then
-        ShellExecuteInfoW.lpDirectory := PWideChar(WorkingDir)
-      else // This should always be a file not a folder so this is ok
-        ShellExecuteInfoW.lpDirectory := PWideChar(WideExtractFileDir(NameParseAddress));
-        ShellExecuteInfoW.cbSize := SizeOf(TShellExecuteInfoW);
-        ShellExecuteInfoW.fMask := SEE_MASK_INVOKEIDLIST or SEE_MASK_NOCLOSEPROCESS;
-        if RunInThread then
-          ShellExecuteInfoW.fMask := ShellExecuteInfoW.fMask or SEE_MASK_FLAG_DDEWAIT;
-        ShellExecuteInfoW.Wnd:= ParentWnd;
-        ShellExecuteInfoW.nShow := SW_SHOWNORMAL;
-        ShellExecuteInfoW.lpIDList:= AbsolutePIDL;
-        ShellExecuteInfoW.lpParameters := PWideChar(CmdLineArguments);
-        if RunInThread then
-        begin
-          ShellExecuteThread := TCommonShellExecuteThread.Create(True);
-          ShellExecuteThread.ShellExecuteInfoW.cbSize := ShellExecuteInfoW.cbSize;
-          ShellExecuteThread.ShellExecuteInfoW.fMask := ShellExecuteInfoW.fMask;
-          ShellExecuteThread.ShellExecuteInfoW.Wnd := ShellExecuteInfoW.Wnd;
-          ShellExecuteThread.ShellExecuteInfoW.nShow := ShellExecuteInfoW.nShow;
-          ShellExecuteThread.ShellExecuteInfoW.hInstApp := ShellExecuteInfoW.hInstApp;
-          ShellExecuteThread.ShellExecuteInfoW.hkeyClass := ShellExecuteInfoW.hkeyClass;
-          ShellExecuteThread.ShellExecuteInfoW.dwHotKey := ShellExecuteInfoW.dwHotKey;
-          ShellExecuteThread.ShellExecuteInfoW.hIcon := ShellExecuteInfoW.hIcon;
-          ShellExecuteThread.ShellExecuteInfoW.hProcess := ShellExecuteInfoW.hProcess;
-          ShellExecuteThread.lpDirectory := ShellExecuteInfoW.lpDirectory;
-          ShellExecuteThread.lpParameters := ShellExecuteInfoW.lpParameters;
-          ShellExecuteThread.PIDL := PIDLMgr.CopyPIDL(ShellExecuteInfoW.lpIDList);
-          ShellExecuteThread.Resume;
-          Result := True;
-        end else
-          Result := ShellExecuteExW_MP(@ShellExecuteInfoW);
+      ShellExecuteThread := TCommonShellExecuteThread.Create(True);
+      ShellExecuteThread.ShellExecuteInfoW.cbSize := ShellExecuteInfoW.cbSize;
+      ShellExecuteThread.ShellExecuteInfoW.fMask := ShellExecuteInfoW.fMask;
+      ShellExecuteThread.ShellExecuteInfoW.Wnd := ShellExecuteInfoW.Wnd;
+      ShellExecuteThread.ShellExecuteInfoW.nShow := ShellExecuteInfoW.nShow;
+      ShellExecuteThread.ShellExecuteInfoW.hInstApp := ShellExecuteInfoW.hInstApp;
+      ShellExecuteThread.ShellExecuteInfoW.hkeyClass := ShellExecuteInfoW.hkeyClass;
+      ShellExecuteThread.ShellExecuteInfoW.dwHotKey := ShellExecuteInfoW.dwHotKey;
+      ShellExecuteThread.ShellExecuteInfoW.hIcon := ShellExecuteInfoW.hIcon;
+      ShellExecuteThread.ShellExecuteInfoW.hProcess := ShellExecuteInfoW.hProcess;
+      ShellExecuteThread.lpDirectory := ShellExecuteInfoW.lpDirectory;
+      ShellExecuteThread.lpParameters := ShellExecuteInfoW.lpParameters;
+      ShellExecuteThread.PIDL := PIDLMgr.CopyPIDL(ShellExecuteInfoW.lpIDList);
+      ShellExecuteThread.Resume;
+      Result := True;
     end else
-    begin
-      FillChar(ShellExecuteInfoA, SizeOf(TShellExecuteInfo), #0);
-      if WideDirectoryExists(WorkingDir) then
-        ShortWorkingDir := AnsiString(WorkingDir)
-      else
-        ShortWorkingDir := AnsiString(ExtractFileDir(NameParseAddress));
-      ShellExecuteInfoA.lpDirectory := PAnsiChar(ShortWorkingDir);
-      ShellExecuteInfoA.cbSize := SizeOf(TShellExecuteInfo);
-      ShellExecuteInfoA.fMask := SEE_MASK_INVOKEIDLIST or SEE_MASK_NOCLOSEPROCESS;
-      if RunInThread then
-        ShellExecuteInfoA.fMask := ShellExecuteInfoA.fMask or SEE_MASK_FLAG_DDEWAIT;
-      ShellExecuteInfoA.Wnd:= ParentWnd;
-      ShellExecuteInfoA.nShow := SW_SHOWNORMAL;
-      ShellExecuteInfoA.lpIDList:= AbsolutePIDL;
-      ShortCmdLine := AnsiString(CmdLineArguments);
-      ShellExecuteInfoA.lpParameters := PAnsiChar(ShortCmdLine);
-      if RunInThread then
-      begin
-        ShellExecuteThread := TCommonShellExecuteThread.Create(True);
-        ShellExecuteThread.ShellExecuteInfoA.cbSize := ShellExecuteInfoA.cbSize;
-        ShellExecuteThread.ShellExecuteInfoA.fMask := ShellExecuteInfoA.fMask;
-        ShellExecuteThread.ShellExecuteInfoA.Wnd := ShellExecuteInfoA.Wnd;
-        ShellExecuteThread.ShellExecuteInfoA.nShow := ShellExecuteInfoA.nShow;
-        ShellExecuteThread.ShellExecuteInfoA.hInstApp := ShellExecuteInfoA.hInstApp;
-        ShellExecuteThread.ShellExecuteInfoA.hkeyClass := ShellExecuteInfoA.hkeyClass;
-        ShellExecuteThread.ShellExecuteInfoA.dwHotKey := ShellExecuteInfoA.dwHotKey;
-        ShellExecuteThread.ShellExecuteInfoA.hIcon := ShellExecuteInfoA.hIcon;
-        ShellExecuteThread.ShellExecuteInfoA.hProcess := ShellExecuteInfoA.hProcess;
-        ShellExecuteThread.lpDirectory := PChar(ShellExecuteInfoA.lpDirectory);
-        ShellExecuteThread.lpParameters := PChar(ShellExecuteInfoA.lpParameters);
-        ShellExecuteThread.PIDL := PIDLMgr.CopyPIDL(ShellExecuteInfoA.lpIDList);
-        ShellExecuteThread.Resume;
-        Result := True;
-      end else
-        Result := ShellExecuteEx(@ShellExecuteInfoA);
-    end
+      Result := ShellExecuteEx(@ShellExecuteInfoW);
   end
 end;
 
@@ -7812,7 +7167,7 @@ function TNamespace.ShowContextMenu(Owner: TWinControl;
   ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
   Position: PPoint = nil;
   CustomShellSubMenu: TPopupMenu = nil;
-  CustomSubMenuCaption: WideString = ''): Boolean;
+  CustomSubMenuCaption: string = ''): Boolean;
 { Displays the ContextMenu of the namespace.                                    }
 var
   PIDLArray: TRelativePIDLArray;
@@ -7823,7 +7178,7 @@ begin
     ContextMenuAfterCmdCallback, PIDLArray, Position, CustomShellSubMenu, CustomSubMenuCaption);
 end;
 
-function TNamespace.ShowContextMenuMulti(Owner: TWinControl; ContextMenuCmdCallback: TContextMenuCmdCallback; ContextMenuShowCallback: TContextMenuShowCallback; ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback; NamespaceArray: TNamespaceArray; Position: PPoint = nil; CustomShellSubMenu: TPopupMenu = nil; CustomSubMenuCaption: WideString = ''; Focused: TNamespace = nil; ShowPasteItem: Boolean = False; ShowRenameItem: Boolean = False; ShowShortCutMenuItem: Boolean = False): Boolean;
+function TNamespace.ShowContextMenuMulti(Owner: TWinControl; ContextMenuCmdCallback: TContextMenuCmdCallback; ContextMenuShowCallback: TContextMenuShowCallback; ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback; NamespaceArray: TNamespaceArray; Position: PPoint = nil; CustomShellSubMenu: TPopupMenu = nil; CustomSubMenuCaption: string = ''; Focused: TNamespace = nil; ShowPasteItem: Boolean = False; ShowRenameItem: Boolean = False; ShowShortCutMenuItem: Boolean = False): Boolean;
 //
 // Focused, ShowPasteItem, ShowRenameItem, ShowShortCutMenuItem only have meaning if
 // the Multi is the result of a namespace array with items from different folders
@@ -7878,17 +7233,17 @@ var
 begin
   if CanShowPropertiesOfAll(NamespaceArray) then
   begin
-    // Call SHMultiFileProperties_MP to show the property sheet when the
+    // Call SHMultiFileProperties to show the property sheet when the
     // APIDLArray items are from different folders.
     // Minimum OS: Win2k
-    if not ForceNonMultiPath and (UseSHMultiFileProperties and Assigned(SHMultiFileProperties_MP)) then
+    if not ForceNonMultiPath and (UseSHMultiFileProperties) then
     begin
       IDO := nil;
       NSList := NamespaceToNamespaceList(NamespaceArray);
       CreateFullyQualifiedShellDataObject(NSList, False, IDO);
       FreeAndNil(NSList);
       if Assigned(IDO) then
-        SHMultiFileProperties_MP(IDO, 0);
+        SHMultiFileProperties(IDO, 0);
   //    IDO._Release // I did this in DefMenuCreateCallback, I don't know why I have to but I do
     end else
     begin
@@ -8160,7 +7515,7 @@ begin
 
 end;
 
-function TExtractImage.GetImagePath: WideString;
+function TExtractImage.GetImagePath: string;
 var
   Size: TSize;
   Buffer: PWideChar;
@@ -8215,20 +7570,8 @@ begin
   end;
 end;
 
-function TVirtualShellLink.GetShellLinkAInterface: IShellLinkA;
-begin
-  if not Assigned(FShellLinkA) then
-  begin
-    if not Succeeded(CoCreateInstance(CLSID_ShellLink, nil, CLSCTX_INPROC_SERVER,
-      IShellLinkA, FShellLinkA))
-    then
-      FShellLinkA := nil;
-  end;
-  Result := FShellLinkA
-end;
-
 function TVirtualShellLink.GetShellLinkWInterface: IShellLinkW;
-begin   
+begin
   if not Assigned(FShellLinkW) then
   begin
     if not Succeeded(CoCreateInstance(CLSID_ShellLink, nil, CLSCTX_INPROC_SERVER,
@@ -8239,20 +7582,17 @@ begin
   Result := FShellLinkW
 end;
 
-function TVirtualShellLink.ReadLink(LinkFileName: WideString): Boolean;
+function TVirtualShellLink.ReadLink(LinkFileName: string): Boolean;
 const
   BUFFERSIZE = 1024;
 var
   Success: Boolean;
-  S: AnsiString;
   PersistFile: IPersistFile;
   pwHotKey: Word;
   Cmd: integer;
-  FindData: WIN32_FIND_DATAA;
   FindDataW: WIN32_FIND_DATAW;
 begin
   Result := False;
-  Success := False;
   if Assigned(ShellLinkWInterface) then
   begin
     if CommonSupports(ShellLinkWInterface, IPersistFile, PersistFile) then
@@ -8323,96 +7663,10 @@ begin
         FFileName := ''
     end
   end;
-  if not Success and Assigned(ShellLinkAInterface) then
-  begin
-    if CommonSupports(ShellLinkAInterface, IPersistFile, PersistFile) then
-    begin
-      FFileName := LinkFileName;
-      Success := Succeeded(PersistFile.Load(PWideChar(FileName), STGM_READWRITE));
-      if Success then
-      begin
-        Result := True;
-
-        SetLength(S, BUFFERSIZE);
-        Success := Succeeded(ShellLinkAInterface.GetPath(PAnsiChar( S), MAX_PATH, FindData, SLGP_UNCPRIORITY));
-        if Success then
-        begin
-          SetLength(S, lstrlenA(PAnsiChar( S)));
-          FTargetPath := string(S)
-        end;
-
-        SetLength(S, BUFFERSIZE);
-        Success := Succeeded(ShellLinkAInterface.GetArguments(PAnsiChar( S), BUFFERSIZE));
-        if Success then
-        begin
-          SetLength(S, lstrlenA(PAnsiChar( S)));
-          FArguments := string(S)
-        end;
-
-        SetLength(S, BUFFERSIZE);
-        Success := Succeeded(ShellLinkAInterface.GetDescription(PAnsiChar( S), BUFFERSIZE));
-        if Success then
-        begin
-          SetLength(S, lstrlenA(PAnsiChar( S)));
-          FDescription := string(S)
-        end;
-
-        SetLength(S, BUFFERSIZE);
-        Success := Succeeded(ShellLinkAInterface.GetWorkingDirectory(PAnsiChar( S), BUFFERSIZE));
-        if Success then
-        begin
-          SetLength(S, lstrlenA(PAnsiChar( S)));
-          FWorkingDirectory := string(S)
-        end;
-
-        SetLength(S, BUFFERSIZE);
-        Success := Succeeded(ShellLinkAInterface.GetIconLocation(PAnsiChar( S), BUFFERSIZE, FIconIndex));
-        if Success then
-        begin
-          SetLength(S, lstrlenA(PAnsiChar( S)));
-          FIconLocation := string(S)
-        end;
-
-        FreeTargetIDList;
-        ShellLinkAInterface.GetIDList(FTargetIDList);
-
-        Success := Succeeded(ShellLinkAInterface.GetHotKey(pwHotKey));
-        if Success then
-        begin
-          FHotKey := LoByte(pwHotKey);
-          FHotKeyModifiers := [];
-          if HiByte(pwHotKey) and HOTKEYF_ALT <> 0 then Include(FHotKeyModifiers, hkmAlt);
-          if HiByte(pwHotKey) and HOTKEYF_CONTROL <> 0 then Include(FHotKeyModifiers, hkmControl);
-          if HiByte(pwHotKey) and HOTKEYF_EXT <> 0 then Include(FHotKeyModifiers, hkmExtendedKey);
-          if HiByte(pwHotKey) and HOTKEYF_SHIFT <> 0 then Include(FHotKeyModifiers, hkmShift);
-        end;
-
-        Success := Succeeded(ShellLinkAInterface.GetShowCmd(Cmd));
-        if Success then
-        case Cmd of
-          SW_HIDE:            ShowCmd := swHide;
-          SW_MAXIMIZE:        ShowCmd := swMaximize;
-          SW_MINIMIZE:        ShowCmd := swMinimize;
-          SW_RESTORE:         ShowCmd := swRestore;
-          SW_SHOW:            ShowCmd := swShow;
-          SW_SHOWDEFAULT:     ShowCmd := swShowDefault;
-          SW_SHOWMINIMIZED:   ShowCmd := swShowMinimized;
-          SW_SHOWMINNOACTIVE: ShowCmd := swShowMinNoActive;
-          SW_SHOWNA :         ShowCmd := swShowNA;
-          SW_SHOWNOACTIVATE : ShowCmd := swShowNoActive;
-          SW_SHOWNORMAL:      ShowCmd := swShowNormal;
-        end;
-
-        PersistFile.Save(PWideChar(FileName), True)
-      end else
-        FFileName := '';
-    end
-  end
 end;
 
-function TVirtualShellLink.WriteLink(LinkFileName: WideString): Boolean;
+function TVirtualShellLink.WriteLink(LinkFileName: string): Boolean;
 var
-  S: AnsiString;
   PersistFile: IPersistFile;
   pwHotKey, pwHotKeyHi: Word;
   KeyModifier: THotKeyModifiers;
@@ -8469,60 +7723,6 @@ begin
         Result := Succeeded(PersistFile.Save(PWideChar(FileName), True))
       end;
     end;
-    if not Result and Assigned(ShellLinkAInterface) then
-    begin
-      if CommonSupports(ShellLinkAInterface, IPersistFile, PersistFile) then
-      begin
-        FFileName := LinkFileName;
-        S := AnsiString(FTargetPath);
-        ShellLinkAInterface.SetPath(PAnsiChar( S));
-        S := AnsiString(FArguments);
-        ShellLinkAInterface.SetArguments(PAnsiChar(S));
-        S := AnsiString(FDescription);
-        ShellLinkAInterface.SetDescription(PAnsiChar( S));
-        S := AnsiString(FTargetPath);
-        ShellLinkAInterface.SetPath(PAnsiChar( S));
-        S := AnsiString(FWorkingDirectory);
-        ShellLinkAInterface.SetWorkingDirectory(PAnsiChar( S));
-        S := AnsiString(FIconLocation);
-        ShellLinkAInterface.SetIconLocation(PAnsiChar( S), FIconIndex);
-
-        if Assigned(FTargetIDList) then
-          ShellLinkAInterface.SetIDList(FTargetIDList);
-
-        pwHotKey := HotKey;
-        pwHotKeyHi := 0;
-        KeyModifier := HotKeyModifiers;
-        if hkmAlt in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_ALT;
-        if hkmControl in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_CONTROL;
-        if hkmExtendedKey in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_EXT;
-        if hkmShift in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_SHIFT;
-
-        pwHotKeyHi := pwHotKeyHi shl 8;     // Make lower 8 bits the upper 8 bits
-        pwHotKeyHi := pwHotKeyHi and $FF00;  // Make sure lower 8 bits clear
-        pwHotKey := pwHotKey or pwHotKeyHi;
-        ShellLinkAInterface.SetHotkey(pwHotKey);
-
-        case ShowCmd of
-          swHide:             Cmd := SW_HIDE;
-          swMaximize:         Cmd := SW_MAXIMIZE;
-          swMinimize:         Cmd := SW_MINIMIZE;
-          swRestore:          Cmd := SW_RESTORE;
-          swShow:             Cmd := SW_SHOW;
-          swShowDefault:      Cmd := SW_SHOWDEFAULT;
-          swShowMinimized:    Cmd := SW_SHOWMINIMIZED;
-          swShowMinNoActive:  Cmd := SW_SHOWMINNOACTIVE;
-          swShowNA:           Cmd := SW_SHOWNA;
-          swShowNoActive:     Cmd := SW_SHOWNOACTIVATE;
-          swShowNormal:       Cmd := SW_SHOWNORMAL;
-        else
-          Cmd := SW_SHOWNORMAL
-        end;
-        ShellLinkAInterface.SetShowCmd(Cmd);
-
-        Result := Succeeded(PersistFile.Save(PWideChar(FileName), True))
-      end
-    end
   end
 end;
 
@@ -8537,7 +7737,7 @@ begin
   FStreamVersion := STREAM_VERSION_DEFAULT
 end;
 
-procedure TStreamableList.LoadFromFile(FileName: WideString; Version: integer = 0;
+procedure TStreamableList.LoadFromFile(FileName: string; Version: integer = 0;
   ReadVerFromStream: Boolean = False);
 var
   FileStream: TFileStream;
@@ -8554,14 +7754,14 @@ end;
 procedure TStreamableList.LoadFromStream(S: TStream; Version: integer;
   ReadVerFromStream: Boolean);
 begin
-  Clear;  
+  Clear;
   if ReadVerFromStream then
     S.ReadBuffer(FStreamVersion, Sizeof(FStreamVersion))
   else
     FStreamVersion := Version;
 end;
 
-procedure TStreamableList.SaveToFile(FileName: WideString; Version: integer = 0;
+procedure TStreamableList.SaveToFile(FileName: string; Version: integer = 0;
   ReadVerFromStream: Boolean = False);
 var
   FileStream: TFileStream;
@@ -8596,7 +7796,7 @@ begin
   FStreamVersion := STREAM_VERSION_DEFAULT
 end;
 
-procedure TStreamableClass.LoadFromFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False);
+procedure TStreamableClass.LoadFromFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False);
 var
   FileStream: TFileStream;
 begin
@@ -8618,7 +7818,7 @@ begin
     FStreamVersion := Version;
 end;
 
-procedure TStreamableClass.SaveToFile(FileName: WideString; Version: integer = 0; ReadVerFromStream: Boolean = False);
+procedure TStreamableClass.SaveToFile(FileName: string; Version: integer = 0; ReadVerFromStream: Boolean = False);
 var
   FileStream: TFileStream;
 begin
@@ -8736,7 +7936,7 @@ begin
   end
 end;
 
-function TShellSortHelper.SortString(S1, S2: WideString; NS1,
+function TShellSortHelper.SortString(S1, S2: string; NS1,
   NS2: TNamespace): Integer;
 begin
   Result := DiscriminateFolders(NS1, NS2);
@@ -9103,14 +8303,10 @@ begin
               DoProperties(psf, pdtObj, DFMICS, DoDefault);
               if DoDefault and not IsWinVista then
               begin
-                if Assigned(SHMultiFileProperties_MP) then
-                begin
-                  IDO := nil;
-                  CreateFullyQualifiedShellDataObject(ActivePIDLs, False, IDO);
-                  if Assigned(IDO) then
-                    SHMultiFileProperties_MP(IDO, 0);
-                end else
-                  DesktopFolder.ShowPropertySheetMulti(MsgWnd, LocalNamespaces, False, True);
+                IDO := nil;
+                CreateFullyQualifiedShellDataObject(ActivePIDLs, False, IDO);
+                if Assigned(IDO) then
+                  SHMultiFileProperties(IDO, 0);
                 DoDefault := False
               end
             end;
@@ -9237,10 +8433,7 @@ end;
 
 function TCommonShellContextMenu.DuplicateKey(Key: HKEY): HKEY;
 begin
-  if Assigned(RegOpenKeyExW_MP) then
-    RegOpenKeyExW_MP(Key, '', 0, MAXIMUM_ALLOWED, Result)
-  else
-    RegOpenKeyExA(Key, '', 0, MAXIMUM_ALLOWED, Result)
+  RegOpenKeyEx(Key, '', 0, MAXIMUM_ALLOWED, Result);
 end;
 
 function TCommonShellContextMenu.EnumObjects(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList): HResult;
@@ -9311,7 +8504,7 @@ begin
     begin
       DataObject := nil;
       // Lots of extra work to call CreateFullyQualifiedShellDataObject but want to keep a common interface with that function
-      SetLength(NSArray, ActivePIDLs.Count);  
+      SetLength(NSArray, ActivePIDLs.Count);
       for i := 0 to ActivePIDLs.Count - 1 do
       begin
         NS := TNamespace.Create(ActivePIDLs[i], nil);
@@ -9363,7 +8556,7 @@ begin
   {$ENDIF}
 end;
 
-function TCommonShellContextMenu.InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: WideString; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
+function TCommonShellContextMenu.InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: string; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
 //
 // If ParentPIDL is nil the assumption is that the Parent is the
 // Desktop and the PIDLs are fully qualified PIDLs.  If ParentPIDL is assigned then
@@ -9406,7 +8599,7 @@ var
   Desktop: IShellFolder;
   DesktopPIDL, ChildrenPIDLs: PItemIDList;
   Reg: TRegistry;
-  WS, CurVer: WideString;
+  WS, CurVer: string;
   UnknownAdded: Boolean;
   ShiftDown, ControlDown: Boolean;
   VerbStrW: array[0..128] of WideChar;
@@ -9636,12 +8829,8 @@ begin
               begin
                 FillChar(InvokeInfo, SizeOf(InvokeInfo), #0);
                  // Win95 get confused if size = TCMInvokeCommandInfoEx
-                if IsUnicode then
-                  InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfoEx)
-                else
-                  InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfo);
-                if IsUnicode then
-                  InvokeInfo.fMask := CMIC_MASK_UNICODE;
+                InvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfoEx);;
+                InvokeInfo.fMask := CMIC_MASK_UNICODE;
                 InvokeInfo.hWnd := Owner.Handle;
                 InvokeInfo.nShow := SW_SHOWNORMAL;
 
@@ -9649,8 +8838,7 @@ begin
                 begin
                   // The menu was shown and an item was selected
                   InvokeInfo.lpVerb := MakeIntResourceA(MenuCmd-1);
-                  if IsUnicode then
-                    InvokeInfo.lpVerbW := MakeIntResourceW(MenuCmd-1);
+                  InvokeInfo.lpVerbW := MakeIntResourceW(MenuCmd-1);
                 end else
                 if (Verb <> '') and not ShowConextMenu then
                 begin
@@ -9712,7 +8900,7 @@ begin
   end
 end;
 
-procedure TCommonShellContextMenu.AddMenuKey(Key: WideString);
+procedure TCommonShellContextMenu.AddMenuKey(Key: string);
 begin
   KeyStrings.Add(Key)
 end;
@@ -9839,7 +9027,7 @@ procedure TCommonShellContextMenu.HandleContextMenuMsg(Msg, wParam, lParam: Long
 { icons.                                                                        }
 var
   ContextMenu3: IContextMenu3;
-begin   
+begin
   if Assigned(CurrentContextMenu2) then
     if CurrentContextMenu2.QueryInterface(IContextMenu3, ContextMenu3) <> E_NOINTERFACE then
       Result := ContextMenu3.HandleMenuMsg2(Msg, wParam, lParam, Result)
@@ -10459,7 +9647,7 @@ begin
   end;
 end;
 
-procedure TColumnMap.ForceandLoadMapItem(FolderNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: WideString; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
+procedure TColumnMap.ForceandLoadMapItem(FolderNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
 var
   Item: TColumnItem;
 begin
@@ -10483,12 +9671,12 @@ begin
   Sort; // Need to keep it sorted for Find to work;
 end;
 
-procedure TColumnMap.MimicColumnSCID(ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: WideString; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
+procedure TColumnMap.MimicColumnSCID(ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
 begin
   ForceandLoadMapItem(ColumnNS, ColumnWidths, FolderName, FolderType, i, MapColumnToDefaultSCID(FolderType, i));
 end;
 
-procedure TColumnMap.RestoreDefaultNamespaceColumnMap(FolderName: WideString; ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray);
+procedure TColumnMap.RestoreDefaultNamespaceColumnMap(FolderName: string; ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray);
 var
   i: Integer;
   Key: TPropertyKey;
@@ -10519,7 +9707,7 @@ var
   i: Integer;
 begin
   Clear;
-  
+
   for i := 0 to Length(WidthArray) - 1 do
     WidthArray[i] := DefaultNetworkColumnWidth(i);
   RestoreDefaultNamespaceColumnMap('Network Neighborhood', NetworkNeighborHoodFolder, WidthArray);
@@ -10663,13 +9851,4 @@ finalization
   CommonUnloadLibrary(Mpr);
   CoUninitialize;
 end.
-
-
-
-
-
-
-
-
-
 

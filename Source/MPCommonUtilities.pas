@@ -43,9 +43,6 @@ unit MPCommonUtilities;
 
 {$B-}
 
-{$I ..\Include\Debug.inc}
-{$I ..\Include\Addins.inc}
-
 interface
 
 uses
@@ -87,16 +84,16 @@ var
 
 
 var
-  SEasyNSEMsg_Caption: WideString = 'Shell extension registration';
-  SEasyNSEMsg_CannotRegister: WideString = 'Cannot register shell extension.';
-  SEasyNSEMsg_CannotUnRegister: WideString = 'Cannot unregister shell extension.';
-  SEasyNSEMsg_CannotFindRegSvr: WideString = 'Unable to find RegSvr32.exe executable.';
-  SEasyNSEMsg_CannotFindDLL: WideString = 'Unable to find extension DLL.';
+  SEasyNSEMsg_Caption: string = 'Shell extension registration';
+  SEasyNSEMsg_CannotRegister: string = 'Cannot register shell extension.';
+  SEasyNSEMsg_CannotUnRegister: string = 'Cannot unregister shell extension.';
+  SEasyNSEMsg_CannotFindRegSvr: string = 'Unable to find RegSvr32.exe executable.';
+  SEasyNSEMsg_CannotFindDLL: string = 'Unable to find extension DLL.';
 
 type
   TCommonWideCharArray = array of WideChar;
   TCommonPWideCharArray = array of PWideChar;
-  TCommonWideStringDynArray = array of WideString;
+  TCommonStringDynArray = array of string;
   TCommonIntegerDynArray = array of Integer;
 
   TCommonDropEffect = (
@@ -203,7 +200,7 @@ type
   end;
 
   // Hue, luminance, saturation color with all three components in the range [0..1]
-  // (so hue's 0..360° is normalized to 0..1).
+  // (so hue's 0..360ï¿½ is normalized to 0..1).
   TCommonHLS = record
     H, L, S: Double;
   end;
@@ -230,8 +227,8 @@ type
 
 // Enhanced library loading functions that reference counts the loading to make
 // sure that libraries are freed when using cool controls in COM applications
-function CommonLoadLibrary(LibraryName: AnsiString): THandle;
-function CommonUnloadLibrary(LibraryName: AnsiString): Boolean;
+function CommonLoadLibrary(LibraryName: string): THandle;
+function CommonUnloadLibrary(LibraryName: string): Boolean;
 procedure CommonUnloadAllLibraries;
 
 function FlipReverseCopyRect(const Flip, Reverse: Boolean; const Bitmap: TBitmap): TBitmap; overload;
@@ -248,14 +245,13 @@ procedure DrawWindowButton(Canvas: TCanvas; Pos: TPoint; Size: Integer; ButtonTy
 function CheckBounds(Size: Integer; Character: Char = Char($67)): TRect;
 
 function AbsRect(ARect: TRect): TRect;
-function AddCommas(NumberString: WideString): WideString;
 function AsyncLeftButtonDown: Boolean;
 function AsyncRightButtonDown: Boolean;
 function AsyncMiddleButtonDown: Boolean;
 function AsyncAltDown: Boolean;
 function AsyncControlDown: Boolean;
 function AsyncShiftDown: Boolean;
-function CalcuateFolderSize(FolderPath: WideString; Recurse: Boolean): Int64;
+function CalcuateFolderSize(FolderPath: string; Recurse: Boolean): Int64;
 function CenterRectHorz(OuterRect, InnerRect: TRect): TRect;
 function CenterRectInRect(OuterRect, InnerRect: TRect): TRect;
 function CenterRectVert(OuterRect, InnerRect: TRect): TRect;
@@ -263,31 +259,24 @@ function CommonSupports(const Instance: IUnknown; const IID: TGUID): Boolean; ov
 function CommonSupports(const Instance: IUnknown; const IID: TGUID; out Intf): Boolean; overload;
 function CommonSupports(const Instance: TObject; const IID: TGUID): Boolean; overload;
 function CommonSupports(const Instance: TObject; const IID: TGUID; out Intf): Boolean; overload;
-procedure CopyToNullBufferA(S: WideString; Buffer: PAnsiChar; CharCount: Cardinal);
-procedure CopyToNullBufferW(S: WideString; Buffer: PWideChar; CharCount: Cardinal);
-procedure CreateProcessMP(ExeFile, Parameters, InitalDir: WideString);
+procedure CreateProcessMP(ExeFile, Parameters, InitalDir: string);
 function DiffRectHorz(Rect1, Rect2: TRect): TRect;
 function DiffRectVert(Rect1, Rect2: TRect): TRect;
 function DiskInDrive(C: AnsiChar): Boolean;
 function DragDetectPlus(Handle: HWND; Pt: TPoint): Boolean;
-function DrawTextWEx(DC: HDC; Text: WideString; var lpRect: TRect; Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
-function DropEffectToStr(DropEffect: DWORD): WideString;
+function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect; Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
 function EqualWndMethod(A, B: TWndMethod): Boolean;
-function FileExistsW(const FileName: WideString): Boolean;
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
-function FindRootToken(const Path: WideString): PWideChar;
 function FindUniqueMenuID(AMenu: HMenu): Cardinal;
 function GetMyDocumentsVirtualFolder: PItemIDList;
 function HasMMX: Boolean;
-function IncludeTrailingBackslashW(const S: WideString): WideString;
 function IsAnyMouseButtonDown: Boolean;
-function IsFTPPath(Path: WideString): Boolean;
-function IsMappedDrivePath(const Path: WideString): Boolean;
+function IsMappedDrivePath(const Path: string): Boolean;
 function IsRectNull(ARect: TRect): Boolean;
 function IsTextTrueType(Canvas: TCanvas): Boolean; overload;
 function IsTextTrueType(DC: HDC): Boolean; overload;
-function IsUNCPath(const Path: WideString): Boolean;
-function IsUNCPathSyntax(const Path: WideString): Boolean;
+function IsUNCPath(const Path: string): Boolean;
+function IsUNCPathSyntax(const Path: string): Boolean;
 function IsUnicode: Boolean;    // OS supports Unicode functions (basiclly means IsWinNT or XP)
 function IsWin2000: Boolean;
 function IsWin95_SR1: Boolean;
@@ -297,87 +286,59 @@ function IsWinNT4: Boolean;
 function IsWinXP: Boolean;
 function IsWinVista: Boolean;
 function IsWin7: Boolean;
-procedure MakeFindDataW(const FindFileDataA: TWIN32FindDataA; var FindFileDataW: TWIN32FindDataW);
-function ModuleFileName(PathOnly: Boolean = True): WideString;
-function PIDLToPath(PIDL: PItemIDList): WideString;
+function ModuleFileName(PathOnly: Boolean = True): string;
+function PIDLToPath(PIDL: PItemIDList): string;
 function SHGetImageList(iImageList: Integer; const RefID: TGUID; out ppvOut): HRESULT; stdcall;
 function ShiftStateToKeys(Keys: TShiftState): LongWord;
-function ShiftStateToStr(Keys: TShiftState): WideString;
-function ShortenStringEx(DC: HDC; const S: WideString; Width: Integer; RTL: Boolean; EllipsisPlacement: TShortenStringEllipsis): WideString;
-function ShortenTextW(DC: hDC; TextToShorten: WideString; MaxSize: Integer): WideString;
-function ShortFileName(const FileName: WideString): WideString;
-function ShortPath(const Path: WideString): WideString;
+function ShiftStateToStr(Keys: TShiftState): string;
+function ShortenStringEx(DC: HDC; const S: string; Width: Integer; RTL: Boolean; EllipsisPlacement: TShortenStringEllipsis): string;
+function ShortenTextW(DC: hDC; TextToShorten: string; MaxSize: Integer): string;
+function ShortFileName(const FileName: string): string;
+function ShortPath(const Path: string): string;
 function Size(cx, cy: Integer): TSize;
-function SplitTextW(DC: hDC; TextToSplit: WideString; MaxWidth: Integer; var Buffer: TCommonWideCharArray; MaxSplits: Integer): Integer;
-function StrRetToStr(StrRet: TStrRet; APIDL: PItemIDList): WideString;
-function StrRScanW(Str: PWideChar; Chr: WideChar): PWideChar;
-function SystemDirectory: WideString;
+function SplitTextW(DC: hDC; TextToSplit: string; MaxWidth: Integer; var Buffer: TCommonWideCharArray; MaxSplits: Integer): Integer;
+function StrRetToStr(StrRet: TStrRet; APIDL: PItemIDList): string;
+function SystemDirectory: string;
 function SysMenuFont: HFONT;
 function SysMenuHeight: Integer;
 function TextExtentW(Text: PWideChar; Canvas: TCanvas): TSize; overload;
 function TextExtentW(Text: PWideChar; DC: hDC): TSize; overload;
-function TextExtentW(Text: WideString; Canvas: TCanvas): TSize; overload;
-function TextExtentW(Text: WideString; Font: TFont): TSize; overload;
-function TextTrueExtentsW(Text: WideString; DC: HDC): TSize;
-function UniqueDirName(const ADirPath: WideString): WideString;
-function UniqueFileName(const AFilePath: WideString): WideString;
-function VariantToCaption(const V: Variant): WideString;
-function WideCreateDir(Path: WideString): Boolean;
-function WideDeleteDirEx(const DirName: WideString): Boolean;
-function WideDirectoryExists(const Name: WideString): Boolean;
-function WideExcludeTrailingBackslash(Path: WideString): WideString;
-function WideExpandEnviromentString(EnviromentString: WideString): WideString;
-function WideExpandEnviromentStringForUser(EnviromentString: WideString): WideString;
-function WideExtractFileDir(Path: WideString): WideString;
-function WideExtractFileDrive(Path: WideString; DriveLetterOnly: Boolean = False): WideString;
-function WideExtractFileExt(Path: WideString; StripExtPeriod: Boolean = False): WideString;
-function WideExtractFileName(Path: WideString; BaseNameOnly: Boolean = False): WideString;
-function WideExtractFilePath(Path: WideString): WideString;
-function WideFileExists(Path: WideString): Boolean;
-function WideFindFirstFileEx(FileName: WideString; var lpFindFileData: TWIN32FindDataW; Mask: WideString; CaseSensitive: Boolean): THandle;
-function WideFindFirstFileExExists: Boolean;
-function WideForceDirectories(const FileName: WideString): Boolean;
-function WideGetCurrentDir: WideString;
-function WideGetTempDir: WideString;
-function WideIncludeTrailingBackslash(Path: WideString): WideString;
-function WideIncrementalSearch(CompareStr, Mask: WideString): Integer;
-function WideIntToStr(Value: integer): WideString;
-function WideIsDrive(Drive: WideString): Boolean;
-function WideIsFloppy(FileFolder: WideString): boolean;
-function WideIsPathDelimiter(const S: WideString; Index: Integer): Boolean;
-function WideLowerCase(const Str: WideString): WideString;
-function WideMessageBox(Window: HWND; const ACaption, AMessage: WideString; uType: integer): integer;
-function WideNewFolderName(ParentFolder: WideString; SuggestedFolderName: WideString = ''): WideString;
-function WidePathMatchSpec(Path, Mask: WideString): Boolean;
+function TextExtentW(Text: string; Canvas: TCanvas): TSize; overload;
+function TextExtentW(Text: string; Font: TFont): TSize; overload;
+function TextTrueExtentsW(Text: string; DC: HDC): TSize;
+function UniqueDirName(const ADirPath: string): string;
+function UniqueFileName(const AFilePath: string): string;
+function WideExpandEnviromentString(EnviromentString: string): string;
+function WideExpandEnviromentStringForUser(EnviromentString: string): string;
+function WideExtractFileDrive(Path: string; DriveLetterOnly: Boolean = False): string;
+function WideExtractFileExt(Path: string; StripExtPeriod: Boolean = False): string;
+function WideExtractFileName(Path: string; BaseNameOnly: Boolean = False): string;
+function WideGetTempDir: string;
+function WideIncrementalSearch(CompareStr, Mask: string): Integer;
+function WideIsDrive(Drive: string): Boolean;
+function WideIsFloppy(FileFolder: string): boolean;
+function WideIsPathDelimiter(const S: string; Index: Integer): Boolean;
+function WideNewFolderName(ParentFolder: string; SuggestedFolderName: string = ''): string;
+function WidePathMatchSpec(Path, Mask: string): Boolean;
 function WidePathMatchSpecExists: Boolean;
-function WideShellExecute(hWnd: HWND; Operation, FileName, Parameters, Directory: WideString; ShowCmd: Integer = SW_NORMAL): HINST;
+function WideShellExecute(hWnd: HWND; Operation, FileName, Parameters, Directory: string; ShowCmd: Integer = SW_NORMAL): HINST;
 function WideStrComp(Str1, Str2: PWideChar): Integer;
-function WideStrLower(Str: PWideChar): PWideChar;
 function WideStrIComp(Str1, Str2: PWideChar): Integer;
-function WideStringReplace(const S, OldPattern, NewPattern: WideString; Flags: TReplaceFlags; WholeWord: Boolean = False): WideString;
-function WideStripExt(AFile: WideString): WideString;
-function WideStripLeadingBackslash(const S: WideString): WideString;
-function WideStripRemoteComputer(const UNCPath: WideString): WideString;
-function WideStripTrailingBackslash(const S: WideString; Force: Boolean = False): WideString;
-function WideStrMove(Dest, Source: PWideChar; Count: Cardinal): PWideChar;
-function WideStrPos(Str, SubStr: PWideChar): PWideChar;
-function WideStrRScan(Str: PWideChar; Chr: WideChar): PWideChar;
-function WideStrScan(Str: PWideChar; Chr: WideChar): PWideChar;
-function WideUpperCase(const S: WideString): WideString;
-function WideValidateDelimitedExtList(DelimitedText: WideString; Prefix: TValidateDelimiterWildCardSet; Delimiter: TValidateDelimiterExt): WideString;
-function WindowsDirectory: WideString;
+function WideStripExt(AFile: string): string;
+function WideStripLeadingBackslash(const S: string): string;
+function WideStripRemoteComputer(const UNCPath: string): string;
+function WideStripTrailingBackslash(const S: string; Force: Boolean = False): string;
+function WideValidateDelimitedExtList(DelimitedText: string; Prefix: TValidateDelimiterWildCardSet; Delimiter: TValidateDelimiterExt): string;
+function WindowsDirectory: string;
 procedure AlphaBlend(Source, Destination: HDC; R: TRect; Target: TPoint; Mode: TCommonBlendMode; ConstantAlpha, Bias: Integer);
 procedure ConvertBitmapEx(Image32: TBitmap; var OutImage: TBitmap; const BackGndColor: TColor);
 procedure ShadowBlendBits(Bits: TBitmap; BackGndColor: TColor);
-procedure FillWideChar(var Dest; count: Integer; Value: WideChar);
 procedure FreeMemAndNil(var P: Pointer);
-procedure LoadWideString(S: TStream; var Str: WideString);
+procedure LoadWideString(S: TStream; var Str: string);
 procedure MinMax(var A, B: Integer);
-procedure SaveWideString(S: TStream; Str: WideString);
+procedure SaveWideString(S: TStream; Str: string);
 function UsesAlphaChannel(Image32: TBitmap): Boolean;
-procedure WideInsert(Source: WideString; var S: WideString; Index: Integer);
-procedure WideShowMessage(Window: HWND; ACaption, AMessage: WideString);
-procedure WideStrLCopy(Str1, Str2: PWideChar; Count: Integer);
+procedure WideShowMessage(Window: HWND; ACaption, AMessage: string);
 
 // Rectangle functions
 function ProperRect(Rect: TRect): TRect;
@@ -395,7 +356,7 @@ function KeyDataToShiftState(KeyData: Longint): TShiftState;
 function KeyDataAsyncToShiftState: TShiftState;
 function KeyToKeyStates(Keys: Word): TCommonKeyStates;
 function KeyStatesToMouseButton(Keys: Word): TCommonMouseButton;
-function KeyStatesToKey(Keys: TCommonKeyStates): Longword;   
+function KeyStatesToKey(Keys: TCommonKeyStates): Longword;
 function DropEffectToDropEffectStates(Effect: Integer): TCommonDropEffects;
 function DropEffectStatesToDropEffect(Effect: TCommonDropEffects): Integer;
 function DropEffectToDropEffectState(Effect: Integer): TCommonDropEffect;
@@ -429,7 +390,7 @@ function VScrollbarWidth: Integer;
 procedure FillGradient(X1, Y1, X2, Y2: integer; fStartColor, fStopColor: TColor; StartPoint, EndPoint: integer; fDrawCanvas: TCanvas);
 
 // Menu Functions
-function AddContextMenuItem(Menu: HMenu; ACaption: WideString; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
+function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
 procedure ValidateMenuSeparators(Menu: HMenu);
 
 // Helpers to create a callback function out of a object method
@@ -458,10 +419,10 @@ type
   TEasyNSERegMessages = set of (enseMsgShowErrors, enseMsgRegSvr);
 
  //True to register or False to unregister
-function RegUnregNSE(const AFileName: WideString; DoRegister: boolean; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
-function RegisterNSE(const AFileName: WideString; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
-function UnregisterNSE(const AFileName: WideString; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
-function ExecShellEx(const Cmd, Params, Dir: WideString; ShowCmd: integer; DoWait: boolean; WaitForDDE: Boolean = False; WaitForIdleInput: Boolean = False): boolean;
+function RegUnregNSE(const AFileName: string; DoRegister: boolean; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function RegisterNSE(const AFileName: string; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function UnregisterNSE(const AFileName: string; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function ExecShellEx(const Cmd, Params, Dir: string; ShowCmd: integer; DoWait: boolean; WaitForDDE: Boolean = False; WaitForIdleInput: Boolean = False): boolean;
 
 procedure LoadWideFunctions;
 
@@ -469,80 +430,9 @@ procedure LoadWideFunctions;
 // Dynamically linked Unicode functions that do not have stubs on Win9x
 //
 var
-  GetDriveTypeW_MP: function(lpRootPathName: PWideChar): UINT; stdcall = nil;
-  DrawTextW_MP: function(hDC: HDC; lpString: PWideChar; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer; stdcall = nil;
-  SHGetFileInfoW_MP: function(pszPath: PWideChar; dwFileAttributes: DWORD; var psfi: TSHFileInfoW; cbFileInfo, uFlags: UINT): DWORD; stdcall = nil;
-  CreateFileW_MP: function(lpFileName: PWideChar; dwDesiredAccess, dwShareMode: DWORD; lpSecurityAttributes: PSecurityAttributes; dwCreationDisposition, dwFlagsAndAttributes: DWORD; hTemplateFile: THandle): THandle; stdcall = nil;
-  SHGetDataFromIDListW_MP: function(psf: IShellFolder; pidl: PItemIDList; nFormat: Integer; ptr: Pointer; cb: Integer): HResult; stdcall = nil;
-  FindFirstFileW_MP: function(lpFileName: PWideChar; var lpFindFileData: TWIN32FindDataW): THandle; stdcall = nil;
-  FindNextFileW_MP: function(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; stdcall = nil;
-  GetDiskFreeSpaceW_MP: function(lpRootPathName: PWideChar; var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL; stdcall = nil;
-  GetCurrentDirectoryW_MP: function(nBufferLength: DWORD; lpBuffer: PWideChar): DWORD; stdcall = nil;
-  GetTempPathW_MP: function(nBufferLength: DWORD; lpBuffer: PWideChar): DWORD; stdcall = nil;
-  AllowSetForegroundWindow_MP: function(dwProcessID: DWORD): BOOL; stdcall = nil;
-  lstrcmpiW_MP: function(lpString1, lpString2: PWideChar): Integer; stdcall = nil;
-  lstrcmpW_MP: function(lpString1, lpString2: PWideChar): Integer; stdcall = nil;
-  lstrcpynW_MP: function(lpString1, lpString2: PWideChar; iMaxLength: Integer): PWideChar; stdcall = nil;
-  lstrcpyW_MP: function(lpString1, lpString2: PWideChar): PWideChar; stdcall = nil;
-  CharLowerBuffW_MP: function(lpsz: PWideChar; cchLength: DWORD): DWORD; stdcall = nil;
-  CharUpperBuffW_MP: function(lpsz: PWideChar; cchLength: DWORD): DWORD; stdcall = nil;
-  CreateDirectoryW_MP: function(lpPathName: PWideChar; lpSecurityAttributes: PSecurityAttributes): BOOL; stdcall = nil;
-  GetFullPathNameW_MP: function(lpFileName: PWideChar; nBufferLength: DWORD; lpBuffer: PWideChar; var lpFilePart: PWideChar): DWORD; stdcall = nil;
-  ShellExecuteExW_MP: function(lpExecInfo: PShellExecuteInfoW):BOOL; stdcall = nil;
-  GetModuleFileNameW_MP: function(hModule: HINST; lpFilename: PWideChar; nSize: DWORD): DWORD; stdcall = nil;
-  ShellExecuteW_MP: function(hWnd: HWND; Operation, FileName, Parameters, Directory: PWideChar; ShowCmd: Integer): HINST; stdcall = nil;
-  FindFirstChangeNotificationW_MP: function(lpPathName: PWideChar; bWatchSubtree: BOOL; dwNotifyFilter: DWORD): THandle; stdcall = nil;
-  GetCharABCWidthsW_MP: function(DC: HDC; FirstChar, LastChar: UINT; const ABCStructs): BOOL; stdcall = nil;
-  GetFileAttributesW_MP: function(lpFileName: PWideChar): DWORD; stdcall = nil;
-  GetShortPathNameW_MP: function(lpszLongPath: PWideChar; lpszShortPath: PWideChar; cchBuffer: DWORD): DWORD; stdcall = nil;
-  GetSystemDirectoryW_MP: function(lpBuffer: PWideChar; uSize: UINT): UINT; stdcall = nil;
-  GetWindowsDirectoryW_MP: function(lpBuffer: PWideChar; uSize: UINT): UINT; stdcall = nil;
-  SetWindowTextW_MP: function(hWnd: HWND; lpString: PWideChar): BOOL; stdcall = nil;
-  SHMultiFileProperties_MP: function(pdtobj: IDataObject; dwFlags: DWORD): HResult; stdcall = nil;
-  SHDoDragDrop_MP: function(wnd : HWND; dtObj : IDataObject; dsrc : IDropSource; OKEffect : DWORD; var Effect : Integer) : HResult; stdcall = nil;
-  GetDiskFreeSpaceExA_MP: function(lpDirectoryName: PAnsiChar; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL; stdcall = nil;
-  GetDiskFreeSpaceExW_MP: function(lpDirectoryName: PWideChar; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL; stdcall = nil;
-  GetNumberFormatW_MP: function(Locale: LCID; dwFlags: DWORD; lpValue: PWideChar; lpFormat: PNumberFmtW; lpNumberStr: PWideChar; cchNumber: Integer): Integer; stdcall = nil;
   CDefFolderMenu_Create2_MP: function(pidlFolder: PItemIdList; wnd: HWnd; cidl: uint; var apidl: PItemIdList; psf: IShellFolder; lpfn: TFNDFMCallback; nKeys: UINT; ahkeyClsKeys: PHKEY; var ppcm: IContextMenu): HRESULT; stdcall = nil;
-  CDefFolderMenu_Create_MP: function(pidlFolder: PItemIdList): HRESULT; stdcall = nil; // THIS IS NOT THE RIGHT PROTOTYPE DO NOT USE FOR TEST ONLY
-  RegOpenKeyW_MP: function(hKey: HKEY; lpSubKey: PWideChar; var phkResult: HKEY): Longint; stdcall = nil;
-  RegOpenKeyExW_MP: function(hKey: HKEY; lpSubKey: PWideChar; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint; stdcall = nil;
-  RegQueryValueW_MP: function(hKey: HKEY; lpSubKey: PWideChar; lpValue: PWideChar; var lpcbValue: Longint): Longint; stdcall = nil;
-  WritePrivateProfileStringW_MP: function(lpAppName, lpKeyName, lpString, lpFileName: PWideChar): BOOL; stdcall = nil;
-  GetPrivateProfileStringW_MP: function(lpAppName, lpKeyName, lpDefault: PWideChar; lpReturnedString: PWideChar; nSize: DWORD; lpFileName: PWideChar): DWORD; stdcall = nil;
-  WritePrivateProfileStructW_MP: function(lpszSection, lpszKey: PWideChar; lpStruct: Pointer; uSizeStruct: UINT; szFile: PWideChar): BOOL; stdcall = nil;
-  GetPrivateProfileStructW_MP: function(lpszSection, lpszKey: PWideChar; lpStruct: Pointer; uSizeStruct: UINT; szFile: PWideChar): BOOL; stdcall = nil;
-  TryEnterCriticalSection_MP: function(var lpCriticalSection: TRTLCriticalSection): BOOL; stdcall = nil;
-  CreateFontIndirectW_MP: function(const p1: TLogFontW): HFONT; stdcall = nil;
-  SendMessageW_MP: function(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall = nil;
-  InsertMenuItemW_MP: function(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoW): BOOL; stdcall = nil;
-  SetFileAttributesW_MP: function(lpFileName: PWideChar; dwFileAttributes: DWORD): BOOL; stdcall = nil;
-  SystemParametersInfoW_MP: function(uiAction, uiParam: UINT; pvParam: Pointer; fWinIni: UINT): BOOL; stdcall = nil;
-  SHBrowseForFolderW_MP: function(var lpbi: TBrowseInfoW): PItemIDList; stdcall = nil;
-  SHGetPathFromIDListW_MP: function(pidl: PItemIDList; pszPath: PWideChar): BOOL; stdcall = nil;
-  SHFileOperationW_MP: function(const lpFileOp: TSHFileOpStructW): Integer; stdcall = nil;
-  PathMatchSpecA_MP: function(const pszFileParam, pszSpec: PAnsiChar): Bool; stdcall = nil;
   PathMatchSpecW_MP: function(const pszFileParam, pszSpec: PWideChar): Bool; stdcall = nil;
-  CreateProcessW_MP: function(lpApplicationName: PWideChar; lpCommandLine: PWideChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PWideChar; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall = nil;
-  DeleteVolumeMountPoint_MP: function(lpszVolumeMountPoint: LPCSTR): BOOL; stdcall = nil;
-  GetVolumeNameForVolumeMountPoint_MP: function(lpszVolumeMountPoint: LPCSTR; lpszVolumeName: LPSTR; cchBufferLength: DWORD): BOOL; stdcall = nil;
-  GetVolumePathName_MP: function(lpszFileName: LPCSTR; lpszVolumePathName: LPTSTR; cchBufferLength: DWORD): BOOL; stdcall = nil;
-  SetVolumeMountPoint_MP: function(lpszVolumeMountPoint: LPCSTR; lpszVolumeName: LPCSTR): BOOL stdcall = nil;
-  FindFirstVolume_MP: function(lpszVolumeName: LPTSTR; cchBufferLength: DWORD): THandle; stdcall = nil;
-  FindNextVolume_MP: function(hFindVolume: THandle; lpszVolumeName: LPTSTR; cchBufferLength: DWORD): BOOL; stdcall = nil;
-  FindVolumeClose_MP: function(hFindVolume: THandle): BOOL; stdcall = nil;
-  FindFirstVolumeMountPoint_MP: function(lpszRootPathName: LPTSTR; lpszVolumeMountPoint: LPTSTR; cchBufferLength: DWORD): THandle stdcall = nil;
-  FindNextVolumeMountPoint_MP: function(hFindVolumeMountPoint: THandle; lpszVolumeMountPoint: LPTSTR; cchBufferLength: DWORD): BOOL; stdcall = nil;
-  FindVolumeMountPointClose_MP: function(hFindVolumeMountPoint: THandle): BOOL; stdcall = nil;
-  SHGetKnownFolderPath_MP: function(const rfid: TGUID; dwFlags: DWord; hToken: THandle; out ppszPath: PWideChar): HRESULT; stdcall = nil;
-  SHGetKnownFolderIDList_MP : function(const rfid: TGUID; dwFlags: DWord; hToken: integer; out ppidl : PItemIDList): HRESULT; stdcall = nil;
-  FindFirstFileExW_MP: function(lpFileName: PWideChar; fInfoLevelId: DWORD; var lpFindFileData: TWIN32FindDataW; fSearchOp: DWORD; lpSearchFilter: Pointer; dwAdditionalFlags: DWORD): THandle; stdcall = nil;
-  FindFirstFileExA_MP: function(lpFileName: PAnsiChar; fInfoLevelId: DWORD; var lpFindFileData: TWIN32FindDataA; fSearchOp: DWORD; lpSearchFilter: Pointer; dwAdditionalFlags: DWORD): THandle; stdcall = nil;
-  ExpandEnvironmentStringsW_MP: function(lpSrc: PWideChar; lpDst: PWideChar; nSize: DWORD): DWORD; stdcall = nil;
   ExpandEnvironmentStringsForUserW_MP: function(hToken: THandle; lpSrc: PWideChar; lpDst: PWideChar; nSize: DWORD): BOOL; stdcall = nil;
-  ExpandEnvironmentStringsForUserA_MP: function(hToken: THandle; lpSrc: PAnsiChar; lpDst: PAnsiChar; nSize: DWORD): BOOL; stdcall = nil;
-  TrackMouseEvent_MP: function(var EventTrack: TTrackMouseEvent): BOOL; stdcall = nil;
-  CopyFileW_MP: function(lpExistingFileName, lpNewFileName: PWideChar; bFailIfExists: BOOL): BOOL; stdcall = nil;
   Wow64RevertWow64FsRedirection_MP: function(OldValue: Pointer): BOOL; stdcall = nil;
   Wow64DisableWow64FsRedirection_MP: function(var OldValue: Pointer): BOOL; stdcall = nil;
   Wow64EnableWow64FsRedirection_MP: function(Wow64FsEnableDirection: BOOLEAN): BOOLEAN; stdcall = nil;
@@ -564,12 +454,12 @@ var
 implementation
 
 uses
-  System.AnsiStrings, System.UITypes, MPCommonObjects;
+  System.UITypes, MPCommonObjects;
 
 type
   PLibRec = ^TLibRec;
   TLibRec = packed record
-    LibraryName: AnsiString;
+    LibraryName: string;
     ReferenceCount: Integer;
     Handle: THandle;
   end;
@@ -579,50 +469,30 @@ var
   PIDLMgr: TCommonPIDLManager;
   Shell32Handle,
   Kernel32Handle,
-  User32Handle,
-  GDI32Handle,
   AdvAPI32Handle,
   UserEnvHandle,
   ShlwapiHandle,
-  NetAPI32Handle,
-  SrvAPIHandle: THandle;
+  NetAPI32Handle: THandle;
 
   UniqueMenuIDSeed: Integer = 1000;
 
 procedure FillSeparatorList(Menu: HMenu; Separators: TList);
 var
   i: Integer;
-  MenuInfoA: TMenuItemInfoA;
   MenuInfoW: TMenuItemInfoW;
 begin
   Separators.Clear;
   for i := 0 to GetMenuItemCount(Menu) - 1 do
   begin
-    if IsUnicode then
+    FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
+    MenuInfoW.cbSize := SizeOf(MenuInfoW);
+    MenuInfoW.fMask := MIIM_ID or MIIM_TYPE or MIIM_SUBMENU or MIIM_STATE or MIIM_CHECKMARKS or MIIM_DATA;
+    if GetMenuItemInfoW(Menu, i, True, MenuInfoW) then
     begin
-      FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
-      MenuInfoW.cbSize := SizeOf(MenuInfoW);
-      MenuInfoW.fMask := MIIM_ID or MIIM_TYPE or MIIM_SUBMENU or MIIM_STATE or MIIM_CHECKMARKS or MIIM_DATA;
-      if GetMenuItemInfoW(Menu, i, True, MenuInfoW) then
-      begin
-        if (MenuInfoW.fType and MFT_SEPARATOR = MFT_SEPARATOR) and (MenuInfoW.hSubMenu = 0) then
-          Separators.Add(Pointer(i))
-        else
-          Separators.Add(Pointer(-1))
-      end
-    end
-    else
-    begin
-      FillChar(MenuInfoA, SizeOf(MenuInfoA), #0);
-      MenuInfoA.cbSize := SizeOf(MenuInfoA);
-      MenuInfoA.fMask := MIIM_ID or MIIM_TYPE or MIIM_SUBMENU or MIIM_STATE or MIIM_CHECKMARKS or MIIM_DATA;
-      if GetMenuItemInfoA(Menu, i, True, MenuInfoA) then
-      begin
-        if (MenuInfoA.fType and MFT_SEPARATOR = MFT_SEPARATOR) and (MenuInfoA.hSubMenu = 0) then
-          Separators.Add(Pointer(i))
-        else
-          Separators.Add(Pointer(-1))
-      end
+      if (MenuInfoW.fType and MFT_SEPARATOR = MFT_SEPARATOR) and (MenuInfoW.hSubMenu = 0) then
+        Separators.Add(Pointer(i))
+      else
+        Separators.Add(Pointer(-1))
     end
   end;
 end;
@@ -679,7 +549,7 @@ begin
     Result := Result or MK_ALT;
 end;
 
-function ShiftStateToStr(Keys: TShiftState): WideString;
+function ShiftStateToStr(Keys: TShiftState): string;
 begin
   Result := '[';
   if ssShift in Keys then
@@ -710,71 +580,45 @@ begin
   Result:= '';
   //Look in System dir
   Path := SystemDirectory + '\' + ExeName;
-  if FileExistsW(Path) then
+  if FileExists(Path) then
     Result := Path
   else begin
     //Look in Windows dir
     Path:= WindowsDirectory + '\' + ExeName;
-    if FileExistsW(Path) then
+    if FileExists(Path) then
       Result:= Path;
   end
 end;
 
-function ExecShellEx(const Cmd, Params, Dir: WideString; ShowCmd: integer; DoWait: boolean; WaitForDDE: Boolean = False; WaitForIdleInput: Boolean = False): boolean;
+function ExecShellEx(const Cmd, Params, Dir: string; ShowCmd: integer; DoWait: boolean; WaitForDDE: Boolean = False; WaitForIdleInput: Boolean = False): boolean;
 var
-  InfoA: TShellExecuteInfoA;
   InfoW: TShellExecuteInfoW;
-  CmdA, ParamsA, DirA: AnsiString;
 begin
-  if Assigned(ShellExecuteExW_MP) then
-  begin
-    FillChar(InfoW, SizeOf(InfoW), 0);
-    InfoW.cbSize := SizeOf(InfoW);
-    InfoW.fMask := SEE_MASK_FLAG_NO_UI or SEE_MASK_NOCLOSEPROCESS;
-    if WaitForDDE then
-      InfoW.fMask := InfoW.fMask or SEE_MASK_FLAG_DDEWAIT;
-    InfoW.lpFile := PWideChar(Cmd);
-    InfoW.lpParameters := PWideChar(Params);
-    InfoW.lpDirectory := PWideChar(Dir);
-    InfoW.nShow := ShowCmd;
-    Result := ShellExecuteExW_MP(@InfoW);
-    if WaitForIdleInput then
-      WaitForInputIdle(InfoW.hProcess, INFINITE);
-    if Result and DoWait then
-      WaitForSingleObject(InfoW.hProcess, INFINITE);
-    if InfoW.hProcess <> 0 then
-      CloseHandle(InfoW.hProcess)
-  end else
-  begin
-    CmdA := AnsiString(Cmd);
-    ParamsA := AnsiString(Params);
-    DirA := AnsiString(Dir);
-    FillChar(InfoA, SizeOf(InfoA), 0);
-    InfoA.cbSize := SizeOf(InfoA);
-    InfoA.fMask := SEE_MASK_FLAG_NO_UI or SEE_MASK_NOCLOSEPROCESS;
-    if WaitForDDE then
-      InfoA.fMask := InfoA.fMask or SEE_MASK_FLAG_DDEWAIT;
-    InfoA.lpFile := PAnsiChar(CmdA);
-    InfoA.lpParameters := PAnsiChar(ParamsA);
-    InfoA.lpDirectory := PAnsiChar(DirA);
-    InfoA.nShow := ShowCmd;
-    Result := ShellExecuteEx(@InfoA);
-    if WaitForIdleInput then
-      WaitForInputIdle(InfoW.hProcess, INFINITE);
-    if Result and DoWait then
-      WaitForSingleObject(InfoA.hProcess, INFINITE);
-    if InfoA.hProcess <> 0 then
-      CloseHandle(InfoA.hProcess)
-  end;
+  FillChar(InfoW, SizeOf(InfoW), 0);
+  InfoW.cbSize := SizeOf(InfoW);
+  InfoW.fMask := SEE_MASK_FLAG_NO_UI or SEE_MASK_NOCLOSEPROCESS;
+  if WaitForDDE then
+    InfoW.fMask := InfoW.fMask or SEE_MASK_FLAG_DDEWAIT;
+  InfoW.lpFile := PWideChar(Cmd);
+  InfoW.lpParameters := PWideChar(Params);
+  InfoW.lpDirectory := PWideChar(Dir);
+  InfoW.nShow := ShowCmd;
+  Result := ShellExecuteEx(@InfoW);
+  if WaitForIdleInput then
+    WaitForInputIdle(InfoW.hProcess, INFINITE);
+  if Result and DoWait then
+    WaitForSingleObject(InfoW.hProcess, INFINITE);
+  if InfoW.hProcess <> 0 then
+    CloseHandle(InfoW.hProcess)
 end;
 
-function RegUnregNSE(const AFileName: WideString; DoRegister: boolean; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function RegUnregNSE(const AFileName: string; DoRegister: boolean; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
 var
   Fn, Exe, Msg: WideString;
 begin
   Result:= false;
 
-  if not FileExistsW(AFileName) then
+  if not FileExists(AFileName) then
     begin
       if enseMsgShowErrors in AMessages then
       begin
@@ -783,8 +627,8 @@ begin
         else
           Msg := SEasyNSEMsg_CannotUnRegister;
 
-        
-        WideMessageBox(Application.Handle,
+
+          MessageBox(Application.Handle,
                    PWideChar( Msg + #13 + SEasyNSEMsg_CannotFindDLL),
                    PWideChar( SEasyNSEMsg_Caption),
                    MB_OK or MB_ICONERROR);
@@ -799,7 +643,7 @@ begin
 
   Exe := RegSvrPath;
 
-  if not FileExistsW(Exe) then
+  if not FileExists(Exe) then
   begin
     if enseMsgShowErrors in AMessages then
     begin
@@ -825,170 +669,45 @@ begin
   Result:= ExecShellEx(exe, Msg + Fn, '', SW_SHOW, True);
 end;
 
-function RegisterNSE(const AFileName: WideString; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function RegisterNSE(const AFileName: string; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
 begin
   Result:= RegUnregNSE(AFileName, True, AMessages);
 end;
 
-function UnregisterNSE(const AFileName: WideString; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
+function UnregisterNSE(const AFileName: string; AMessages: TEasyNSERegMessages = [enseMsgShowErrors]): boolean;
 begin
   Result:= RegUnregNSE(AFileName, False, AMessages);
 end;
 
-procedure MakeFindDataW(const FindFileDataA: TWIN32FindDataA; var FindFileDataW: TWIN32FindDataW);
-//
-// Makes TWIN32FindDataW from a TWIN32FindDataA structure
-//
-var
-  i: Integer;
-  WS: WideString;
-begin
-  FindFileDataW.dwFileAttributes := FindFileDataA.dwFileAttributes;
-  FindFileDataW.ftCreationTime := FindFileDataA.ftCreationTime;
-  FindFileDataW.ftLastAccessTime := FindFileDataA.ftLastAccessTime;
-  FindFileDataW.ftLastWriteTime := FindFileDataA.ftLastWriteTime;
-  FindFileDataW.nFileSizeHigh := FindFileDataA.nFileSizeHigh;
-  FindFileDataW.nFileSizeLow := FindFileDataA.nFileSizeLow;
-  FindFileDataW.dwReserved0 := FindFileDataA.dwReserved0;
-  FindFileDataW.dwReserved1 := FindFileDataA.dwReserved1;
-  FillChar(FindFileDataW.cAlternateFileName, SizeOf(FindFileDataW.cAlternateFileName), #0);
-  FillChar(FindFileDataW.cFileName, SizeOf(FindFileDataW.cFileName), #0);
-  i := 0;
-  while FindFileDataA.cAlternateFileName[i] <> #0 do
-  begin
-    WS := Char(FindFileDataA.cAlternateFileName[i]);
-    FindFileDataW.cAlternateFileName[i] := WS[1];
-    Inc(i)
-  end;
-  i := 0;
-  while FindFileDataA.cFileName[i] <> #0 do
-  begin
-    WS := string(FindFileDataA.cFileName[i]);
-    FindFileDataW.cFileName[i] := WS[1];
-    Inc(i)
-  end
-end;
 
-function WideDirectoryExists(const Name: WideString): Boolean;
-begin
-  if Name <> '' then
-  begin
-    Result := DirectoryExists(Name)
-  end else
-    Result := False
-end;
-
-function WideDeleteDirEx(const DirName: WideString): Boolean;
-var
-  FileOpStructA: TSHFileOpStructA;
-  FileOpStructW: TSHFileOpStructW;
-  DirNameA: AnsiString;
-  DirNameW: WideString;
-begin
-  if IsUnicode then
-  begin
-    DirNameW := DirName + WideChar(#0) ;
-    FileOpStructW.Wnd := 0;
-    FileOpStructW.wFunc := FO_DELETE;
-    FileOpStructW.pFrom := PWideChar(DirNameW);
-    FileOpStructW.pTo := nil;
-    FileOpStructW.fFlags := FOF_SILENT or FOF_NOCONFIRMATION;
-    FileOpStructW.fAnyOperationsAborted := False;
-    FileOpStructW.hNameMappings := nil;
-    FileOpStructW.lpszProgressTitle := nil;
-    Result := SHFileOperationW_MP(FileOpStructW) = 0;
-  end else
-  begin
-    DirNameA := AnsiString(DirName + #0);
-    FileOpStructA.Wnd := 0;
-    FileOpStructA.wFunc := FO_DELETE;
-    FileOpStructA.pFrom := PAnsiChar(DirNameA);
-    FileOpStructA.pTo := nil;
-    FileOpStructA.fFlags := FOF_SILENT or FOF_NOCONFIRMATION;
-    FileOpStructA.fAnyOperationsAborted := False;
-    FileOpStructA.hNameMappings := nil;
-    FileOpStructA.lpszProgressTitle := nil;
-    Result := SHFileOperationA(FileOpStructA) = 0;
-  end
-end;
-
-function WideCreateDir(Path: WideString): Boolean;
-begin
-  Result := CreateDir(Path)
-end;
-
-function WideExcludeTrailingBackslash(Path: WideString): WideString;
-begin
-  {$WARN SYMBOL_PLATFORM OFF}
-  Result := ExcludeTrailingBackslash(Path)
-  {$WARN SYMBOL_PLATFORM ON}
-end;
-
-function WideExpandEnviromentString(EnviromentString: WideString): WideString;
+function WideExpandEnviromentString(EnviromentString: string): string;
 var
   Length: Integer;
-  EnviromentStringA, ResultA: AnsiString;
 begin
   Result := EnviromentString;
-  if Assigned(ExpandEnvironmentStringsW_MP) then
+  Length := ExpandEnvironmentStrings(PWideChar( EnviromentString), nil, 0);
+  if Length > 0 then
   begin
-    Length := ExpandEnvironmentStringsW_MP(PWideChar( EnviromentString), nil, 0);
-    if Length > 0 then
-    begin
-      SetLength(Result, Length - 1); // Includes the null
-      ExpandEnvironmentStringsW_MP( PWideChar( EnviromentString), PWideChar( @Result[1]), Length);
-    end
-  end else
-  begin
-    EnviromentStringA := AnsiString(EnviromentString);
-    Length := ExpandEnvironmentStringsA(PAnsiChar( EnviromentStringA), nil, 0);
-    if Length > 0 then
-    begin
-      SetLength(ResultA, Length - 2); // There is a magic 1 per the MSDN docs for the ANSI version
-      ExpandEnvironmentStringsA( PAnsiChar( EnviromentStringA), PAnsiChar( @ResultA[1]), Length);
-      Result := string(ResultA)
-    end
+    SetLength(Result, Length - 1); // Includes the null
+    ExpandEnvironmentStrings( PWideChar( EnviromentString), PWideChar( @Result[1]), Length);
   end
 end;
 
-function WideExpandEnviromentStringForUser(EnviromentString: WideString): WideString;
+function WideExpandEnviromentStringForUser(EnviromentString: string): string;
 var
-  EnviromentStringA, ResultA: AnsiString;
   Token: THandle;
 begin
   Result := EnviromentString;
-  if not Assigned(ExpandEnvironmentStringsForUserW_MP) then
+  if OpenProcessToken(GetCurrentProcess, TOKEN_IMPERSONATE or TOKEN_QUERY, Token) then
   begin
-    if OpenProcessToken(GetCurrentProcess, TOKEN_IMPERSONATE or TOKEN_QUERY, Token) then
-    begin
-      SetLength(Result, 256);
-      ExpandEnvironmentStringsForUserW_MP(Token, PWideChar( EnviromentString), PWideChar( @Result[1]), 256);
-      SetLength(Result, lstrlenW(PWideChar( Result)));
-      CloseHandle(Token)
-    end
-  end else
-  begin
-    if Assigned(ExpandEnvironmentStringsForUserA_MP) then
-    begin
-      if OpenProcessToken(GetCurrentProcess, TOKEN_IMPERSONATE or TOKEN_QUERY, Token) then
-      begin
-        EnviromentStringA := AnsiString(EnviromentString);
-        SetLength(ResultA, 256);
-        ExpandEnvironmentStringsForUserA_MP(Token, PAnsiChar( EnviromentStringA), PAnsiChar( @ResultA[1]), 256);
-        SetLength(ResultA, lstrlenA(PAnsiChar( ResultA)));
-        Result := string(ResultA);
-        CloseHandle(Token)
-      end
-    end
+    SetLength(Result, 256);
+    ExpandEnvironmentStringsForUserW_MP(Token, PWideChar( EnviromentString), PWideChar( @Result[1]), 256);
+    SetLength(Result, lstrlenW(PWideChar( Result)));
+    CloseHandle(Token)
   end
 end;
 
-function WideExtractFilePath(Path: WideString): WideString;
-begin
-  Result := ExtractFilePath(Path);
-end;
-
-function WideExtractFileName(Path: WideString; BaseNameOnly: Boolean = False): WideString;
+function WideExtractFileName(Path: string; BaseNameOnly: Boolean = False): string;
 var
   i: Integer;
   Found: Boolean;
@@ -1008,29 +727,19 @@ begin
     if Found then
     begin
       Result[i] := #0;
-      Result := String( PWideChar( Result));
+      Result := String(PWideChar( Result));
     end;
   end;
 end;
 
-function WideFileExists(Path: WideString): Boolean;
-begin
-  Result := FileExists(Path);
-end;
-
-function WideExtractFileDir(Path: WideString): WideString;
-begin
-  Result := ExtractFileDir(Path);
-end;
-
-function WideExtractFileDrive(Path: WideString; DriveLetterOnly: Boolean = False): WideString;
+function WideExtractFileDrive(Path: string; DriveLetterOnly: Boolean = False): string;
 begin
   Result := ExtractFileDrive(Path);
   if DriveLetterOnly and (Length(Result) > 0) then
     Result := Result[1];
 end;
 
-function WideExtractFileExt(Path: WideString; StripExtPeriod: Boolean = False): WideString;
+function WideExtractFileExt(Path: string; StripExtPeriod: Boolean = False): string;
 var
   Head: PWideChar;
 begin
@@ -1039,36 +748,8 @@ begin
   begin
     Head := PWideChar( Result);
     Inc(Head);
-    Result := String( Head);
+    Result := string(Head);
   end;
-end;
-
-function WideFindFirstFileEx(FileName: WideString;
-  var lpFindFileData: TWIN32FindDataW; Mask: WideString; CaseSensitive: Boolean): THandle;
-var
-  CaseFlag: DWORD;
-  FindFileDataA: TWIN32FindDataA;
-begin
-  Result := 0;
-
-  if CaseSensitive then
-    CaseFlag := FIND_FIRST_EX_CASE_SENSITIVE
-  else
-    CaseFlag := 0;
-
-  if Assigned(FindFirstFileExW_MP) then
-    Result := FindFirstFileExW_MP(PWideChar(WideString( FileName + '\' + Mask)), FINDEX_INFO_STANDARD, lpFindFileData, FINDEX_SEARCH_NAMEMATCH, nil, CaseFlag)
-  else
-  if Assigned(FindFirstFileExA_MP) then
-  begin
-    Result := FindFirstFileExA_MP(PAnsiChar( AnsiString( FileName + '\' + Mask)), FINDEX_INFO_STANDARD, FindFileDataA, FINDEX_SEARCH_NAMEMATCH, nil, CaseFlag);
-    MakeFindDataW(FindFileDataA, lpFindFileData)
-  end
-end;
-
-function WideFindFirstFileExExists: Boolean;
-begin
-  Result := Assigned(FindFirstFileExA_MP) or Assigned(FindFirstFileExW_MP)
 end;
 
 procedure FixFormFont(AFont: TFont);
@@ -1079,53 +760,6 @@ begin
     AFont.Handle := CreateFontIndirect(LogFont)
   else
     AFont.Handle := GetStockObject(DEFAULT_GUI_FONT);
-end;
-
-function WideForceDirectories(const FileName: WideString): Boolean;
-var
-  TailW: PWideChar;
-  TailA: PChar;
-  FileNameW: WideString;
-  FileNameA: string;
-begin
-  if IsUnicode then
-  begin
-    FileNameW := FileName;
-    TailW := WideStrScan(PWideChar(FileNameW), WideChar('\'));
-    while Assigned(TailW) do
-    begin
-      Inc(TailW);
-      TailW := WideStrScan(TailW, WideChar('\'));
-      if Assigned(TailW) then
-        TailW^ := WideChar(#0);
-      try
-        if not WideFileExists(FileNameW) then
-          WideCreateDir(FileNameW);
-      finally
-        if Assigned(TailW) then
-          TailW^ := WideChar('\');
-      end
-    end
-  end else
-  begin
-    FileNameA := FileName;
-    TailA := StrScan(PChar(FileNameA), Char('\'));
-    while Assigned(TailA) do
-    begin
-      Inc(TailA);
-      TailA := StrScan(TailA, Char('\'));
-      if Assigned(TailA) then
-        TailA^ := #0;
-      try
-        if not FileExists(FileNameA) then
-          CreateDir(FileNameA);
-      finally
-        if Assigned(TailA) then
-          TailA^ := Char('\');
-      end
-    end
-  end;
-  Result := FileExistsW(FileName);
 end;
 
 procedure FillGradient(X1, Y1, X2, Y2: integer; fStartColor, fStopColor: TColor;
@@ -1157,44 +791,10 @@ begin
   fDrawCanvas.Brush.Color := tmpColor;
 end;
 
-function DropEffectToStr(DropEffect: DWORD): WideString;
-begin
-  Result := '';
-  if DropEffect and DROPEFFECT_COPY <> 0 then
-    Result := Result + 'DROPEFFECT_COPY|';
-  if DropEffect and DROPEFFECT_MOVE <> 0 then
-    Result := Result + 'DROPEFFECT_MOVE|';
-  if DropEffect and DROPEFFECT_LINK <> 0 then
-    Result := Result + 'DROPEFFECT_LINK|';
-  if DropEffect and DROPEFFECT_SCROLL <> 0 then
-    Result := Result + 'DROPEFFECT_SCROLL|';
-  if Length(Result) > 0 then
-    SetLength(Result, Length(Result) - 1)
-  else
-    Result := '(none)';
-end;
-
 function EqualWndMethod(A, B: TWndMethod): Boolean;
 begin
   Result := (TMethod(A).Code = TMethod(B).Code) and
             (TMethod(A).Data = TMethod(B).Data)
-end;
-
-function FindRootToken(const Path: WideString): PWideChar;
-const
-  RootToken = WideString(':\');
-begin
-  Result := WideStrPos(PWideChar(Path), RootToken);
-end;
-
-function ExtractFileDirW(const FileName: WideString): WideString;
-begin
-  Result := ExtractFileDir(FileName)
-end;
-
-function DirExistsW(const FileName: PWideChar): Boolean;
-begin
-  Result := DirectoryExists(FileName)
 end;
 
 function FlipReverseCopyRect(const Flip, Reverse: Boolean; const Bitmap: TBitmap): TBitmap;
@@ -1268,33 +868,13 @@ begin
                          Rect(0,0, RectWidth(R), RectHeight(R)));
 end;
 
-function FileExistsW(const FileName: WideString): Boolean;
-{$IFNDEF TNT}
+function IsMappedDrivePath(const Path: string): Boolean;
 var
-  Handle: THandle;
-  FindDataA: TWin32FindDataA;
-  FindDataW: TWin32FindDataW;
-{$ENDIF}
-begin
-  if IsUnicode then
-    Handle := FindFirstFileW_MP(PWideChar(FileName), FindDataW)
-  else
-    Handle := FindFirstFileA(PAnsiChar(AnsiString(FileName)), FindDataA);
-  Result:= Handle <> INVALID_HANDLE_VALUE;
-  if Result then
-    Windows.FindClose(Handle);
-end;
-
-function IsMappedDrivePath(const Path: WideString): Boolean;
-var
-  WS: WideString;
+  WS: string;
 begin
   WS := Path;
   SetLength(WS, 3);
-  if IsWinNT then
-    Result := GetDriveTypeW_MP(PWideChar(WS)) = DRIVE_REMOTE
-  else
-    Result := GetDriveTypeA(PAnsiChar(AnsiString(WS))) = DRIVE_REMOTE;
+  Result := GetDriveType(PWideChar(WS)) = DRIVE_REMOTE
 end;
 
 { Searchs through the passed menu looking for an item identifer that is not   }
@@ -1306,7 +886,6 @@ function FindUniqueMenuID(AMenu: HMenu): Cardinal;
     function RunMenu(AMenu: HMenu; var ID: Cardinal): Boolean;
     var
       MenuInfoW: TMenuItemInfoW;
-      MenuInfoA: TMenuItemInfoA;
       i, ItemCount: Integer;
       Reset, IsDuplicate: Boolean;
     begin
@@ -1316,25 +895,13 @@ function FindUniqueMenuID(AMenu: HMenu): Cardinal;
       i := 0;
       while (i < ItemCount) and not IsDuplicate do
       begin
-        if IsUnicode then
-        begin
-          FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
-          MenuInfoW.cbSize := SizeOf(MenuInfoW);
-          MenuInfoW.fMask := MIIM_SUBMENU or MIIM_ID;
-          GetMenuItemInfoW(AMenu, i, True, MenuInfoW);
-           if MenuInfoW.hSubMenu <> 0 then
-            Reset := RunMenu(MenuInfoW.hSubMenu, ID);
-           IsDuplicate := MenuInfoW.wID = ID
-        end else
-        begin
-          FillChar(MenuInfoA, SizeOf(MenuInfoA), #0);
-          MenuInfoA.cbSize := SizeOf(MenuInfoA);
-          MenuInfoA.fMask := MIIM_SUBMENU or MIIM_ID;
-          GetMenuItemInfoA(AMenu, i, True, MenuInfoA);
-          if MenuInfoA.hSubMenu <> 0 then
-            Reset := RunMenu(MenuInfoA.hSubMenu, ID);
-          IsDuplicate := MenuInfoA.wID = ID
-        end;
+        FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
+        MenuInfoW.cbSize := SizeOf(MenuInfoW);
+        MenuInfoW.fMask := MIIM_SUBMENU or MIIM_ID;
+        GetMenuItemInfoW(AMenu, i, True, MenuInfoW);
+        if MenuInfoW.hSubMenu <> 0 then
+          Reset := RunMenu(MenuInfoW.hSubMenu, ID);
+        IsDuplicate := MenuInfoW.wID = ID;
         Inc(i);
       end;
       Result := IsDuplicate and not Reset
@@ -1350,7 +917,7 @@ begin
     UniqueMenuIDSeed := 1000;
 end;
 
-function AddContextMenuItem(Menu: HMenu; ACaption: WideString; Index: Integer;
+function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer;
   MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True;
   Checked: Boolean = False; Default: Boolean = False): Integer;
 //
@@ -1361,103 +928,52 @@ function AddContextMenuItem(Menu: HMenu; ACaption: WideString; Index: Integer;
 // Returns ID of new Item
 //
 var
-  InfoA: TMenuItemInfoA;
   InfoW: TMenuItemInfoW;
 begin
-  if IsUnicode and Assigned(InsertMenuItemW_MP) then
-  begin
-    FillChar(InfoW, SizeOf(InfoW), #0);
-    InfoW.cbSize := SizeOf(InfoW);
-    InfoW.fMask := MIIM_TYPE or MIIM_ID or MIIM_STATE;
+  FillChar(InfoW, SizeOf(InfoW), #0);
+  InfoW.cbSize := SizeOf(InfoW);
+  InfoW.fMask := MIIM_TYPE or MIIM_ID or MIIM_STATE;
 
-    if Enabled or (ACaption = '-') then
-      InfoW.fState := InfoW.fState or MFS_ENABLED
-    else
-      InfoW.fState := InfoW.fState or MFS_DISABLED;
+  if Enabled or (ACaption = '-') then
+    InfoW.fState := InfoW.fState or MFS_ENABLED
+  else
+    InfoW.fState := InfoW.fState or MFS_DISABLED;
 
-    if Checked and (ACaption <> '-') then
-      InfoW.fState := InfoW.fState or MFS_CHECKED;
-    if Default and (ACaption <> '-') then
-      InfoW.fState := InfoW.fState or MFS_DEFAULT;
+  if Checked and (ACaption <> '-') then
+    InfoW.fState := InfoW.fState or MFS_CHECKED;
+  if Default and (ACaption <> '-') then
+    InfoW.fState := InfoW.fState or MFS_DEFAULT;
 
-    if ACaption = '-' then
-      InfoW.fType := MFT_SEPARATOR
-    else begin
-      InfoW.fType := MFT_STRING;
-      if hSubMenu > 0 then
-      begin
-        InfoW.fMask := InfoW.fMask or MIIM_SUBMENU;
-        InfoW.hSubMenu := hSubMenu
-      end
-    end;
-    InfoW.dwTypeData := PWideChar(ACaption);
-    InfoW.cch := Length(ACaption);
-
-    if InfoW.fType = MFT_STRING then
+  if ACaption = '-' then
+    InfoW.fType := MFT_SEPARATOR
+  else begin
+    InfoW.fType := MFT_STRING;
+    if hSubMenu > 0 then
     begin
-      if MenuID = $FFFF then
-        InfoW.wID := FindUniqueMenuID(Menu)
-      else
-      if InfoW.fMask and MIIM_SUBMENU <> 0 then
-        InfoW.wID := $FFFF // Sub-Item Parents don't get an unique ID
-      else
-        InfoW.wID := MenuID;
-    end else
-      InfoW.wID := $FFFF; // Separators don't get an unique ID
+      InfoW.fMask := InfoW.fMask or MIIM_SUBMENU;
+      InfoW.hSubMenu := hSubMenu
+    end
+  end;
+  InfoW.dwTypeData := PWideChar(ACaption);
+  InfoW.cch := Length(ACaption);
 
-    Result := InfoW.wID;
-    if Index < 0 then
-      InsertMenuItemW_MP(Menu, GetMenuItemCount(Menu), True, InfoW)
+  if InfoW.fType = MFT_STRING then
+  begin
+    if MenuID = $FFFF then
+      InfoW.wID := FindUniqueMenuID(Menu)
     else
-      InsertMenuItemW_MP(Menu, Index, True, InfoW);  // Inserts by Position
+    if InfoW.fMask and MIIM_SUBMENU <> 0 then
+      InfoW.wID := $FFFF // Sub-Item Parents don't get an unique ID
+    else
+      InfoW.wID := MenuID;
   end else
-  begin
-    FillChar(InfoA, SizeOf(InfoA), #0);
-    InfoA.cbSize := SizeOf(InfoA);
+    InfoW.wID := $FFFF; // Separators don't get an unique ID
 
-    InfoA.fMask := MIIM_TYPE or MIIM_ID or MIIM_STATE;
-    if Enabled or (ACaption = '-') then
-      InfoA.fState := InfoA.fState or MFS_ENABLED
-    else
-      InfoA.fState := InfoA.fState or MFS_DISABLED;
-
-    if Checked and (ACaption <> '-') then
-      InfoA.fState := InfoA.fState or MFS_CHECKED;
-    if Default and (ACaption <> '-') then
-      InfoA.fState := InfoA.fState or MFS_DEFAULT;
-
-    if ACaption = '-' then
-      InfoA.fType := MFT_SEPARATOR
-    else begin
-      InfoA.fType := MFT_STRING;
-      if hSubMenu > 0 then
-      begin
-        InfoA.fMask := InfoA.fMask or MIIM_SUBMENU;
-        InfoA.hSubMenu := hSubMenu
-      end
-    end;
-
-    InfoA.dwTypeData := PAnsiChar( AnsiString(ACaption));
-    InfoA.cch := Length(ACaption);
-
-    if InfoA.fType = MFT_STRING then
-    begin
-      if MenuID = $FFFF then
-        InfoA.wID := FindUniqueMenuID(Menu)
-      else
-      if InfoA.fMask and MIIM_SUBMENU <> 0 then
-        InfoA.wID := $FFFF // Sub-Item Parents don't get an unique ID
-      else
-        InfoA.wID := MenuID;
-    end else
-      InfoA.wID := $FFFF; // Separators don't get an unique ID
-
-    Result := InfoA.wID;
-    if Index < 0 then
-      InsertMenuItemA(Menu, GetMenuItemCount(Menu), True, InfoA)
-    else
-      InsertMenuItemA(Menu, Index, True, InfoA);
-  end
+  Result := InfoW.wID;
+  if Index < 0 then
+    InsertMenuItem(Menu, GetMenuItemCount(Menu), True, InfoW)
+  else
+    InsertMenuItem(Menu, Index, True, InfoW);  // Inserts by Position
 end;
 
 procedure ShadowBlendBits(Bits: TBitmap; BackGndColor: TColor);
@@ -1472,189 +988,45 @@ begin
 end;
 
 
-procedure SumFolder(FolderPath: WideString; Recurse: Boolean; var Size: Int64);
+procedure SumFolder(FolderPath: string; Recurse: Boolean; var Size: Int64);
 { Returns the size of all files within the passed folder, including all         }
 { sub-folders. This is recurcive don't initialize Size to 0 in the function!    }
 var
-  InfoA: TWin32FindDataA;
   InfoW: TWin32FindDataW;
   FHandle: THandle;
-  FolderPathA: AnsiString;
 begin
-  if IsUnicode then
-  begin
-    FHandle := FindFirstFileW_MP(PWideChar( FolderPath + '\*.*'), InfoW);
-    if FHandle <> INVALID_HANDLE_VALUE then
-    try
+  FHandle := FindFirstFile(PWideChar( FolderPath + '\*.*'), InfoW);
+  if FHandle <> INVALID_HANDLE_VALUE then
+  try
+    if Recurse and (InfoW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
+    begin
+      if (lstrcmpi(InfoW.cFileName, '.') <> 0) and (lstrcmpi(InfoW.cFileName, '..') <> 0) and
+        (InfoW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
+        SumFolder(FolderPath + '\' + InfoW.cFileName, Recurse, Size)
+    end else
+      Size := Size + Int64(InfoW.nFileSizeHigh) * MAXDWORD + Int64(InfoW.nFileSizeLow);
+    while FindNextFile(FHandle, InfoW) and not SumFolderAbort do
+    begin
       if Recurse and (InfoW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
       begin
-        if (lstrcmpiW_MP(InfoW.cFileName, '.') <> 0) and (lstrcmpiW_MP(InfoW.cFileName, '..') <> 0) and
+        if (lstrcmpi(InfoW.cFileName, '.') <> 0) and (lstrcmpi(InfoW.cFileName, '..') <> 0) and
           (InfoW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-          SumFolder(FolderPath + '\' + InfoW.cFileName, Recurse, Size)
+         SumFolder(FolderPath + '\' + InfoW.cFileName, Recurse, Size)
       end else
-        Size := Size + Int64(InfoW.nFileSizeHigh) * MAXDWORD + Int64(InfoW.nFileSizeLow);
-      while FindNextFileW_MP(FHandle, InfoW) and not SumFolderAbort do
-      begin
-        if Recurse and (InfoW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
-        begin
-          if (lstrcmpiW_MP(InfoW.cFileName, '.') <> 0) and (lstrcmpiW_MP(InfoW.cFileName, '..') <> 0) and
-            (InfoW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-           SumFolder(FolderPath + '\' + InfoW.cFileName, Recurse, Size)
-        end else
-         Size := Size + Int64(InfoW.nFileSizeHigh) * MAXDWORD + Int64(InfoW.nFileSizeLow);
-      end;
-    finally
-      Windows.FindClose(FHandle)
-    end
-  end else
-  begin
-    FolderPathA := AnsiString(FolderPath);
-    FHandle := FindFirstFileA(PAnsiChar( AnsiString(FolderPathA + '\*.*')), InfoA);
-    if FHandle <> INVALID_HANDLE_VALUE then
-    try
-      if Recurse and (InfoA.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
-      begin
-        if (lstrcmpiA(InfoA.cFileName, '.') <> 0) and (lstrcmpiA(InfoA.cFileName, '..') <> 0) and
-            (InfoA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-          SumFolder(string(FolderPathA) + '\' + string(InfoA.cFileName), Recurse, Size)
-      end else
-        Size := Size + Int64(InfoA.nFileSizeHigh) * MAXDWORD + Int64(InfoA.nFileSizeLow);
-      while FindNextFileA(FHandle, InfoA) and not SumFolderAbort do
-      begin
-        if Recurse and (InfoA.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
-        begin
-          if (lstrcmpiA(InfoA.cFileName, '.') <> 0) and (lstrcmpiA(InfoA.cFileName, '..') <> 0) and
-            (InfoA.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT = 0) then
-            SumFolder(string(FolderPathA) + '\' + string(InfoA.cFileName), Recurse, Size)
-        end else
-          Size := Size + Int64(InfoA.nFileSizeHigh) * MAXDWORD + Int64(InfoA.nFileSizeLow);
-      end;
-    finally
-      Windows.FindClose(FHandle)
-    end
+       Size := Size + Int64(InfoW.nFileSizeHigh) * MAXDWORD + Int64(InfoW.nFileSizeLow);
+    end;
+  finally
+    Windows.FindClose(FHandle)
   end
 end;
 
 function InternalTextExtentW(Text: PWideChar; DC: HDC): TSize;
-var
-  S: AnsiString;
 begin
-  if IsUnicode then
-    GetTextExtentPoint32W(DC, PWideChar(Text), Length(Text), Result)
-  else begin
-    S := PAnsiChar( Text);
-    GetTextExtentPoint32A(DC, PAnsiChar(S), Length(S), Result)
-  end;
+  GetTextExtentPoint32W(DC, PWideChar(Text), Length(Text), Result);
 end;
 
-function WideStrMove(Dest, Source: PWideChar; Count: Cardinal): PWideChar;
-// Copies the specified number of characters to the destination string and returns Dest
-// also as result. Dest must have enough room to store at least Count characters.
-{$ifdef CPUX64}
-begin
-  Result :=  StrMove(Dest, Source, Count);
-end;
-{$else}
-asm
-       PUSH    ESI
-       PUSH    EDI
-       MOV     ESI, EDX
-       MOV     EDI, EAX
-       MOV     EDX, ECX
-       CMP     EDI, ESI
-       JG      @@1
-       JE      @@2
-       SHR     ECX, 1
-       REP     MOVSD
-       MOV     ECX, EDX
-       AND     ECX, 1
-       REP     MOVSW
-       JMP     @@2
-
-@@1:
-       LEA     ESI, [ESI + 2 * ECX - 2]
-       LEA     EDI, [EDI + 2 * ECX - 2]
-       STD
-       AND     ECX, 1
-       REP     MOVSW
-       SUB     EDI, 2
-       SUB     ESI, 2
-       MOV     ECX, EDX
-       SHR     ECX, 1
-       REP     MOVSD
-       CLD
-@@2:
-       POP EDI
-       POP ESI
-end;
-{$endif CPUX64}
-
-function WideStrRScan(Str: PWideChar; Chr: WideChar): PWideChar;
-// returns a pointer to the last occurance of Chr in Str
-{$ifdef CPUX64}
-begin
-  Result :=  StrRScan(Str, Chr);
-end;
-{$else}
-asm
-       PUSH    EDI
-       MOV     EDI, Str
-       MOV     ECX, 0FFFFFFFFH
-       XOR     AX, AX
-       REPNE   SCASW
-       NOT     ECX
-       STD
-       SUB     EDI, 2
-       MOV     AX, Chr
-       REPNE   SCASW
-       MOV     EAX, 0
-       JNE     @@1
-       MOV     EAX, EDI
-       ADD     EAX, 2
-@@1:
-       CLD
-       POP     EDI
-end;
-{$endif CPUX64}
-
-function WideStrScan(Str: PWideChar; Chr: WideChar): PWideChar;
-// returns a pointer to first occurrence of a specified character in a string
-{$ifdef CPUX64}
-begin
-  Result :=  StrScan(Str, Chr);
-end;
-{$else}
-asm
-        PUSH    EDI
-        PUSH    EAX
-        MOV     EDI, Str
-        MOV     ECX, 0FFFFFFFFH
-        XOR     AX, AX
-        REPNE   SCASW
-        NOT     ECX
-        POP     EDI
-        MOV     AX, Chr
-        REPNE   SCASW
-        MOV     EAX, 0
-        JNE     @@1
-        MOV     EAX, EDI
-        SUB     EAX, 2
-@@1:
-        POP     EDI
-end;
-{$endif CPUX64}
-
-function WideUpperCase(const S: WideString): WideString;
-begin
-  Result := S;
-  if IsUnicode then
-    CharUpperBuffW_MP(PWideChar(Result), Length(Result))
-  else
-   CharUpperBuffA(PAnsiChar(AnsiString(Result)), Length(Result))
-end;
-
-function WideValidateDelimitedExtList(DelimitedText: WideString;
-  Prefix: TValidateDelimiterWildCardSet; Delimiter: TValidateDelimiterExt): WideString;
+function WideValidateDelimitedExtList(DelimitedText: string;
+  Prefix: TValidateDelimiterWildCardSet; Delimiter: TValidateDelimiterExt): string;
 //
 // Forces the passes string of delimited extensions to to following format:
 //
@@ -1674,7 +1046,7 @@ function WideValidateDelimitedExtList(DelimitedText: WideString;
 //
 var
   i: Integer;
-  TestStr: WideString;
+  TestStr: string;
   Extensions: TStringList;
 begin
   Result := '';
@@ -1684,30 +1056,30 @@ begin
     case Delimiter of
       vdeColon:
         begin
-          DelimitedText := WideStringReplace(DelimitedText, ',', ':', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, ';', ':', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, '|', ':', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ',', ':', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ';', ':', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, '|', ':', [rfReplaceAll]);
           Extensions.Delimiter := ':';
         end;
       vdeSemiColon:
         begin
-          DelimitedText := WideStringReplace(DelimitedText, ',', ';', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, ':', ';', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, '|', ';', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ',', ';', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ':', ';', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, '|', ';', [rfReplaceAll]);
           Extensions.Delimiter := ';';
         end;
       vdeComma:
         begin
-          DelimitedText := WideStringReplace(DelimitedText, ':', ',', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, ';', ',', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, '|', ',', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ':', ',', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ';', ',', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, '|', ',', [rfReplaceAll]);
           Extensions.Delimiter := ',';
         end;
       vdePipe:
         begin
-          DelimitedText := WideStringReplace(DelimitedText, ':', '|', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, ';', '|', [rfReplaceAll]);
-          DelimitedText := WideStringReplace(DelimitedText, ',', '|', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ':', '|', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ';', '|', [rfReplaceAll]);
+          DelimitedText := StringReplace(DelimitedText, ',', '|', [rfReplaceAll]);
           Extensions.Delimiter := '|';
         end
       end;
@@ -1717,7 +1089,7 @@ begin
 
     for i := Extensions.Count - 1 downto 0 do
     begin
-      TestStr := WideLowerCase(Trim(Extensions[i]));     // Strip off white space
+      TestStr := SysUtils.AnsiLowerCase(Trim(Extensions[i]));     // Strip off white space
       if Length(TestStr) < 1 then
         Extensions.Delete(i)               // Remove if it has no characters
       else begin
@@ -1741,7 +1113,7 @@ begin
           Extensions[i] := '.' + TestStr
         else
           Extensions[i] := TestStr;
-          
+
       end
     end;
     Extensions.Sorted := True;
@@ -1758,7 +1130,7 @@ begin
   Result := FLibList
 end;
 
-function CommonLoadLibrary(LibraryName: AnsiString): THandle;
+function CommonLoadLibrary(LibraryName: string): THandle;
 var
   i: Integer;
   Found: Boolean;
@@ -1770,7 +1142,7 @@ begin
   while (i < LibList.Count) and not Found do
   begin
     LibRec := PLibRec(LibList[i]);
-    if lstrcmpiA(PAnsiChar(LibRec.LibraryName), PAnsiChar(LibraryName)) = 0 then
+    if lstrcmpi(PWideChar(LibRec.LibraryName), PWideChar(LibraryName)) = 0 then
     begin
       Inc(LibRec.ReferenceCount);
       Result := LibRec.Handle;
@@ -1781,7 +1153,7 @@ begin
   if not Found then
   begin
     New(LibRec);
-    LibRec.Handle := LoadLibraryA(PAnsiChar(LibraryName));
+    LibRec.Handle := LoadLibrary(PWideChar(LibraryName));
     if LibRec.Handle <> 0 then
     begin
       LibRec.LibraryName := LibraryName;
@@ -1793,7 +1165,7 @@ begin
   end
 end;
 
-function CommonUnloadLibrary(LibraryName: AnsiString): Boolean;
+function CommonUnloadLibrary(LibraryName: string): Boolean;
 var
   i: Integer;
   LibRec: PLibRec;
@@ -1803,7 +1175,7 @@ begin
   while (i < LibList.Count) and not Result do
   begin
     LibRec := PLibRec(LibList[i]);
-    if lstrcmpiA(PAnsiChar(LibRec.LibraryName), PAnsiChar(LibraryName)) = 0 then
+    if lstrcmpi(PWideChar(LibRec.LibraryName), PWideChar(LibraryName)) = 0 then
     begin
       Dec(LibRec.ReferenceCount);
       FreeLibrary(LibRec.Handle);
@@ -2592,7 +1964,7 @@ begin
       LineDeltaTarget := DWORD( Target.ScanLine[1]) - DWORD( Target.ScanLine[0]);
       LineDeltaMask := DWORD( Mask.ScanLine[1]) - DWORD( Mask.ScanLine[0]);
 
-      PixelDeltaImage32 := SizeOf(TRGBQuad); 
+      PixelDeltaImage32 := SizeOf(TRGBQuad);
       PixelDeltaTarget := SizeOf(TRGBQuad);
       PixelDeltaMask := SizeOf(TRGBQuad);
 
@@ -2621,7 +1993,7 @@ begin
           BkGndGreen := (LongColor and $0000FF00) shr 8;
           BkGndRed := (LongColor and $00FF0000) shr 16;
 
-          // displayColor = sourceColor×alpha / 256 + backgroundColor×(256 – alpha) / 256
+          // displayColor = sourceColorï¿½alpha / 256 + backgroundColorï¿½(256 ï¿½ alpha) / 256
           // Profiled = ~15-24% of time
           RedTarget := SourceRed*Alpha shr 8 + BkGndRed*(255-Alpha) shr 8;
           GreenTarget := SourceGreen*Alpha shr 8 + BkGndGreen*(255-Alpha) shr 8;
@@ -2652,7 +2024,7 @@ begin
   end else
    OutImage.Assign(Image32)
 end;
-                    
+
 procedure AlphaBlend(Source, Destination: HDC; R: TRect; Target: TPoint; Mode: TCommonBlendMode; ConstantAlpha, Bias: Integer);
 
 // NOTE:::::::::::::
@@ -2685,7 +2057,7 @@ var
   DestWidth,
   DestHeight: Integer;
 
-begin                              
+begin
   if not IsRectEmpty(R) then
   begin
     // Note: it is tempting to optimize the special cases for constant alpha 0 and 255 by just ignoring soure
@@ -2762,7 +2134,7 @@ begin
   end;
 end;
 
-function DrawTextWEx(DC: HDC; Text: WideString; var lpRect: TRect;
+function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect;
   Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
 // Creates and extented version of DrawTextW that works in Win9x as well as
 // NT.  If MaxLineCount is -1 then the line count will depend on the Text.  All
@@ -2778,7 +2150,7 @@ var
   LineRect, OldlpRect: TRect;
   Buffer: TCommonWideCharArray;
   BufferIndex: PWideChar;
-  ShortText: WideString;
+  ShortText: string;
   VOffset, SplitCount: Integer;
 begin
   OldlpRect := lpRect;
@@ -2898,7 +2270,7 @@ begin
         LineRect := Rect(OldlpRect.Left, NewLineTop, OldlpRect.Right, NewLineTop + TextMetrics.tmHeight);
         if (dtEndEllipsis in Flags) {and not(dtCalcRect in Flags)} then
         begin
-          ShortText := ShortenTextW(DC, WideString(BufferIndex), RectWidth(OldlpRect));
+          ShortText := ShortenTextW(DC, string(BufferIndex), RectWidth(OldlpRect));
           DrawTextWEx(DC, ShortText, LineRect, Flags, MaxLineCount);
         end else
           DrawTextWEx(DC, WideString(BufferIndex), LineRect, Flags, MaxLineCount);
@@ -2936,63 +2308,35 @@ begin
   end
 end;
 
-procedure CreateProcessMP(ExeFile, Parameters, InitalDir: WideString);
+procedure CreateProcessMP(ExeFile, Parameters, InitalDir: string);
 var
   pi: TProcessInformation;
-  siW: TStartupInfoW;
-  siA: _STARTUPINFOA;
+  siW: TStartupInfo;
   wA, wB, wC: PWideChar;
-  aA, aB, aC: PAnsiChar;
 begin
   FillChar(pi, SizeOf(pi), #0);
-  if Assigned(CreateProcessW_MP) then
-  begin
-    FillChar(siW, SizeOf(siW), #0);
-    wA := nil;
-    wB := nil;
-    wC := nil;
-    if ExeFile <> '' then
-      wA := PWideChar(ExeFile);
-    if Parameters <> '' then
-      wB := PWideChar(Parameters);
-    if InitalDir <> '' then
-      wC := PWideChar(InitalDir);
+  FillChar(siW, SizeOf(siW), #0);
+  wA := nil;
+  wB := nil;
+  wC := nil;
+  if ExeFile <> '' then
+    wA := PWideChar(ExeFile);
+  if Parameters <> '' then
+    wB := PWideChar(Parameters);
+  if InitalDir <> '' then
+    wC := PWideChar(InitalDir);
 
-    CreateProcessW_MP(
-                  wA, // path to the executable file:
-                  wB,
-                  nil,
-                  nil,
-                  False,
-                  NORMAL_PRIORITY_CLASS,
-                  nil,
-                  wC,
-                  siW,
-                  pi );
-  end else
-  begin
-    FillChar(siA, SizeOf(siA), #0);
-    aA := nil;
-    aB := nil;
-    aC := nil;
-    if ExeFile <> '' then
-      aA := PAnsiChar( AnsiString(ExeFile));
-    if Parameters <> '' then
-      aB := PAnsiChar( AnsiString(Parameters));
-    if InitalDir <> '' then
-      aC := PAnsiChar( AnsiString(InitalDir));
-    CreateProcessA(
-                  aA,
-                  aB, // path to the executable file:
-                  nil,
-                  nil,
-                  False,
-                  NORMAL_PRIORITY_CLASS,
-                  nil,
-                  aC,
-                  siA,
-                  pi );
-  end;
+  CreateProcess(
+                wA, // path to the executable file:
+                wB,
+                nil,
+                nil,
+                False,
+                NORMAL_PRIORITY_CLASS,
+                nil,
+                wC,
+                siW,
+                pi );
   if pi.hProcess <> 0 then
     CloseHandle(pi.hProcess);
   if pi.hThread <> 0 then
@@ -3148,35 +2492,6 @@ begin
   Result := Supports(Instance, IID, Temp);
 end;
 
-procedure CopyToNullBufferA(S: WideString; Buffer: PAnsiChar; CharCount: Cardinal);
-var
-  ANSI: AnsiString;
-begin
-  ANSI := AnsiString(S);
-  FillChar(Buffer^, CharCount, #0);
-  if Length(ANSI) > 0 then
-  begin
-    if Cardinal(Length(ANSI)) + 1 > CharCount then
-      CharCount := CharCount - 1 // Leave room for the null
-    else
-      CharCount := Length(ANSI);
-    MoveMemory(Buffer, PAnsiChar(ANSI), CharCount);
-  end
-end;
-
-procedure CopyToNullBufferW(S: WideString; Buffer: PWideChar; CharCount: Cardinal);
-begin
-  FillChar(Buffer^, CharCount * 2, #0);
-  if Length(S) > 0 then
-  begin
-    if Cardinal(Length(S)) + 2 > CharCount then
-      CharCount := CharCount - 2 // Leave room for the null
-    else
-      CharCount := Length(S);
-    MoveMemory(Buffer, PWideChar(S), CharCount * 2);
-  end
-end;
-
 procedure MinMax(var A, B: Integer);
 // Makes sure that A < B
 var
@@ -3193,35 +2508,6 @@ end;
 function IsRectProper(Rect: TRect): Boolean;
 begin
   Result := (Rect.Right >= Rect.Left) and (Rect.Bottom >= Rect.Top)
-end;
-
-function AddCommas(NumberString: WideString): WideString;
-var
-//  i: integer;
-  BufferA: array[0..128] of AnsiChar;
-  BufferW: array[0..128] of WideChar;
-begin
-  // Make the number format based on the local not the US 3 digit comma format
-  if Assigned(GetNumberFormatW_MP) then
-  begin
-    GetNumberFormatW_MP(LOCALE_USER_DEFAULT, 0, PWideChar(NumberString), nil, BufferW, SizeOf(BufferW));
-    Result := BufferW;
-  end
-  else begin
-    GetNumberFormatA(LOCALE_USER_DEFAULT, 0, PAnsiChar(AnsiString(NumberString)), nil, BufferA, SizeOf(BufferA));
-    Result := string(BufferA)
-  end;
-
-  { Trimming white space in Unicode is tough don't pass any }
- { i := Length(NumberString) mod 3;
-  if i = 0 then
-    i := 3;
-  while i < Length(NumberString) do
-  begin
-    InsertW(ThousandSeparator, NumberString, i);
-    Inc(i, 4);
-  end;
-  Result := NumberString   }
 end;
 
 function AsyncLeftButtonDown: Boolean;
@@ -3254,36 +2540,17 @@ begin
   Result := GetKeyState(VK_SHIFT) and $8000 <> 0
 end;
 
-function CalcuateFolderSize(FolderPath: WideString; Recurse: Boolean): Int64;
+function CalcuateFolderSize(FolderPath: string; Recurse: Boolean): Int64;
 
 // Recursivly gets the size of the folder and subfolders
 var
-  S: AnsiString;
   FreeSpaceAvailable, TotalSpace: Int64;
-  SectorsPerCluster,
-  BytesPerSector,
-  FreeClusters,
-  TotalClusters: DWORD;
 begin
   Result := 0;
   if Recurse and WideIsDrive(FolderPath) then
   begin
-    if IsUnicode and Assigned(GetDiskFreeSpaceExW_MP) then
-    begin
-      if GetDiskFreeSpaceExW_MP(PWideChar(FolderPath), FreeSpaceAvailable, TotalSpace, nil) then
-      Result := TotalSpace - FreeSpaceAvailable
-    end else
-    if not IsWin95_SR1 and Assigned(GetDiskFreeSpaceExA_MP) then
-    begin
-      S := AnsiString(FolderPath);
-      if GetDiskFreeSpaceExA_MP(PAnsiChar(S), FreeSpaceAvailable, TotalSpace, nil) then
-        Result := TotalSpace - FreeSpaceAvailable;
-    end else
-    begin
-      GetDiskFreeSpaceA(PAnsiChar( S), SectorsPerCluster, BytesPerSector, FreeClusters,
-        TotalClusters);
-      Result := SectorsPerCluster * BytesPerSector * TotalClusters
-    end;
+    if SysUtils.GetDiskFreeSpaceEx(PWideChar(FolderPath), FreeSpaceAvailable, TotalSpace, nil) then
+    Result := TotalSpace - FreeSpaceAvailable
   end else
   begin
     SumFolderAbort := False;
@@ -3310,80 +2577,21 @@ begin
     Result := nil
 end;
 
-procedure WideInsert(Source: WideString; var S: WideString; Index: Integer);
-{ It appears there is a WideString Insert in the VCL already but since mine     }
-{ looks better and is simpler and I spent my time I will use mine <g>           }
-{  _WStrInsert in System through compiler magic.                                }
-var
-  OriginalLen: integer;
-begin
-  if (Index < Length(S) + 1) and (Index > - 1)  then
-  begin
-    OriginalLen := Length(S);
-    SetLength(S, Length(Source) + Length(S));
-    { We are correct up to Index }
-    { Slide to end of new string leaving space for insert }
-    Move(S[Index + 1], S[Index + 1 + Length(Source)], (OriginalLen - Index) * 2);
-    Move(Source[1], S[Index + 1], Length(Source) * 2);
-  end
-end;
-
-function WideGetCurrentDir: WideString;
+function WideGetTempDir: string;
 var
   BufferW: array[0..MAX_PATH] of Widechar;
-  BufferA: array[0..MAX_PATH] of AnsiChar;
 begin
-  if Assigned(GetCurrentDirectoryW_MP) then
-  begin
-    if GetCurrentDirectoryW_MP(MAX_PATH, BufferW) > 0 then
-      Result := BufferW;
-  end else
-  begin
-    if GetCurrentDirectoryA(MAX_PATH, BufferA) > 0 then
-      Result := string(BufferA);
-  end
+  if GetTempPath(MAX_PATH, BufferW) > 0 then
+    Result := BufferW;
 end;
 
-function WideGetTempDir: WideString;
-var
-  BufferW: array[0..MAX_PATH] of Widechar;
-  BufferA: array[0..MAX_PATH] of AnsiChar;
-begin
-  if Assigned(GetTempPathW_MP) then
-  begin
-    if GetTempPathW_MP(MAX_PATH, BufferW) > 0 then
-      Result := BufferW;
-  end else
-  begin
-    if GetTempPathA(MAX_PATH, BufferA) > 0 then
-      Result := string(BufferA);
-  end
-end;
-
-function WideIncludeTrailingBackslash(Path: WideString): WideString;
-begin
-  {$WARN SYMBOL_PLATFORM OFF}
-  Result := IncludeTrailingBackslash(Path);
-  {$WARN SYMBOL_PLATFORM ON}
-end;
-
-function WideIncrementalSearch(CompareStr, Mask: WideString): Integer;
+function WideIncrementalSearch(CompareStr, Mask: string): Integer;
 begin
   SetLength(CompareStr, Length(Mask));
-
-  if IsUnicode then
-    Result := lstrcmpiW(PWideChar(Mask), PWideChar(CompareStr))
-  else
-    Result := lstrcmpiA(PAnsiChar(AnsiString(Mask)), PAnsiChar(AnsiString(CompareStr)));
+  Result := lstrcmpi(PWideChar(Mask), PWideChar(CompareStr));
 end;
 
-function WideIntToStr(Value: integer): WideString;
-{ Need to find a way to do this in Unicode. }
-begin
-    Result := IntToStr(Value);
-end;
-
-function WideIsDrive(Drive: WideString): Boolean;
+function WideIsDrive(Drive: string): Boolean;
 begin
   if Length(Drive) = 3 then
     Result := (LowerCase(Drive[1]) >= 'a') and (LowerCase(Drive[1]) <= 'z') and (Drive[2] = ':') and (Drive[3] = '\')
@@ -3394,7 +2602,7 @@ begin
     Result := False
 end;
 
-function WideIsFloppy(FileFolder: WideString): boolean;
+function WideIsFloppy(FileFolder: string): boolean;
 begin
   if Length(FileFolder) > 0 then
     Result := WideIsDrive(FileFolder) and
@@ -3414,17 +2622,7 @@ begin
             ((GetAsyncKeyState(VK_MBUTTON) and $8000) = 0))
 end;
 
-function IsFTPPath(Path: WideString): Boolean;
-begin
-  if Length(Path) > 3 then
-  begin
-    Path := UpperCase(Path);
-    Result := (Path[1] = 'F') and (Path[2] = 'T') and (Path[3] = 'P')
-  end else
-    Result := False
-end;
-
-function WideNewFolderName(ParentFolder: WideString; SuggestedFolderName: WideString = ''): WideString;
+function WideNewFolderName(ParentFolder: string; SuggestedFolderName: string = ''): string;
 var
   i: integer;
   TempFoldername: String;
@@ -3441,7 +2639,7 @@ begin
       Result := ParentFolder + '\' + SuggestedFolderName;
       Tempfoldername := SuggestedFolderName;
     End;
-  while DirExistsW(PWideChar(Result)) and (i <= High(WORD)) do
+  while DirectoryExists(PWideChar(Result)) and (i <= High(WORD)) do
   begin
     Result := ParentFolder + '\' + Tempfoldername + ' (' + IntToStr(i) + ')';
     Inc(i);
@@ -3450,23 +2648,20 @@ begin
     Result := '';
 end;
 
-function WidePathMatchSpec(Path, Mask: WideString): Boolean;
+function WidePathMatchSpec(Path, Mask: string): Boolean;
 begin
   if Assigned(PathMatchSpecW_MP) then
     Result := PathMatchSpecW_MP(PWideChar(Path), PWideChar( Mask))
-  else
-  if Assigned(PathMatchSpecA_MP) then
-    Result := PathMatchSpecA_MP(PAnsiChar( AnsiString(Path)), PAnsiChar( AnsiString(Mask)))
   else
     Result := False
 end;
 
 function WidePathMatchSpecExists: Boolean;
 begin
-  Result := Assigned(PathMatchSpecW_MP) or Assigned(PathMatchSpecA_MP)
+  Result := Assigned(PathMatchSpecW_MP)
 end;
 
-function WideIsPathDelimiter(const S: WideString; Index: Integer): Boolean;
+function WideIsPathDelimiter(const S: string; Index: Integer): Boolean;
 begin
   Result := (Index > 0) and (Index <= Length(S)) and (S[Index] = '\');
 end;
@@ -3484,15 +2679,15 @@ begin
   Result := IsTextTrueType(Canvas.Handle);
 end;
 
-function IsUNCPath(const Path: WideString): Boolean;
+function IsUNCPath(const Path: string): Boolean;
 begin
   if Length(Path) > 2 then
-    Result :=  ((Path[1] = '\') and (Path[2] = '\')) and (DirExistsW(PWideChar(Path)) or FileExistsW(Path))
+    Result :=  ((Path[1] = '\') and (Path[2] = '\')) and (DirectoryExists(PWideChar(Path)) or FileExists(Path))
   else
     Result := False
 end;
 
-function IsUNCPathSyntax(const Path: WideString): Boolean;
+function IsUNCPathSyntax(const Path: string): Boolean;
 begin
   if Length(Path) > 2 then
     Result :=  ((Path[1] = '\') and (Path[2] = '\'))
@@ -3500,7 +2695,7 @@ begin
     Result := False
 end;
 
-  function StrRetToStr(StrRet: TStrRet; APIDL: PItemIDList): WideString;
+function StrRetToStr(StrRet: TStrRet; APIDL: PItemIDList): string;
 { Extracts the string from the StrRet structure.                                }
 var
   P: PAnsiChar;
@@ -3509,7 +2704,7 @@ begin
     STRRET_CSTR:
       begin
         P := @StrRet.cStr[0];
-        SetString(Result, P, System.AnsiStrings.StrLen(P));
+        SetString(Result, P, Length(P));
       end;
     STRRET_OFFSET:
       begin
@@ -3518,7 +2713,7 @@ begin
           {$R-}
           P := PAnsiChar(@(APIDL).mkid.abID[StrRet.uOffset - SizeOf(APIDL.mkid.cb)]);
           {$R+}
-          SetString(Result, P, System.AnsiStrings.StrLen(P));
+          SetString(Result, P, Length(P));
         end else
           Result := '';
       end;
@@ -3531,72 +2726,39 @@ begin
   end;
 end;
 
-function SystemDirectory: WideString;
+function SystemDirectory: string;
 var
   Len: integer;
-  S: AnsiString;
 begin
   Result := '';
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-    Len := GetSystemDirectoryW_MP(PWideChar(Result), 0)
-  else
-    Len := GetSystemDirectoryA(PAnsiChar(S), 0);
-  if Len > 0 then
+  Len := GetSystemDirectory(PWideChar(Result), 0);
   begin
-    if Win32Platform = VER_PLATFORM_WIN32_NT then
-    begin
-      SetLength(Result, Len - 1);
-      GetSystemDirectoryW_MP(PWideChar(Result), Len);
-    end else
-    begin
-      SetLength(S, Len - 1);
-      GetSystemDirectoryA(PAnsiChar(S), Len);
-      Result := string(S)
-    end
+    SetLength(Result, Len - 1);
+    GetSystemDirectory(PWideChar(Result), Len);
   end
 end;
 
 function SysMenuFont: HFONT;
 var
-  MetricsA: TNonClientMetricsA;
   MetricsW: TNonClientMetricsW;
 begin
-  if IsUnicode then
-  begin
-    FillChar(MetricsW, SizeOf(MetricsW), #0);
-    MetricsW.cbSize := SizeOf(MetricsW);
-    SystemParametersInfoW_MP(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsW), @MetricsW, 0);
-    Result := CreateFontIndirectW_MP(MetricsW.lfMenuFont);
-  end else
-  begin
-    FillChar(MetricsA, SizeOf(MetricsA), #0);
-    MetricsA.cbSize := SizeOf(MetricsA);
-    SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsA), @MetricsA, 0);
-    Result := CreateFontIndirectA(MetricsA.lfMenuFont);
-  end
+  FillChar(MetricsW, SizeOf(MetricsW), #0);
+  MetricsW.cbSize := SizeOf(MetricsW);
+  SystemParametersInfo(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsW), @MetricsW, 0);
+  Result := CreateFontIndirect(MetricsW.lfMenuFont);
 end;
 
 function SysMenuHeight: Integer;
 var
-  MetricsA: TNonClientMetricsA;
   MetricsW: TNonClientMetricsW;
 begin
-  if IsUnicode then
-  begin
-    FillChar(MetricsW, SizeOf(MetricsW), #0);
-    MetricsW.cbSize := SizeOf(MetricsW);
-    SystemParametersInfoW_MP(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsW), @MetricsW, 0);
-    Result := MetricsW.iMenuHeight
-  end else
-  begin
-    FillChar(MetricsA, SizeOf(MetricsA), #0);
-    MetricsA.cbSize := SizeOf(MetricsA);
-    SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsA), @MetricsA, 0);
-    Result := MetricsA.iMenuHeight
-  end
+  FillChar(MetricsW, SizeOf(MetricsW), #0);
+  MetricsW.cbSize := SizeOf(MetricsW);
+  SystemParametersInfo(SPI_GETNONCLIENTMETRICS, Sizeof(MetricsW), @MetricsW, 0);
+  Result := MetricsW.iMenuHeight
 end;
 
-function TextExtentW(Text: WideString; Font: TFont): TSize;
+function TextExtentW(Text: string; Font: TFont): TSize;
 var
   Canvas: TCanvas;
 begin
@@ -3618,7 +2780,7 @@ begin
   end
 end;
 
-function TextExtentW(Text: WideString; Canvas: TCanvas): TSize;
+function TextExtentW(Text: string; Canvas: TCanvas): TSize;
 begin
   FillChar(Result, SizeOf(Result), #0);
   if Assigned(Canvas) and (Text <> '') then
@@ -3650,11 +2812,10 @@ end;
 type
   TABCArray = array of TABC;
 
-function TextTrueExtentsW(Text: WideString; DC: HDC): TSize;
+function TextTrueExtentsW(Text: string; DC: HDC): TSize;
 var
   ABC: TABC;
   TextMetrics: TTextMetric;
-  S: string;
   i: integer;
 begin
    // Get the Height at least
@@ -3665,26 +2826,15 @@ begin
    begin
      Result.cx := 0;
      // Is TrueType
-     if Win32Platform = VER_PLATFORM_WIN32_NT then
+     for i := 1 to Length(Text) do
      begin
-       for i := 1 to Length(Text) do
-       begin
-         GetCharABCWidthsW_MP(DC, Ord(Text[i]), Ord(Text[i]), ABC);
-         Result.cx := Result.cx + ABC.abcA + integer(ABC.abcB) + ABC.abcC;
-       end
-     end else
-     begin
-       S := Text;
-       for i := 1 to Length(S) do
-       begin
-         GetCharABCWidthsA(DC, Ord(S[i]), Ord(S[i]), ABC);
-         Result.cx := Result.cx + ABC.abcA + integer(ABC.abcB) + ABC.abcC;
-       end
-     end;
+       GetCharABCWidths(DC, Ord(Text[i]), Ord(Text[i]), ABC);
+       Result.cx := Result.cx + ABC.abcA + integer(ABC.abcB) + ABC.abcC;
+     end
    end
 end;
 
-function UniqueFileName(const AFilePath: WideString): WideString;
+function UniqueFileName(const AFilePath: string): string;
 
 { Creates a unique file name in based on other files in the passed path         }
 
@@ -3694,12 +2844,12 @@ var
 begin
   Result := AFilePath;
   i := 2;
-  while FileExistsW(Result) and (i < 20) do
+  while FileExists(Result) and (i < 20) do
   begin
     Result := AFilePath;
-    WP := WideStrRScan(PWideChar( Result), '.');
+    WP := SysUtils.StrRScan(PWideChar( Result), '.');
     if Assigned(WP) then
-      WideInsert( ' (' + WideIntToStr(i) + ')', Result, PWideChar(WP) - PWideChar(Result))
+      Insert( ' (' + IntToStr(i) + ')', Result, PWideChar(WP) - PWideChar(Result))
     else begin
       Result := '';
       Break;
@@ -3708,21 +2858,21 @@ begin
   end;
 end;
 
-function UniqueDirName(const ADirPath: WideString): WideString;
+function UniqueDirName(const ADirPath: string): string;
 var
   i: integer;
 begin
   Result := ADirPath;
   i := 2;
-  while DirExistsW(PWideChar(Result)) and (i < 20) do
+  while DirectoryExists(PWideChar(Result)) and (i < 20) do
   begin
     Result := ADirPath;
-    WideInsert( ' (' + WideIntToStr(i) + ')', Result, Length(Result));
+    Insert( ' (' + IntToStr(i) + ')', Result, Length(Result));
     Inc(i)
   end;
 end;
 
-function WideStripExt(AFile: WideString): WideString;
+function WideStripExt(AFile: string): string;
 { Strips the extenstion off a file name }
 var
   i: integer;
@@ -3742,7 +2892,7 @@ begin
   end;
 end;
 
-function WideStripRemoteComputer(const UNCPath: WideString): WideString;
+function WideStripRemoteComputer(const UNCPath: string): string;
   // Strips the \\RemoteComputer\ part of an UNC path
 var
   Head: PWideChar;
@@ -3756,7 +2906,7 @@ begin
       Result := UNCPath;
       Head := @Result[1];
       Head := Head + 2;    // Skip past the '\\'
-      Head := WideStrScan(Head, WideChar('\'));
+      Head := SysUtils.StrScan(Head, WideChar('\'));
       if Assigned(Head) then
       begin
         Head := Head + 1;
@@ -3767,7 +2917,7 @@ begin
   end;
 end;
 
-function WideStripTrailingBackslash(const S: WideString; Force: Boolean = False): WideString;
+function WideStripTrailingBackslash(const S: string; Force: Boolean = False): string;
 begin
   Result := S;
   if Result <> '' then
@@ -3779,7 +2929,7 @@ begin
   end;
 end;
 
-function WideStripLeadingBackslash(const S: WideString): WideString;
+function WideStripLeadingBackslash(const S: string): string;
 begin
   Result := S;
   if Result <> '' then
@@ -3791,81 +2941,22 @@ begin
   end;
 end;
 
-function WideStringReplace(const S, OldPattern, NewPattern: WideString; Flags: TReplaceFlags; WholeWord: Boolean = False): WideString;
-begin
-  Result := StringReplace(S, OldPattern, NewPattern, Flags)
-end;
-
-function WideShellExecute(hWnd: HWND; Operation, FileName, Parameters, Directory: WideString; ShowCmd: Integer = SW_NORMAL): HINST;
+function WideShellExecute(hWnd: HWND; Operation, FileName, Parameters, Directory: string; ShowCmd: Integer = SW_NORMAL): HINST;
 var
-  OperationA, FileNameA, ParametersA, DirectoryA: AnsiString;
-  PA, DA: PAnsiChar;
   PW, DW: PWideChar;
 begin
-  if Assigned(ShellExecuteW_MP) then
-  begin
-    PW := nil;
-    DW := nil;
-    if Parameters <> '' then
-      PW := PWideChar(Parameters);
-    if Directory <> '' then
-      DW := PWideChar(Directory);   
-    Result := ShellExecuteW_MP(hWnd, PWideChar(Operation), PWideChar(FileName), PW, DW, SW_NORMAL)
-  end else
-  begin
-    OperationA := AnsiString(Operation);
-    FileNameA := AnsiString(FileName);
-    ParametersA := AnsiString(Parameters);
-    DirectoryA := AnsiString(Directory);
-    PA := nil;
-    DA := nil;
-    if ParametersA <> '' then
-      PA := PAnsiChar( ParametersA);
-    if DirectoryA <> '' then
-      DA := PAnsiChar( DirectoryA);
-    Result := ShellExecuteA(hWnd, PAnsiChar(OperationA), PAnsiChar(FileNameA), PA, DA, SW_NORMAL)
-  end
+  PW := nil;
+  DW := nil;
+  if Parameters <> '' then
+    PW := PWideChar(Parameters);
+  if Directory <> '' then
+    DW := PWideChar(Directory);
+  Result := ShellExecute(hWnd, PWideChar(Operation), PWideChar(FileName), PW, DW, SW_NORMAL)
 end;
 
-procedure WideShowMessage(Window: HWND; ACaption, AMessage: WideString);
-var
-  TextA, CaptionA: AnsiString;
+procedure WideShowMessage(Window: HWND; ACaption, AMessage: string);
 begin
-  if IsUnicode then
-    MessageBoxW(Window, PWideChar( AMessage), PWideChar( ACaption), MB_ICONEXCLAMATION or MB_OK)
-  else begin
-    TextA := AnsiString(AMessage);
-    CaptionA := AnsiString(ACaption);
-    MessageBoxA(Window, PAnsiChar( TextA), PAnsiChar( CaptionA), MB_ICONEXCLAMATION or MB_OK)
-  end          
-end;
-
-function WideLowerCase(const Str: WideString): WideString;
-begin
-  Result := Str;
-  if IsUnicode then
-    CharLowerBuffW_MP(PWideChar(Result), Length(Result))
-  else
-   CharLowerBuffA(PAnsiChar(AnsiString(Result)), Length(Result))
-end;
-
-function WideMessageBox(Window: HWND; const ACaption, AMessage: WideString; uType: integer): integer;
-var
-  TextA, CaptionA: AnsiString;
-begin
-  if IsUnicode then
-    Result := MessageBoxW(Window, PWideChar( AMessage), PWideChar( ACaption), uType)
-  else begin
-    TextA := AnsiString(AMessage);
-    CaptionA := AnsiString(ACaption);
-    Result := MessageBoxA(Window, PAnsiChar( TextA), PAnsiChar( CaptionA), uType)
-  end
-end;
-
-function IncludeTrailingBackslashW(const S: WideString): WideString;
-begin
-  Result := S;
-  if not WideIsPathDelimiter(Result, Length(Result)) then Result := Result + '\';
+  Windows.MessageBox(Window, PWideChar(AMessage), PWideChar(ACaption), MB_ICONEXCLAMATION or MB_OK)
 end;
 
 function DiskInDrive(C: AnsiChar): Boolean;
@@ -3884,89 +2975,18 @@ end;
 
 function WideStrIComp(Str1, Str2: PWideChar): Integer;
 // Insensitive case comparison
-var
-  S1, S2: AnsiString;
 begin
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-    Result := lstrcmpiW_MP(Str1, Str2)
-  else begin
-    S1 := AnsiString(Str1);
-    S2 := AnsiString(Str2);
-    Result := lstrcmpiA(PAnsiChar(S1), PAnsiChar(S2))
-  end
+  Result := lstrcmpi(Str1, Str2);
 end;
-
-function StrRScanW(Str: PWideChar; Chr: WideChar): PWideChar;
-// returns a pointer to the last occurance of Chr in Str
-{$ifdef CPUX64}
-begin
-  Result :=  StrRScan(Str, Chr);
-end;
-{$else}
-asm
-       PUSH    EDI
-       MOV     EDI, Str
-       MOV     ECX, 0FFFFFFFFH
-       XOR     AX, AX
-       REPNE   SCASW
-       NOT     ECX
-       STD
-       SUB     EDI, 2
-       MOV     AX, Chr
-       REPNE   SCASW
-       MOV     EAX, 0
-       JNE     @@1
-       MOV     EAX, EDI
-       ADD     EAX, 2
-@@1:
-       CLD
-       POP     EDI
-end;
-{$endif CPUX64}
 
 function WideStrComp(Str1, Str2: PWideChar): Integer;
 // Sensitive case comparison
-var
-  S1, S2: AnsiString;
 begin
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-    Result := lstrcmpW_MP(Str1, Str2)
-  else begin
-    S1 := AnsiString(Str1);
-    S2 := AnsiString(Str2);
-    Result := lstrcmpA(PAnsiChar(S1), PAnsiChar(S2))
-  end
+  Result := lstrcmp(Str1, Str2);
 end;
 
-function WideStrLower(Str: PWideChar): PWideChar;
-//  Returns the string in Str converted to lower case
-var
-  S: AnsiString;
-  WS: WideString;
-begin
-  Result := Str;
-  if IsUnicode then
-    CharLowerBuffW_MP(Str, lstrlenW(Str))
-  else begin
-    S := AnsiString(Str);
-    CharLowerBuffA(PAnsiChar(S), Length(S));
-    WS := string(S);
-    { WS is a string index from 1, Result is PWideChar index from 0 }
-    Move(WS[1], Result[0], Length(WS));
-  end;
-end;
-
-procedure WideStrLCopy(Str1, Str2: PWideChar; Count: Integer);
-// Count must include the terminating null
-begin
-    if Win32Platform = VER_PLATFORM_WIN32_NT then
-    lstrcpynW_MP(Str1, Str2, Count)
-  else
-    Move(Str2, Str1, Count * 2);
-end;
-
-function ShortenStringEx(DC: HDC; const S: WideString; Width: Integer; RTL: Boolean;
-  EllipsisPlacement: TShortenStringEllipsis): WideString;
+function ShortenStringEx(DC: HDC; const S: string; Width: Integer; RTL: Boolean;
+  EllipsisPlacement: TShortenStringEllipsis): string;
 // Shortens the passed string and inserts ellipsis "..." in the requested place.
 // This is not a fast function but it is clear how it works.  Also the RTL implmentation
 // is still being understood.
@@ -4087,60 +3107,34 @@ begin
   end;
 end;
 
-function WindowsDirectory: WideString;
+function WindowsDirectory: string;
 var
   Len: integer;
-  S: AnsiString;
 begin
   Result := '';
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-    Len := GetWindowsDirectoryW_MP(PWideChar(Result), 0)
-  else
-    Len := GetWindowsDirectoryA(PAnsiChar(S), 0);
+  Len := GetWindowsDirectory(PWideChar(Result), 0);
   if Len > 0 then
   begin
-    if IsUnicode then
-    begin
-      SetLength(Result, Len - 1);
-      GetWindowsDirectoryW_MP(PWideChar(Result), Len);
-    end else
-    begin
-      SetLength(S, Len - 1);
-      GetWindowsDirectoryA(PAnsiChar(S), Len);
-      Result := string(S)
-    end
+    SetLength(Result, Len - 1);
+    GetWindowsDirectory(PWideChar(Result), Len);
   end
 end;
 
-function ModuleFileName(PathOnly: Boolean = True): Widestring;
+function ModuleFileName(PathOnly: Boolean = True): string;
 var
-  BufferA: array[0..MAX_PATH] of AnsiChar;
   BufferW: array[0..MAX_PATH] of WideChar;
 begin
-  if IsUnicode then
+  FillChar(BufferW, SizeOf(BufferW), #0);
+  if GetModuleFileName(0, BufferW, SizeOf(BufferW)) > 0 then
   begin
-    FillChar(BufferW, SizeOf(BufferW), #0);
-    if GetModuleFileNameW_MP(0, BufferW, SizeOf(BufferW)) > 0 then
-    begin
-      if PathOnly then
-        Result := ExtractFileDirW(BufferW)
-      else
-        Result := BufferW;
-    end
-  end else
-  begin
-    FillChar(BufferA, SizeOf(BufferA), #0);
-    if GetModuleFileNameA(0 , BufferA, SizeOf(BufferA)) > 0 then
-    begin
-      if PathOnly then
-        Result := ExtractFileDir(string(BufferA))
-      else
-        Result := string(BufferA)
-    end
+    if PathOnly then
+      Result := ExtractFileDir(BufferW)
+    else
+      Result := BufferW;
   end
 end;
 
-function PIDLToPath(PIDL: PItemIDList): WideString;
+function PIDLToPath(PIDL: PItemIDList): string;
 var
   PIDLMgr: TCommonPIDLManager;
   LastID: PItemIDList;
@@ -4162,16 +3156,17 @@ begin
       end else
       begin
         PIDLMgr.StripLastID(PIDL, LastCB, LastID);
-        try
-          if Succeeded(Desktop.BindToObject(PIDL, nil, IShellFolder, pointer(Folder))) then
-          begin
+        if Assigned(LastID) then
+          try
+            if Succeeded(Desktop.BindToObject(PIDL, nil, IShellFolder, pointer(Folder))) then
+            begin
+              LastID.mkid.cb := LastCB;
+              if Succeeded(Folder.GetDisplayNameOf(LastID, SHGDN_FORPARSING, StrRet)) then
+                 Result := StrRetToStr(StrRet, LastID);
+            end
+          finally
             LastID.mkid.cb := LastCB;
-            if Succeeded(Folder.GetDisplayNameOf(LastID, SHGDN_FORPARSING, StrRet)) then
-               Result := StrRetToStr(StrRet, LastID);
           end
-        finally
-          LastID.mkid.cb := LastCB;
-        end
       end
     finally
       PIDLMgr.Free
@@ -4179,30 +3174,22 @@ begin
   end
 end;
 
-function ShortFileName(const FileName: WideString): WideString;
+function ShortFileName(const FileName: string): string;
 var
-  S: AnsiString;
-  BufferA: array[0..MAX_PATH] of AnsiChar;
   BufferW: array[0..MAX_PATH] of WideChar;
 begin
-  if IsUnicode then
-  begin
-    if GetShortPathNameW_MP(PWideChar(FileName), BufferW, SizeOf(BufferW)) > 0 then
-      Result := BufferW
-  end else
-  begin
-    S := AnsiString(FileName);
-    if GetShortPathNameA(PAnsiChar(S), BufferA, SizeOf(BufferA)) > 0 then
-      Result := string(BufferA)
-  end
+  if GetShortPathName(PWideChar(FileName), BufferW, SizeOf(BufferW)) > 0 then
+    Result := BufferW
+  else
+    Result := FileName;
 end;
 
-function ShortPath(const Path: WideString): WideString;
+function ShortPath(const Path: string): string;
 begin
   Result := ShortFileName(Path)
 end;
 
-procedure LoadWideString(S: TStream; var Str: WideString);
+procedure LoadWideString(S: TStream; var Str: string);
 var
   Count: Integer;
 begin
@@ -4217,7 +3204,7 @@ var
   LineDeltaImage32, PixelDeltaImage32: Integer;
   Alpha: Byte;
   PLineImage32, PPixelImage32: PByte;
-begin      
+begin
   Result := False;
   if Assigned(Image32) and (Image32.PixelFormat = pf32Bit) and (Image32.Height > 1) then
   begin
@@ -4228,7 +3215,7 @@ begin
       for I := 0 to Image32.Height - 1 do
       begin
         PPixelImage32 := PLineImage32;
-  
+
         for N := 0 to Image32.Width - 1 do
         begin
           // Source GetColorValues ; Profiled = ~24-30% of time
@@ -4243,7 +3230,7 @@ begin
   end
 end;
 
-procedure SaveWideString(S: TStream; Str: WideString);
+procedure SaveWideString(S: TStream; Str: string);
 var
   Count: Integer;
 begin
@@ -4251,63 +3238,6 @@ begin
   S.Write(Count, SizeOf(Integer));
   S.Write(PWideChar(Str)^, Count * 2)
 end;
-
-
-function WideStrPos(Str, SubStr: PWideChar): PWideChar;
-// returns a pointer to the first occurance of SubStr in Str
-{$ifdef CPUX64}
-begin
-  Result :=  StrPos(Str, SubStr);
-end;
-{$else}
-asm
-       PUSH    EDI
-       PUSH    ESI
-       PUSH    EBX
-       OR      EAX, EAX
-       JZ      @@2
-       OR      EDX, EDX
-       JZ      @@2
-       MOV     EBX, EAX
-       MOV     EDI, EDX
-       XOR     AX, AX
-       MOV     ECX, 0FFFFFFFFH
-       REPNE   SCASW
-       NOT     ECX
-       DEC     ECX
-       JZ      @@2
-       MOV     ESI, ECX
-       MOV     EDI, EBX
-       MOV     ECX, 0FFFFFFFFH
-       REPNE   SCASW
-       NOT     ECX
-       SUB     ECX, ESI
-       JBE     @@2
-       MOV     EDI, EBX
-       LEA     EBX, [ESI - 1]
-@@1:
-       MOV     ESI, EDX
-       LODSW
-       REPNE   SCASW
-       JNE     @@2
-       MOV     EAX, ECX
-       PUSH    EDI
-       MOV     ECX, EBX
-       REPE    CMPSW
-       POP     EDI
-       MOV     ECX, EAX
-       JNE     @@1
-       LEA     EAX, [EDI - 2]
-       JMP     @@3
-
-@@2:
-       XOR     EAX, EAX
-@@3:
-       POP     EBX
-       POP     ESI
-       POP     EDI
-end;
-{$endif CPUX64}
 
 function ProperRect(Rect: TRect): TRect;
 // Makes sure a rectangle's left is less than its right and its top is less than its bottom
@@ -4387,16 +3317,6 @@ begin
     if HadCapture then
       Mouse.Capture := Handle;
   end;
-end;
-
-procedure FillWideChar(var Dest; count: Integer; Value: WideChar);
-var
-  I: Integer;
-  P: PWideChar;
-begin
-  P := PWideChar(@Dest);
-  for I := count-1 downto 0 do
-    P[I] := Value;
 end;
 
 procedure FreeMemAndNil(var P: Pointer);
@@ -4669,13 +3589,10 @@ var
   PFileIconInit: TFileIconInit;
 begin
   Result := False;
-  if (Win32Platform = VER_PLATFORM_WIN32_NT) then
-  begin
-    ShellDLL := CommonLoadLibrary(Shell32);
-    PFileIconInit := GetProcAddress(ShellDLL, PAnsiChar(660));
-    if (Assigned(PFileIconInit)) then
-      Result := PFileIconInit(FullInit);
-  end;
+  ShellDLL := CommonLoadLibrary(Shell32);
+  PFileIconInit := GetProcAddress(ShellDLL, PAnsiChar(660));
+  if (Assigned(PFileIconInit)) then
+    Result := PFileIconInit(FullInit);
 end;
 
 function SHGetImageList(iImageList: Integer; const RefID: TGUID; out ppvOut): HRESULT; stdcall;
@@ -4685,16 +3602,13 @@ var
   ImageList: TSHGetImageList;
 begin
   Result := E_NOTIMPL;
-  if (Win32Platform = VER_PLATFORM_WIN32_NT) then
-  begin
  //   if GetFileVersion(comctl32) >= $00060000 then
-    begin
-      ShellDLL := CommonLoadLibrary(Shell32);
-      ImageList := GetProcAddress(ShellDLL, PAnsiChar(727));
-      if (Assigned(ImageList)) then
-        Result := ImageList(iImageList, RefID, ppvOut);
-    end
-  end;
+  begin
+    ShellDLL := CommonLoadLibrary(Shell32);
+    ImageList := GetProcAddress(ShellDLL, PAnsiChar(727));
+    if (Assigned(ImageList)) then
+      Result := ImageList(iImageList, RefID, ppvOut);
+  end
 end;
 
 function Size(cx, cy: Integer): TSize;
@@ -4703,17 +3617,14 @@ begin
   Result.cx := cx
 end;
 
-function ShortenTextW(DC: hDC; TextToShorten: WideString; MaxSize: Integer): WideString;
+function ShortenTextW(DC: hDC; TextToShorten: string; MaxSize: Integer): string;
 // Shortens the passed string in such a way that if it does not fit in the MaxSize
 // (in Pixels) a "..." is inserted at the correct place where the new string fixs
 // in MaxSize
 var
   Size: TSize;
   EllipsisSize: TSize;
-//  TailA: String;
   StrLen, Middle, Low, High{, LastHigh}: Cardinal;
-// WChar: WideChar;
-//  Done: Boolean;
 begin
   if TextToShorten <> '' then
   begin
@@ -4722,52 +3633,18 @@ begin
     StrLen := Length(TextToShorten);
     if Size.cx > MaxSize then
     begin
-   (*   Middle := StrLen div 2;
-      Done := False;
-      Low := 0;
-      High := StrLen;
-      LastHigh := High;
-      // Do a psudo binary search
-      while not Done do
-      begin
-        GetTextExtentPoint32W(DC, @TextToShorten[1], Middle, Size);
-        Size.cx := Size.cx + EllipsisSize.cx;
-
-        if Size.cx > MaxSize then
-        begin
-          // Still to long
-          LastHigh := High;
-          High := Middle;
-          Middle := Low + (High - Low) div 2;
-        end else
-        begin
-          // Too short
-          High := LastHigh;
-          Low := Middle;
-
-          Middle := Low + (High - Low) div 2;
-        end;
-        Done := High - Low <= 2;
-      end;      *)
-
-      // Milan's version
       Low:=0;
       High:=StrLen-1;
       while (Low<High) do
         begin
           Middle:=(Low+High+1) shr 1;
-      //    if IsUnicode then
-            GetTextExtentPoint32W(DC, @TextToShorten[1], Middle, Size);
-      //    else begin
-      //      TailA := TextToShorten[1];
-      //      GetTextExtentPoint32(DC, @TailA[1], 1, Size);
-      //    end;
+          GetTextExtentPoint32W(DC, @TextToShorten[1], Middle, Size);
           Size.cx := Size.cx + EllipsisSize.cx;
           if (Size.cx<=MaxSize) then
             Low:=Middle
           else
             High:=Middle-1;
-        end; 
+        end;
 
       SetLength(TextToShorten, Low);
       if Low > 0 then
@@ -4780,146 +3657,8 @@ begin
     Result := '';
 end;
 
-(*
-function SplitTextW(DC: hDC; TextToSplit: WideString; MaxWidth: Integer;
-  var Buffer: TWideCharArray; MaxSplits: Integer): Integer;
-// Takes the passed string and breaks it up so each piece fits within the MaxWidth
-// The function detects any LF/CR pairs and treats them as one break if CR or LF
-// is defined as a break character.
-// The Buffer is a set of NULL terminated strings for each line, with the last
-// one being terminated with a double NULL.  Much like the SHFileOperation API
-// This makes it ready to use to pass the strings to ExtTextOutW in a loop
-// If the buffer is too small the Result will be false
-// If MaxSplits = -1 then the function splits as many time as necessary
-// The Return is the total number of lines the passed text was split into
-var
-  Head, Tail, LastBreakChar, BufferHead: PWideChar;
-  Size: TSize;
-  LineWidth, SplitCount, Len: Integer;
-  TextMetrics: TTextMetric;
- { PeriodW1, PeriodW2, PeriodW3: Integer;  }
-begin
-  Result := 0;
-  if MaxWidth = 0 then
-  begin
-    SetLength(Buffer, 2);
-    Buffer[0] := WideNull;
-    Buffer[1] := WideNull;
-  end else
-  begin
-    GetTextMetrics(DC, TextMetrics);
-
-    // Can get into deep trouble if a single letter won't fit in the MaxWidth
-    if TextMetrics.tmMaxCharWidth > MaxWidth then
-    begin
-      Len := Length(TextToSplit);
-      SetLength(Buffer, Len + 2);
-      if Len > 0 then
-      begin
-        Head := @TextToSplit[1];
-        CopyMemory(Buffer, Head, Len*2);
-        Result := 1;
-      end;
-      Buffer[Len] := #0;
-      Buffer[Len + 1] := #0;
-    end else
-    begin
-      FillChar(Size, SizeOf(Size), #0);
-      // Arbitrary size that should be ok in most instances.  This will be enough space
-      // for 127 lines
-      SetLength(Buffer, Length(TextToSplit) + 128);
-      BufferHead := @Buffer[0];
-      Head := PWideChar(TextToSplit);
-      Tail := Head;
-      SplitCount := 0;
-      while (Tail^ <> #0) and ((SplitCount < MaxSplits) or (MaxSplits = -1)) do
-      begin
-        LineWidth := 0;
-        LastBreakChar := nil;
-        while (Tail^ <> WideNull) and (LineWidth <= MaxWidth) and (Tail^ <> WideCR) and (Tail^ <> WideLF) do
-        begin
-          GetTextExtentPoint32W(DC, PWideChar(Tail), 1, Size);
-          Inc(LineWidth, Size.cx);
-
-          Inc(Tail);
-
-          if (LineWidth <= MaxWidth) and (Tail^ = WideSpace) then
-            LastBreakChar := Tail;
-        end;
-
-        if (LineWidth > MaxWidth) {and (Tail^ <> WideSpace)} then
-        begin
-          // Over ran the line unless it exactly fits
-          if Assigned(LastBreakChar) and (LineWidth > MaxWidth) then
-          begin
-            // We have word break to go back to
-            Tail := LastBreakChar;
-            Inc(SplitCount);
-            if SplitCount = MaxSplits then
-            begin
-              // If no more splits allows copy the entire rest of the string to the buffer
-              Len := lStrLenW(Head);
-              CopyMemory(BufferHead, Head, Len*2);
-              Inc(BufferHead, Len);
-            end else
-            begin
-              CopyMemory(BufferHead, Head, (Tail-Head)*2);
-              Inc(BufferHead, Tail-Head);
-            end;
-            BufferHead^ := WideNull;
-            Inc(BufferHead);
-          end else
-          begin
-            // Special case, the Tail is the end of the Text to split
-            if Tail^ <> WideNull then
-              Dec(Tail);
-            Inc(SplitCount);
-            if SplitCount = MaxSplits then
-            begin
-              // If no more splits allows copy the entire rest of the string to the buffer
-              Len := lStrLenW(Head);
-              CopyMemory(BufferHead, Head, Len*2);
-              Inc(BufferHead, Len);
-            end else
-            begin
-              CopyMemory(BufferHead, Head, (Tail-Head)*2);
-              Inc(BufferHead, Tail-Head);
-            end;
-            BufferHead^ := WideNull;
-            Inc(BufferHead);
-          end;
-          Inc(Result);
-        end else
-        begin
-          Inc(SplitCount);
-          if SplitCount = MaxSplits then
-          begin
-            // If no more splits allows copy the entire rest of the string to the buffer
-            Len := lStrLenW(Head);
-            CopyMemory(BufferHead, Head, Len*2);
-            Inc(BufferHead, Len);
-          end else
-          begin
-            CopyMemory(BufferHead, Head, (Tail-Head)*2);
-            Inc(BufferHead, Tail-Head);
-          end;
-          BufferHead^ := WideNull;
-          Inc(BufferHead);
-          Inc(Result)
-        end;
-
-        while (Tail^ <> #0) and ((Tail^ = WideCR) or (Tail^ = WideLF) or (Tail^ = WideSpace)) do
-          Inc(Tail);
-        Head := Tail
-      end
-    end
-  end
-end;
-*)
-
-
 // Solerman's version
-function SplitTextW(DC: hDC; TextToSplit: WideString; MaxWidth: Integer;
+function SplitTextW(DC: hDC; TextToSplit: string; MaxWidth: Integer;
    var Buffer: TCommonWideCharArray; MaxSplits: Integer): Integer;
 // Takes the passed string and breaks it up so each piece fits within the MaxWidth
 // The function detects any LF/CR pairs and treats them as one break if CR or LF
@@ -4976,12 +3715,7 @@ begin
          LastBreakChar := nil;
          while (Tail^ <> WideNull) and (LineWidth <= MaxWidth) and (Tail^ <> WideCR) and (Tail^ <> WideLF) do
          begin
-    //       if IsUnicode then
-             GetTextExtentPoint32W(DC, PWideChar(Tail), 1, Size);
-   //        else begin
-   //          TailA := Tail^;
-   //          GetTextExtentPoint32(DC, @TailA[1], 1, Size);
-   //        end;
+           GetTextExtentPoint32W(DC, PWideChar(Tail), 1, Size);
            Inc(LineWidth, Size.cx);
 
            Inc(Tail);
@@ -5019,35 +3753,6 @@ begin
        end
      end
    end
-end;
-
-function VariantToCaption(const V: Variant): WideString;
-var
-  DateTime: TDateTime;
-begin
-  case VarType(V) of
-    varString, varOleStr:
-      Result := VarToWideStr(V);
-
-    varInteger, varWord, varShortInt, varLongWord, varSmallint,  varByte:
-      Result := IntToStr(V);
-    varDate:
-      begin
-        DateTime := V;
-        if Trunc(DateTime) = DateTime then // no time portion
-          Result := DateToStr(DateTime)
-        else
-          Result := DateTimeToStr(DateTime);
-      end;
-    varCurrency:
-      Result := CurrToStr(V);
-    varSingle, varDouble:
-      Result := FloatToStrF(V, ffFixed, 15, 2);
-    varBoolean:
-      Result := BoolToStr(V, True);
-  else
-    Result := VarToWideStrDef(V, '');
-  end;
 end;
 
 function StrCopyW(Dest, Source: PWideChar): PWideChar;
@@ -5107,7 +3812,7 @@ function RGBToHLS(const RGB: TCommonRGB): TCommonHLS;
 
 // Converts from RGB to HLS.
 // Input parameters and result values are all in the range 0..1.
-// Note: Hue is normalized so 360° corresponds to 1.
+// Note: Hue is normalized so 360ï¿½ corresponds to 1.
 
 var
   Delta,
@@ -5148,7 +3853,7 @@ begin
 
       H := H / 6;
       if H < 0 then
-        H := H + 1;  
+        H := H + 1;
     end
   end;
 end;
@@ -5157,7 +3862,7 @@ function HLSToRGB(const HLS: TCommonHLS): TCommonRGB;
 
 // Converts from HLS (hue, luminance, saturation) to RGB.
 // Input parameters and result values are all in the range 0..1.
-// Note: Hue is normalized so 360° corresponds to 1.
+// Note: Hue is normalized so 360ï¿½ corresponds to 1.
 
   //--------------- local function --------------------------------------------
 
@@ -5176,7 +3881,7 @@ function HLSToRGB(const HLS: TCommonHLS): TCommonRGB;
       if 2 * Hue < 1 then
         Result := m2
       else
-        if 3 * Hue < 2 then                    
+        if 3 * Hue < 2 then
           Result := m1 + (m2 - m1) * (2 / 3 - Hue) * 6
         else
           Result := m1;
@@ -5310,7 +4015,7 @@ var
   OldRGB, TempRGB: LongInt;
   P: PLongInt;
 begin
-  Result := False;   
+  Result := False;
   Assert(Bits.PixelFormat = pf32Bit, 'UpsideDownDIB only works with 32 bit bitmaps');
   if Bits.PixelFormat = pf32Bit then
   begin
@@ -5388,124 +4093,36 @@ begin
   begin
     // We can be sure these are already loaded.  This keeps us from having to
     // reference count when VSTools is being used in an OCX
-    Shell32Handle := GetModuleHandle(Shell32);   
+    Shell32Handle := GetModuleHandle(Shell32);
     Kernel32Handle := GetModuleHandle(Kernel32);
-    User32Handle := GetModuleHandle(User32);
-    GDI32Handle := GetModuleHandle(GDI32);
     AdvAPI32Handle := GetModuleHandle(AdvAPI32);
     ShlwapiHandle := CommonLoadLibrary(Shlwapi);
     UserEnvHandle := CommonLoadLibrary('Userenv.dll');
 
-    GetDiskFreeSpaceExA_MP := GetProcAddress(Kernel32Handle, 'GetDiskFreeSpaceA');
-    TrackMouseEvent_MP := GetProcAddress(User32Handle, 'TrackMouseEvent');
-
-    if Win32Platform = VER_PLATFORM_WIN32_NT then
+    if ShlwapiHandle <> 0 then
     begin
-      GetDriveTypeW_MP := GetProcAddress(Kernel32Handle, 'GetDriveTypeW');
-      DrawTextW_MP := GetProcAddress(User32Handle, 'DrawTextW');
-      SHGetFileInfoW_MP := GetProcAddress(Shell32Handle, 'SHGetFileInfoW');
-      CreateFileW_MP := GetProcAddress(Kernel32Handle, 'CreateFileW');
-      SHGetDataFromIDListW_MP := GetProcAddress(Shell32Handle, 'SHGetDataFromIDListW');
-      FindFirstFileW_MP := GetProcAddress(Kernel32Handle, 'FindFirstFileW');
-      FindNextFileW_MP := GetProcAddress(Kernel32Handle, 'FindNextFileW');
-      lstrcmpiW_MP := GetProcAddress(Kernel32Handle, 'lstrcmpiW');
-      lstrcmpW_MP := GetProcAddress(Kernel32Handle, 'lstrcmpW');
-      lstrcpynW_MP := GetProcAddress(Kernel32Handle, 'lstrcpynW');
-      lstrcpyW_MP := GetProcAddress(Kernel32Handle, 'lstrcpyW');
-      CharLowerBuffW_MP := GetProcAddress(User32Handle, 'CharLowerBuffW');
-      CharUpperBuffW_MP := GetProcAddress(User32Handle, 'CharUpperBuffW');
-      CreateDirectoryW_MP := GetProcAddress(Kernel32Handle, 'CreateDirectoryW');
-      GetFullPathNameW_MP := GetProcAddress(Kernel32Handle, 'GetFullPathNameW');
-      GetModuleFileNameW_MP := GetProcAddress(Kernel32Handle, 'GetModuleFileNameW');
-      ShellExecuteExW_MP := GetProcAddress(Shell32Handle, 'ShellExecuteExW');
-      ShellExecuteW_MP := GetProcAddress(Shell32Handle, 'ShellExecuteW');
-      FindFirstChangeNotificationW_MP := GetProcAddress(Kernel32Handle, 'FindFirstChangeNotificationW');
-      GetCharABCWidthsW_MP := GetProcAddress(GDI32Handle, 'GetCharABCWidthsW');
-      GetFileAttributesW_MP := GetProcAddress(Kernel32Handle, 'GetFileAttributesW');
-      GetShortPathNameW_MP := GetProcAddress(Kernel32Handle, 'GetShortPathNameW');
-      GetSystemDirectoryW_MP := GetProcAddress(Kernel32Handle, 'GetSystemDirectoryW');
-      GetWindowsDirectoryW_MP := GetProcAddress(Kernel32Handle, 'GetWindowsDirectoryW');
-      GetDiskFreeSpaceExW_MP := GetProcAddress(Kernel32Handle, 'GetDiskFreeSpaceExW');
-      SetWindowTextW_MP := GetProcAddress(User32Handle, 'SetWindowTextW');
-      GetNumberFormatW_MP := GetProcAddress(Kernel32Handle, 'GetNumberFormatW');
-      RegOpenKeyW_MP := GetProcAddress(AdvAPI32Handle, 'RegOpenKeyW');
-      RegOpenKeyExW_MP := GetProcAddress(AdvAPI32Handle, 'RegOpenKeyExW');
-      RegQueryValueW_MP := GetProcAddress(AdvAPI32Handle, 'RegQueryValueW');
-      WritePrivateProfileStringW_MP := GetProcAddress(Kernel32Handle, 'WritePrivateProfileStringW');
-      GetPrivateProfileStringW_MP := GetProcAddress(Kernel32Handle, 'GetPrivateProfileStringW');
-      WritePrivateProfileStructW_MP := GetProcAddress(Kernel32Handle, 'WritePrivateProfileStructW');
-      GetPrivateProfileStructW_MP := GetProcAddress(Kernel32Handle, 'GetPrivateProfileStructW');
-      TryEnterCriticalSection_MP := GetProcAddress(Kernel32Handle, 'TryEnterCriticalSection');
-      InsertMenuItemW_MP := GetProcAddress(User32Handle, 'InsertMenuItemW');
-      SendMessageW_MP := GetProcAddress(User32Handle, 'SendMessageW');
-      SetFileAttributesW_MP := GetProcAddress(Kernel32Handle, 'SetFileAttributesW');
-      CreateFontIndirectW_MP := GetProcAddress(GDI32Handle, 'CreateFontIndirectW');
-      SystemParametersInfoW_MP := GetProcAddress(User32Handle, 'SystemParametersInfoW');
-      SHGetPathFromIDListW_MP := GetProcAddress(Shell32Handle, 'SHGetPathFromIDListW');
-      SHFileOperationW_MP := GetProcAddress(Shell32Handle, 'SHFileOperationW');
-      SHBrowseForFolderW_MP := GetProcAddress(Shell32Handle, 'SHBrowseForFolderW');
-      GetDiskFreeSpaceW_MP := GetProcAddress(Kernel32Handle, 'GetDiskFreeSpaceW');
-      GetCurrentDirectoryW_MP := GetProcAddress(Kernel32Handle, 'GetCurrentDirW');
-      GetTempPathW_MP := GetProcAddress(Kernel32Handle, 'GetTempPathW');
-      AllowSetForegroundWindow_MP := GetProcAddress(User32Handle, 'AllowSetForegroundWindow');
-      if ShlwapiHandle <> 0 then
-      begin
-        PathMatchSpecA_MP := GetProcAddress(ShlwapiHandle, 'PathMatchSpecA');
-        PathMatchSpecW_MP := GetProcAddress(ShlwapiHandle, 'PathMatchSpecW');
-      end;
-      CreateProcessW_MP := GetProcAddress(Kernel32Handle, 'CreateProcessW');
-      SHDoDragDrop_MP := GetProcAddress(Shell32Handle, 'SHDoDragDrop');
-      SHGetKnownFolderPath_MP := GetProcAddress(Shell32Handle, 'SHGetKnownFolderPath');
-      SHGetKnownFolderIDList_MP := GetProcAddress(Shell32Handle, 'SHGetKnownFolderIDList');
-      ExpandEnvironmentStringsW_MP := GetProcAddress(Kernel32Handle, 'ExpandEnvironmentStringsW');
-
-      ExpandEnvironmentStringsForUserW_MP := GetProcAddress(UserEnvHandle, 'ExpandEnvironmentStringsForUserW');
-      ExpandEnvironmentStringsForUserA_MP := GetProcAddress(UserEnvHandle, 'ExpandEnvironmentStringsForUserA');
-
-      // NTFS Volume (Junction) only functions
-      DeleteVolumeMountPoint_MP := GetProcAddress(Kernel32Handle, 'DeleteVolumeMountPointA');
-      GetVolumeNameForVolumeMountPoint_MP := GetProcAddress(Kernel32Handle, 'GetVolumeNameForVolumeMountPointA');
-      GetVolumePathName_MP := GetProcAddress(Kernel32Handle, 'GetVolumePathNameA');
-      SetVolumeMountPoint_MP := GetProcAddress(Kernel32Handle, 'SetVolumeMountPointA');
-      FindFirstVolume_MP := GetProcAddress(Kernel32Handle, 'FindFirstVolumeA');
-      FindNextVolume_MP := GetProcAddress(Kernel32Handle, 'FindNextVolumeA');
-      FindVolumeClose_MP := GetProcAddress(Kernel32Handle, 'FindVolumeClose');
-      FindFirstVolumeMountPoint_MP := GetProcAddress(Kernel32Handle, 'FindFirstVolumeMountPointA');
-      FindNextVolumeMountPoint_MP := GetProcAddress(Kernel32Handle, 'FindNextVolumeMountPointA');
-      FindVolumeMountPointClose_MP := GetProcAddress(Kernel32Handle, 'FindVolumeMountPointClose');
-      FindFirstFileExW_MP := GetProcAddress(Kernel32Handle, 'FindFirstFileExW');
-      CopyFileW_MP := GetProcAddress(Kernel32Handle, 'CopyFileW');
-      Wow64RevertWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64RevertWow64FsRedirection');
-      Wow64DisableWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64DisableWow64FsRedirection');
-      Wow64EnableWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64EnableWow64FsRedirection');   // Don't use this per M$, use the above two to disable and rever
-
-      NetAPI32Handle := CommonLoadLibrary('NETAPI32.DLL');
-      if NetAPI32Handle <> 0 then
-      begin
-        NetShareEnumW_MP := GetProcAddress(NetAPI32Handle, 'NetShareEnum');
-        NetApiBufferFree_MP := GetProcAddress(NetAPI32Handle, 'NetApiBufferFree');
-      end;
-
-      // Windows 7 stuff
-      SetCurrentProcessExplicitAppUserModelID_MP := GetProcAddress(Shell32Handle, 'SetCurrentProcessExplicitAppUserModelID');
-      SHGetPropertyStoreForWindow_MP := GetProcAddress(Shell32Handle, 'SHGetPropertyStoreForWindow');
-    end else
-    begin
-      SrvAPIHandle := CommonLoadLibrary('SVRAPI.DLL');  // Windows 95/98 only
-      if SrvAPIHandle <> 0 then 
-      begin
-        NetShareEnum_MP := GetProcAddress(SrvAPIHandle, 'NetShareEnum');
-        NetApiBufferFree_MP := GetProcAddress(SrvAPIHandle, 'NetApiBufferFree');
-      end
+      PathMatchSpecW_MP := GetProcAddress(ShlwapiHandle, 'PathMatchSpecW');
     end;
-    FindFirstFileExA_MP := GetProcAddress(Kernel32Handle, 'FindFirstFileExA');
 
+    ExpandEnvironmentStringsForUserW_MP := GetProcAddress(UserEnvHandle, 'ExpandEnvironmentStringsForUserW');
 
-    // SHMultiFileProperties only supported on Win2k and WinXP
-    // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/functions/shmultifileproperties.asp
-    SHMultiFileProperties_MP := GetProcAddress(Shell32Handle, PAnsiChar(716));
+    // NTFS Volume (Junction) only functions
+    Wow64RevertWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64RevertWow64FsRedirection');
+    Wow64DisableWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64DisableWow64FsRedirection');
+    Wow64EnableWow64FsRedirection_MP := GetProcAddress(Kernel32Handle, 'Wow64EnableWow64FsRedirection');   // Don't use this per M$, use the above two to disable and rever
+
+    NetAPI32Handle := CommonLoadLibrary('NETAPI32.DLL');
+    if NetAPI32Handle <> 0 then
+    begin
+      NetShareEnumW_MP := GetProcAddress(NetAPI32Handle, 'NetShareEnum');
+      NetApiBufferFree_MP := GetProcAddress(NetAPI32Handle, 'NetApiBufferFree');
+    end;
+
+    // Windows 7 stuff
+    SetCurrentProcessExplicitAppUserModelID_MP := GetProcAddress(Shell32Handle, 'SetCurrentProcessExplicitAppUserModelID');
+    SHGetPropertyStoreForWindow_MP := GetProcAddress(Shell32Handle, 'SHGetPropertyStoreForWindow');
+
     CDefFolderMenu_Create2_MP := GetProcAddress(Shell32Handle, PAnsiChar(701));
-    CDefFolderMenu_Create_MP := GetProcAddress(Shell32Handle, PAnsiChar(700));
 
     WideFunctionsLoaded := True
   end
@@ -5713,15 +4330,13 @@ begin
 end;
 
 initialization
+  Assert(IsUnicode, 'Windows veersion not supported');
   PIDLMgr := TCommonPIDLManager.Create;
   LoadWideFunctions;
-
-
 
 // If this unit is to be weak packages this must be removed
 finalization
   FreeAndNil(PIDLMgr);
   CommonUnloadAllLibraries;
-
 end.
 

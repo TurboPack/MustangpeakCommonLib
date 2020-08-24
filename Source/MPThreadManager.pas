@@ -23,15 +23,7 @@ unit MPThreadManager;
 
 interface
 
-{$I ..\Include\Addins.inc}
 {$WARN SYMBOL_PLATFORM OFF}
-
-{$B-}
-
-// See procedure TEasyThread.ExecuteStub; to understand what this does
-{.$DEFINE DEBUG_THREAD}
-{.$DEFINE DRAG_OUT_THREAD_SHUTDOWN}
-
 
 uses
   Windows,
@@ -42,9 +34,8 @@ uses
   ShlObj,
   ShellAPI,
   ActiveX,
-  MPShellTypes,
-  MPCommonObjects, MPCommonUtilities;
-
+  MPCommonObjects,
+  MPCommonUtilities;
 
 const
   COMMONTHREADFILTERWNDCLASS = 'clsEasyThreadFilter';
@@ -289,27 +280,26 @@ type
   // **************************************************************************
   TCommonShellExecuteThread = class(TCommonThread)
   private
-    FlpClass: WideString;
-    FlpDirectory: WideString;
-    FlpFile: WideString;
-    FlpParameters: WideString;
-    FlpVerb: WideString;
+    FlpClass: string;
+    FlpDirectory: string;
+    FlpFile: string;
+    FlpParameters: string;
+    FlpVerb: string;
     FPIDL: PItemIDList;
   protected
     procedure Execute; override;
   public
-    ShellExecuteInfoA: TShellExecuteInfoA;
     ShellExecuteInfoW: TShellExecuteInfoW;
 
     constructor Create(CreateSuspended: Boolean); override;
     destructor Destroy; override;
     // Need local variable for the strings and PIDLs so they won't get freed on
     // us before the thread uses them.
-    property lpClass: WideString read FlpClass write FlpClass;
-    property lpDirectory: WideString read FlpDirectory write FlpDirectory;
-    property lpFile: WideString read FlpFile write FlpFile;
-    property lpParameters: WideString read FlpParameters write FlpParameters;
-    property lpVerb: WideString read FlpVerb write FlpVerb;
+    property lpClass: string read FlpClass write FlpClass;
+    property lpDirectory: string read FlpDirectory write FlpDirectory;
+    property lpFile: string read FlpFile write FlpFile;
+    property lpParameters: string read FlpParameters write FlpParameters;
+    property lpVerb: string read FlpVerb write FlpVerb;
     property PIDL: PItemIDList read FPIDL write FPIDL;
   end;
 
@@ -337,7 +327,7 @@ type
   // **************************************************************************
   TCommonThreadManager = class(TComponent)
   private
-    FAClassName: AnsiString;
+    FAClassName: string;
     FControlList: TThreadList;
     FStub: ICallBackStub;
     FFilterWindow: HWND;
@@ -358,7 +348,7 @@ type
     procedure InternalUnRegisterControl(Window: TWinControl; LockedControlList: TList);
     procedure RegisterFilterWindow;
 
-    property AClassName: AnsiString read FAClassName write FAClassName;
+    property AClassName: string read FAClassName write FAClassName;
     property ControlList: TThreadList read FControlList write FControlList;
     property FilterWindow: HWND read GetFilterWindow write FFilterWindow;
   public
@@ -641,28 +631,7 @@ end;
 
 procedure TCommonThread.ExecuteStub;
 // Called in the context of the thread
-{$IFDEF DEBUG_THREAD}
-var
-  ThreadNameInfoA: TThreadNameInfoA;
-{$ENDIF}
 begin
-  {$IFDEF DEBUG_THREAD}
-  if IsWinNT then
-  begin
-    // Set the name for the thread to debug it with the Thread View panel.
-    // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-    // http://bdn.borland.com/article/0,1410,29800,00.html
-    ThreadNameInfoA.FType := $1000;
-    ThreadNameInfoA.FName := PAnsiChar(AnsiString(ClassName));
-    ThreadNameInfoA.FThreadID := $FFFFFFFF;
-    ThreadNameInfoA.FFlags := 0;
-    try
-      RaiseException($406D1388, 0, sizeof(ThreadNameInfoA) div sizeof(LongWord), @ThreadNameInfoA);
-    except
-    end;
-  end;
-  {$ENDIF}
-
   try
     FRunning := True;
     InitializeThread;
@@ -672,9 +641,6 @@ begin
     end
   finally
     FinalizeThread;
-    {$IFDEF DRAG_OUT_THREAD_SHUTDOWN}
-    Sleep(3000);
-    {$ENDIF}
     if FreeOnTerminate then
     begin
       // If FreeOnTerminate then the user can't expect to look at these
@@ -1013,7 +979,7 @@ constructor TCommonThreadManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlList := TThreadList.Create;
-  AClassName := AnsiString(COMMONTHREADFILTERWNDCLASS + IntToStr( Integer( Self)))
+  AClassName := COMMONTHREADFILTERWNDCLASS + IntToStr(NativeInt(Self));
 end;
 
 procedure TCommonThreadManager.CreateThreadObject;
@@ -1036,7 +1002,7 @@ begin
   // windows will not unregister it until the last thread has destroyed any windows
   // based on this class
   if AClassName <> '' then
-    Windows.UnregisterClassA(PAnsiChar( AnsiString(AClassName)), hInstance);
+    Windows.UnregisterClass(PWideChar(AClassName), hInstance);
   FreeAndNil(FControlList);
   FreeThread;
   inherited;
@@ -1403,11 +1369,11 @@ end;
 
 procedure TCommonThreadManager.RegisterFilterWindow;
 var
-  ClassInfo: TWndClassA;
+  ClassInfo: TWndClass;
 begin
   if FFilterWindow = 0 then
   begin
-    if not GetClassInfoA(hInstance, PAnsiChar( AnsiString(AClassName)), ClassInfo) then
+    if not GetClassInfo(hInstance, PWideChar(AClassName), ClassInfo) then
     begin
       if not Assigned(FStub) then
         FStub := TCallBackStub.Create(Self, @TCommonThreadManager.FilterWndProc, 4);
@@ -1420,10 +1386,10 @@ begin
       ClassInfo.hCursor := 0;
       ClassInfo.hbrBackground := 0;
       ClassInfo.lpszMenuName := '';
-      ClassInfo.lpszClassName := PAnsiChar( AnsiString(AClassName));
-      Windows.RegisterClassA(ClassInfo);
+      ClassInfo.lpszClassName := PWideChar(AClassName);
+      Windows.RegisterClass(ClassInfo);
     end;
-    FFilterWindow := CreateWindowA(PAnsiChar( AClassName), '', 0, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    FFilterWindow := CreateWindow(PWideChar(AClassName), '', 0, 0, 0, 0, 0, 0, 0, hInstance, nil);
   end
 end;
 
@@ -1551,7 +1517,6 @@ begin
   inherited;
   FreeOnTerminate := True;
   FillChar(ShellExecuteInfoW, SizeOf(ShellExecuteInfoW), #0);
-  FillChar(ShellExecuteInfoA, SizeOf(ShellExecuteInfoA), #0);
 end;
 
 destructor TCommonShellExecuteThread.Destroy;
@@ -1562,35 +1527,18 @@ end;
 
 procedure TCommonShellExecuteThread.Execute;
 begin
-  if IsUnicode then
-  begin
-    if lpClass <> '' then
-      ShellExecuteInfoW.lpClass := PWideChar(lpClass);
-    if lpDirectory <> '' then
-      ShellExecuteInfoW.lpDirectory := PWideChar(lpDirectory);
-    if lpFile <> '' then
-      ShellExecuteInfoW.lpFile := PWideChar(lpFile);
-    if lpParameters <> '' then
-      ShellExecuteInfoW.lpParameters := PWideChar(lpParameters);
-    if lpVerb <> '' then
-      ShellExecuteInfoW.lpVerb := PWideChar(lpVerb);
-    ShellExecuteInfoW.lpIDList := PIDL;
-    ShellExecuteExW_MP(@ShellExecuteInfoW);
-  end else
-  begin
-    if lpClass <> '' then
-      ShellExecuteInfoA.lpClass := PAnsiChar(AnsiString( lpClass));
-    if lpDirectory <> '' then
-      ShellExecuteInfoA.lpDirectory := PAnsiChar(AnsiString( lpDirectory));
-    if lpFile <> '' then
-      ShellExecuteInfoA.lpFile := PAnsiChar(AnsiString( lpFile));
-    if lpParameters <> '' then
-      ShellExecuteInfoA.lpParameters := PAnsiChar(AnsiString( lpParameters));
-    if lpVerb <> '' then
-      ShellExecuteInfoA.lpVerb := PAnsiChar(AnsiString( lpVerb));
-    ShellExecuteInfoA.lpIDList := PIDL;
-    ShellExecuteExA(@ShellExecuteInfoA);
-  end
+  if lpClass <> '' then
+    ShellExecuteInfoW.lpClass := PWideChar(lpClass);
+  if lpDirectory <> '' then
+    ShellExecuteInfoW.lpDirectory := PWideChar(lpDirectory);
+  if lpFile <> '' then
+    ShellExecuteInfoW.lpFile := PWideChar(lpFile);
+  if lpParameters <> '' then
+    ShellExecuteInfoW.lpParameters := PWideChar(lpParameters);
+  if lpVerb <> '' then
+    ShellExecuteInfoW.lpVerb := PWideChar(lpVerb);
+  ShellExecuteInfoW.lpIDList := PIDL;
+  ShellExecuteEx(@ShellExecuteInfoW);
 end;
 
 initialization

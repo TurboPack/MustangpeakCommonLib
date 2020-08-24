@@ -16,3 +16,6 @@ CBuilder/Sydney/Win32/
 *.obj
 *.bpi
 *.lib
+CBuilder/cpp/
+CBuilder/Sydney/Win64/
+Delphi/cpp/

@@ -23,9 +23,6 @@ unit MPResources;
 
 interface
 
-{$I ..\Include\Debug.inc}
-{$I ..\Include\Addins.inc}
-
 {$B-}
 
 {$IFDEF WEAKPACKAGING}
@@ -44,22 +41,22 @@ const
 
 var
   // General Error message
-  STR_ERROR: WideString = 'Error';
+  STR_ERROR: string = 'Error';
 
   // The name given a new folder when CreateNewFolder is called.
-  STR_NEWFOLDER: WideString = 'New Folder';
+  STR_NEWFOLDER: string = 'New Folder';
 
   // The verb sent to the context menu notification events if the selected context
   // menu item is a non standard verb.
-  STR_UNKNOWNCOMMAN: WideString = 'Unknown Command';
+  STR_UNKNOWNCOMMAN: string = 'Unknown Command';
 
-  STR_PROPERTIES: WideString = 'Properties';
-  STR_PASTE: WideString = 'Paste';
-  STR_PASTELINK: WideString = 'Paste Shortcut';
+  STR_PROPERTIES: string = 'Properties';
+  STR_PASTE: string = 'Paste';
+  STR_PASTELINK: string = 'Paste Shortcut';
 
   // Names shown in column headers if toShellColumnDetails is not used. In that
   // case the shell handles the names based on local.
-  STR_COLUMN_NAMES: array[0..9] of WideString = (
+  STR_COLUMN_NAMES: array[0..9] of string = (
     'Name',
     'Size',
     'Type',
@@ -74,24 +71,24 @@ var
 
   // Strings that are used to show the attributes of a file in Details view.  Only
   // applies if toShellColumnDetails is not used.
-  STR_ARCHIVE: WideString = 'A';
-  STR_HIDDEN: WideString = 'H';
-  STR_READONLY: WideString = 'R';
-  STR_SYSTEM: WideString = 'S';
-  STR_COMPRESS: WideString = 'C';
+  STR_ARCHIVE: string = 'A';
+  STR_HIDDEN: string = 'H';
+  STR_READONLY: string = 'R';
+  STR_SYSTEM: string = 'S';
+  STR_COMPRESS: string = 'C';
 
   // Strings that format the Details view in KB. Only applies if toShellColumnDetails
   // is not used.
-  STR_FILE_SIZE_IN_KB: WideString = 'KB';
-  STR_FILE_SIZE_IN_MB: WideString = 'MB';
-  STR_FILE_SIZE_IN_TB: WideString = 'TB';
-  STR_ZERO_KB: WideString = '0 KB';
-  STR_ONE_KB: WideString = '1 KB';
+  STR_FILE_SIZE_IN_KB: string = 'KB';
+  STR_FILE_SIZE_IN_MB: string = 'MB';
+  STR_FILE_SIZE_IN_TB: string = 'TB';
+  STR_ZERO_KB: string = '0 KB';
+  STR_ONE_KB: string = '1 KB';
 
   // What is displayed in the FileType column if VET could not get the information
   // the normal way and it had determined that the item is a system folder.
-  STR_SYSTEMFOLDER: WideString = 'System Folder';
-  STR_FILE: WideString = ' File'; // NT is lax in the FileType column if the file is not registered
+  STR_SYSTEMFOLDER: string = 'System Folder';
+  STR_FILE: string = ' File'; // NT is lax in the FileType column if the file is not registered
                                   // it returns nothing.  This is tacked on the end of the file extension
                                   // for example 'PAS Files', BAK Files, ZIP Files and so on.
 
@@ -99,13 +96,13 @@ var
   // VirtualShellLink strings
   // --------------------------------------------------------------------------
   // Message shown if an attempt to create a new link is made with no target defined
-  STR_NOTARGETDEFINED: WideString = 'No target application defined';
+  STR_NOTARGETDEFINED: string = 'No target application defined';
   // --------------------------------------------------------------------------
 
   // Shown when an operation in the TNamspace is being done on item that are not the
   // direct children of the TNamespace.  This is only a debugging aid, if the tree
   // is set up right this should never occur, i.e. restricted multiselect to one level
-  STR_ERR_BAD_PIDL_RELATIONSHIP: WideString = 'PIDLs to operate on are not siblings of the Namespace doing the operation.';
+  STR_ERR_BAD_PIDL_RELATIONSHIP: string = 'PIDLs to operate on are not siblings of the Namespace doing the operation.';
 
 implementation
 

@@ -27,8 +27,6 @@ unit MPCommonWizardHelpers;
 
 interface
 
-{$I ..\Include\Addins.inc}
-
 uses
   SysUtils,
   Windows,
@@ -676,7 +674,7 @@ end;
 
 function TCommonWizardNotifierObject.GetGlyph: Cardinal;
 begin
-  Result := LoadIconA(hInstance, PAnsiChar( AnsiString(GetGlpyhResourceID)));
+  Result := LoadIcon(hInstance, PWideChar(GetGlpyhResourceID));
 end;
 
 function TCommonWizardNotifierObject.GetDesigner: string;

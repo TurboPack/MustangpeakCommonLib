@@ -108,7 +108,6 @@
         <ILINK_AdditionalOptions> -Gl</ILINK_AdditionalOptions>
         <BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
         <BCC_PCHCache>true</BCC_PCHCache>
-        <PackageImports>rtl.bpi;vcl.bpi;vclx.bpi;designide.bpi;MPCommonLibC6.bpi;$(PackageImports)</PackageImports>
         <BCC_OutputDir>.\$(Platform)\$(Config)</BCC_OutputDir>
         <TASM_AdditionalSwitches> /w2 $(BDS)\projects\Intermed\</TASM_AdditionalSwitches>
         <ILINK_LibraryPath>..\Sydney\;..\..\Source\;$(BDS)\projects\lib;$(BDS)\lib\obj;$(BDS)\lib;$(BDS)\lib\psdk;$(ILINK_LibraryPath)</ILINK_LibraryPath>
@@ -358,13 +357,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin\cc32260.dll" Class="DependencyModule">
-                    <Platform Name="Win32">
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64260mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64260mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin\cc32260.dll" Class="DependencyModule">
+                    <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
