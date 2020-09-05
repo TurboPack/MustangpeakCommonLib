@@ -53,6 +53,7 @@ uses
   Graphics,
   Controls,
   Forms,
+  ImgList,
   Math,
   ActiveX,
   ShlObj,
@@ -388,6 +389,8 @@ function VScrollbarWidth: Integer;
 
 // Graphics
 procedure FillGradient(X1, Y1, X2, Y2: integer; fStartColor, fStopColor: TColor; StartPoint, EndPoint: integer; fDrawCanvas: TCanvas);
+procedure ResizeBitmap(Bitmap: TBitmap; const NewWidth, NewHeight: Integer);
+function ScaleImageList(Source: TCustomImageList; M, D: Integer): TCustomImageList;
 
 // Menu Functions
 function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
@@ -454,7 +457,11 @@ var
 implementation
 
 uses
-  System.UITypes, MPCommonObjects;
+  System.UITypes,
+  {$if CompilerVersion >= 21}
+  WinCodec,
+  {$ifend}
+  MPCommonObjects;
 
 type
   PLibRec = ^TLibRec;
@@ -789,6 +796,111 @@ begin
     end;
   end;
   fDrawCanvas.Brush.Color := tmpColor;
+end;
+
+procedure ResizeBitmap(Bitmap: TBitmap; const NewWidth, NewHeight: Integer);
+{$if CompilerVersion >= 21}
+var
+  Factory: IWICImagingFactory;
+  Scaler: IWICBitmapScaler;
+  Source : TWICImage;
+begin
+  Bitmap.AlphaFormat := afDefined;
+  Source := TWICImage.Create;
+  try
+    Source.Assign(Bitmap);
+    Factory := TWICImage.ImagingFactory;
+    Factory.CreateBitmapScaler(Scaler);
+    try
+      Scaler.Initialize(Source.Handle, NewWidth, NewHeight,
+        WICBitmapInterpolationModeHighQualityCubic);
+      Source.Handle := IWICBitmap(Scaler);
+    finally
+      Scaler := nil;
+      Factory := nil;
+    end;
+    Bitmap.Assign(Source);
+  finally
+    Source.Free;
+  end;
+{$else}
+var
+  B: TBitmap;
+begin
+  B := TBitmap.Create;
+  try
+    B.SetSize(NewWidth, NewHeight);
+    SetStretchBltMode(B.Canvas.Handle, STRETCH_HALFTONE);
+    B.Canvas.StretchDraw(Rect(0, 0, NewWidth, NewHeight), Bitmap);
+    Bitmap.SetSize(NewWidth, NewHeight);
+    Bitmap.Canvas.Draw(0, 0, B);
+  finally
+    B.Free;
+  end;
+{$ifend}
+end;
+
+function ScaleImageList(Source: TCustomImageList; M, D: Integer): TCustomImageList;
+const
+  ANDbits: array[0..2*16-1] of  Byte = ($FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF,
+                                        $FF,$FF);
+  XORbits: array[0..2*16-1] of  Byte = ($00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00,
+                                        $00,$00);
+var
+  I: integer;
+  Icon: HIcon;
+  IW, IH: Integer;
+begin
+  Result := TCustomImageList.CreateSize(MulDiv(Source.Width, M, D), MulDiv(Source.Height, M, D));
+
+  if M = D then
+  begin
+    Result.Assign(Source);
+    Exit;
+  end;
+
+  Result.ColorDepth := cd32Bit;
+  Result.DrawingStyle := Source.DrawingStyle;
+  Result.BkColor := Source.BkColor;
+  Result.BlendColor := Source.BlendColor;
+  for I := 0 to Source.Count-1 do
+  begin
+    Icon := ImageList_GetIcon(Source.Handle, I, LR_DEFAULTCOLOR);
+    if Icon = 0 then
+    begin
+      Icon := CreateIcon(hInstance,16,16,1,1,@ANDbits,@XORbits);
+    end;
+    ImageList_AddIcon(Result.Handle, Icon);
+    DestroyIcon(Icon);
+  end;
 end;
 
 function EqualWndMethod(A, B: TWndMethod): Boolean;

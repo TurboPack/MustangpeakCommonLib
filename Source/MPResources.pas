@@ -55,7 +55,7 @@ var
   STR_PASTELINK: string = 'Paste Shortcut';
 
   // Names shown in column headers if toShellColumnDetails is not used. In that
-  // case the shell handles the names based on local.
+  // case the shell handles the names based on locale.
   STR_COLUMN_NAMES: array[0..9] of string = (
     'Name',
     'Size',

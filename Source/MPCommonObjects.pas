@@ -29,6 +29,10 @@ uses
   Types,
   Windows,
   Messages,
+  {$if CompilerVersion >= 33}
+  Generics.Collections,
+  Messaging,
+  {$ifend}
   Classes,
   Controls,
   Graphics,
@@ -434,12 +438,10 @@ type
   TCommonSysImages = class(TImageList)
   private
     FImageSize: TSysImageListSize;
-    FJumboImages: IImageList;
     procedure SetImageSize(const Value: TSysImageListSize);
   protected
     procedure RecreateHandle;
     procedure Flush;
-    property JumboImages: IImageList read FJumboImages;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -447,15 +449,56 @@ type
     property ImageSize: TSysImageListSize read FImageSize write SetImageSize;
   end;
 
+{$IF CompilerVersion >= 33}
+  /// <summary>
+  /// TVirtualImageList component, which inherits from TCustomImageList
+  /// and uses an external TCustomImageList to draw scaled images
+  /// </summary>
+  TCommonVirtualImageList = class(TCustomImageList)
+  private
+    FDPIChangedMessageID: Integer;
+    FSourceImageList: TCustomImageList;
+    procedure SetSourceImageList(Value: TCustomImageList);
+    procedure DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
+  protected
+    function GetCount: Integer; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
+       Style: Cardinal; Enabled: Boolean = True); override;
+    property SourceImageList: TCustomImageList
+      read FSourceImageList write SetSourceImageList;
+    property Width;
+    property Height;
+  end;
+{$IFEND}
+
   function JumboSysImages : TCommonSysImages;
   function ExtraLargeSysImages: TCommonSysImages;
   function LargeSysImages: TCommonSysImages;
   function SmallSysImages: TCommonSysImages;
+  function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
+  function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
   procedure FlushImageLists;
   procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObject: Boolean; var ADataObject: IDataObject);
   procedure StripDuplicatesAndDesktops(NamespaceList: TList);
   function ILIsParent(PIDL1: PItemIDList; PIDL2: PItemIDList; ImmediateParent: LongBool): LongBool;
   function ILIsEqual(PIDL1: PItemIDList; PIDL2: PItemIDList): LongBool;
+
+type
+  (*  Helper methods for TControl *)
+  TControlHelper = class helper for TControl
+  public
+    {$IF CompilerVersion < 33}
+    function CurrentPPI: Integer;
+    function FCurrentPPI: Integer;
+    {$IFEND}
+    (* Scale a value according to the FCurrentPPI *)
+    function PPIScale(Value: integer): integer;
+    (* Reverse PPI Scaling  *)
+    function PPIUnScale(Value: integer): integer;
+  end;
 
 var
   StreamHelper: TCommonMemoryStreamHelper;
@@ -466,6 +509,7 @@ var
 implementation
 
 uses
+  UITypes,
   MPCommonUtilities,
   MPDataObject,
   MPShellUtilities,
@@ -478,6 +522,10 @@ var
   FExtraLargeSysImages: TCommonSysImages = nil;
   FLargeSysImages: TCommonSysImages = nil;
   FSmallSysImages: TCommonSysImages = nil;
+  {$if CompilerVersion >= 33}
+  FLargeSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
+  FSmallSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
+  {$ifend}
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
   ILIsEqual_MP: TILIsEqual = nil;
@@ -554,6 +602,50 @@ begin
   end;
   Result := FSmallSysImages
 end;
+
+{$if CompilerVersion >= 33}
+function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
+begin
+  if Screen.PixelsPerInch = PPI then
+    Result := LargeSysImages
+  else
+  begin
+    if not Assigned(FLargeSysImagesForPPI) then
+      FLargeSysImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
+    if not FLargeSysImagesForPPI.TryGetValue(PPI, Result) then
+    begin
+      Result := ScaleImageList(SmallSysImages, PPI, Screen.PixelsPerInch);
+      Result.DrawingStyle := dsTransparent;
+      FLargeSysImagesForPPI.Add(PPI, Result);
+    end;
+  end;
+end;
+
+function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
+begin
+  if Screen.PixelsPerInch = PPI then
+    Result := SmallSysImages
+  else
+  begin
+    if not Assigned(FSmallSysImagesForPPI) then
+      FSmallSysImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
+    if not FSmallSysImagesForPPI.TryGetValue(PPI, Result) then
+    begin
+      Result := ScaleImageList(SmallSysImages, PPI, Screen.PixelsPerInch);
+      FSmallSysImagesForPPI.Add(PPI, Result);
+    end;
+  end;
+end;
+{$else}
+function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
+begin
+  Result := LargeSysImages;
+end;
+function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
+begin
+  Result := SmallSysImages;
+end;
+{$ifend}
 
 procedure StripDuplicatesAndDesktops(NamespaceList: TList);
 
@@ -2209,52 +2301,157 @@ end;
 
 procedure TCommonSysImages.RecreateHandle;
 var
-  PIDL: PItemIDList;
-  Malloc: IMalloc;
-  FileInfo: TSHFileInfoA;
-  Flags: Longword;
+  IL : IImageList;
+Const
+  ImageFlag: array[TSysImageListSize] of Integer =
+    (SHIL_SMALL, SHIL_LARGE, SHIL_EXTRALARGE, SHIL_JUMBO);
 begin
   Handle := 0;
-  if FImageSize = sisJumbo then
-  begin
-    if Succeeded(SHGetImageList(SHIL_JUMBO, IImageList, FJumboImages)) then
-      Handle := THandle(FJumboImages)
-    else begin
-      Flags := SHGFI_PIDL or SHGFI_SYSICONINDEX or SHGFI_LARGEICON;
-      SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, PIDL);
-      SHGetMalloc(Malloc);
-      Handle := SHGetFileInfoA(PAnsiChar(PIDL), 0, FileInfo, SizeOf(FileInfo), Flags);
-      Malloc.Free(PIDL);
-    end
-  end
-  else if FImageSize = sisExtraLarge then
-  begin
-    if Succeeded(SHGetImageList(SHIL_EXTRALARGE, IImageList, FJumboImages)) then
-      Handle := THandle(FJumboImages)
-    else begin
-      Flags := SHGFI_PIDL or SHGFI_SYSICONINDEX or SHGFI_LARGEICON;
-      SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, PIDL);
-      SHGetMalloc(Malloc);
-      Handle := SHGetFileInfoA(PAnsiChar(PIDL), 0, FileInfo, SizeOf(FileInfo), Flags);
-      Malloc.Free(PIDL);
-    end
-  end else
-  begin
-    SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, PIDL);
-    SHGetMalloc(Malloc);
-    if FImageSize = sisSmall then
-      Flags := SHGFI_PIDL or SHGFI_SYSICONINDEX or SHGFI_SMALLICON
-    else
-      Flags := SHGFI_PIDL or SHGFI_SYSICONINDEX or SHGFI_LARGEICON;
-    Handle := SHGetFileInfoA(PAnsiChar(PIDL), 0, FileInfo, SizeOf(FileInfo), Flags);
-    Malloc.Free(PIDL);
-  end;
+  if Succeeded(SHGetImageList(ImageFlag[FImageSize], IImageList, IL)) then
+    Handle := THandle(IL);
 end;
 
 procedure TCommonSysImages.SetImageSize(const Value: TSysImageListSize);
 begin
   FImageSize := Value;
   RecreateHandle;
+end;
+
+{$IF CompilerVersion >= 33}
+{ TCommonVirtualImageList }
+
+constructor TCommonVirtualImageList.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDPIChangedMessageID := TMessageManager.DefaultManager.SubscribeToMessage(TChangeScaleMessage, DPIChangedMessageHandler);
+  HandleNeeded;
+end;
+
+procedure TCommonVirtualImageList.DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
+var
+  W, H: Integer;
+  ApplyChange: Boolean;
+  C: TComponent;
+begin
+  ApplyChange := False;
+  C := Owner;
+  while Assigned(C) do
+  begin
+    if C = TChangeScaleMessage(Msg).Sender then
+    begin
+      ApplyChange := True;
+      Break;
+    end;
+    C := C.Owner;
+  end;
+
+  if ApplyChange then
+  begin
+    W := MulDiv(Width, TChangeScaleMessage(Msg).M, TChangeScaleMessage(Msg).D);
+    H := MulDiv(Height, TChangeScaleMessage(Msg).M, TChangeScaleMessage(Msg).D);
+    SetSize(W, H);
+    Change;
+  end;
+end;
+
+function TCommonVirtualImageList.GetCount: Integer;
+begin
+  if Assigned(FSourceImageList) then
+    Result := FSourceImageList.Count
+  else
+    Result := 0;
+end;
+
+procedure TCommonVirtualImageList.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FSourceImageList) then
+    FSourceImageList := nil;
+end;
+
+procedure TCommonVirtualImageList.SetSourceImageList(Value: TCustomImageList);
+begin
+  if Assigned(FSourceImageList) and (Value <> FSourceImageList) then
+     FSourceImageList.RemoveFreeNotification(Self);
+  if Assigned(Value) and (Value <> FSourceImageList) then
+  begin
+    SetSize(Value.Width, Value.Height);
+    ColorDepth := Value.ColorDepth;
+    BkColor := Value.BkColor;
+    BlendColor := Value.BlendColor;
+    DrawingStyle := Value.DrawingStyle;
+    Value.FreeNotification(Self);
+  end;
+  FSourceImageList := Value;
+end;
+
+type
+  PColorRecArray = ^TColorRecArray;
+  TColorRecArray = array [0..0] of TColorRec;
+
+procedure InitAlpha(ABitmap: TBitmap);
+var
+  I: Integer;
+  Src: Pointer;
+begin
+  Src := ABitmap.Scanline[ABitmap.Height - 1];
+  for I := 0 to ABitmap.Width * ABitmap.Height - 1 do
+    PColorRecArray(Src)[I].A := 0;
+end;
+
+type
+  TAccessCustomImageList = class(TCustomImageList)
+  end;
+
+procedure TCommonVirtualImageList.DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
+  Style: Cardinal; Enabled: Boolean = True);
+var
+  B: TBitmap;
+begin
+  if not Assigned (FSourceImageList) or (Index < 0) or (Index >= FSourceImageList.Count) then
+    Exit;
+  if (Width = FSourceImageList.Width) and (Height =  FSourceImageList.Height) then begin
+    TAccessCustomImageList(FSourceImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled);
+    Exit;
+  end;
+
+  B := TBitmap.Create;
+  try
+    B.PixelFormat := pf32bit;
+    B.SetSize(FSourceImageList.Width, FSourceImageList.Height);
+    InitAlpha(B);
+    TAccessCustomImageList(FSourceImageList).DoDraw(Index, B.Canvas, 0, 0, Style, Enabled);
+    ResizeBitmap(B, Width, Height);
+    Canvas.Draw(X, Y, B);
+  finally
+    B.Free;
+  end;
+end;
+{$IFEND}
+
+{ TControlHelper }
+
+{$IF CompilerVersion < 33}
+function TControlHelper.CurrentPPI: Integer;
+begin
+  Result := Screen.PixelsPerInch;
+end;
+
+function TControlHelper.FCurrentPPI: Integer;
+begin
+  Result := Screen.PixelsPerInch;
+end;
+{$IFEND}
+
+function TControlHelper.PPIScale(Value: integer): integer;
+begin
+  Result := MulDiv(Value, FCurrentPPI, 96);
+end;
+
+function TControlHelper.PPIUnScale(Value: integer): integer;
+begin
+  Result := MulDiv(Value, 96, FCurrentPPI);
 end;
 
 initialization
@@ -2276,6 +2473,10 @@ finalization
   FSmallSysImages.Free;
   FExtraLargeSysImages.Free;
   FJumboSysImages.Free;
+  {$if CompilerVersion >= 33}
+  FreeAndNil(FLargeSysImagesForPPI);
+  FreeAndNil(FSmallSysImagesForPPI);
+  {$ifend}
   FreeAndNil(PIDLMgr);
 
 end.
