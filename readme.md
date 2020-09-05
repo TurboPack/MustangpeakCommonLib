@@ -1,15 +1,15 @@
 MustangpeakCommonLib
 ====================
 
-Table of contents
-1. Introduction
-2. Package names
-3. Installation
+### Table of contents
+1.  [Introduction](#Introduction)
+2.  [Package names](#Package-names)
+3.  [Installation](#Installation)
 
-**1. Introduction**
+## Introduction
 
-The Turbopak Mustangpeak library for Delphi and C++Builder was developed by **Jim Kueneman**
-and contains the EasyListView and the VirutalShellExplorer components.
+The Turbopak Mustangpeak library for Delphi and C++Builder was originally developed by **Jim 
+Kueneman** and contains the EasyListView and the VirutalShellExplorer components.
 The Mustangpeak CommonLib is a base library needed for all Mustangpeak components.  
 
 This is a source-only release of MustangpeakCommonLib. It includes
@@ -18,7 +18,7 @@ Win32 and Win64.
 
 *RAD STUDIO Berlin or later is supported.*
 
-**2. Package names**
+## Package names
 
 MustangpeakCommonLib package names have the following form:
 
@@ -28,7 +28,7 @@ MustangpeakCommonLib package names have the following form:
 - MPCommonLibC.bpl        (C++Builder Runtime for all platforms)
 - MPCommonLibCD.bpl       (C++Builder Runtime for the VCL)
 
-**3. Installation**
+## Installation
 
 To install MustangpeakCommonLib into your IDE, take the following
 steps:
