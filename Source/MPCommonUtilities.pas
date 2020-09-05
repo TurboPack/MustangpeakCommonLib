@@ -1,4 +1,4 @@
-unit MPCommonUtilities;
+﻿unit MPCommonUtilities;
 
 // Version 2.1.0
 //
@@ -877,7 +877,6 @@ const
 var
   I: integer;
   Icon: HIcon;
-  IW, IH: Integer;
 begin
   Result := TCustomImageList.CreateSize(MulDiv(Source.Width, M, D), MulDiv(Source.Height, M, D));
 
