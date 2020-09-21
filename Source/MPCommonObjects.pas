@@ -465,6 +465,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
        Style: Cardinal; Enabled: Boolean = True); override;
     property SourceImageList: TCustomImageList
@@ -2325,6 +2326,12 @@ begin
   inherited;
   FDPIChangedMessageID := TMessageManager.DefaultManager.SubscribeToMessage(TChangeScaleMessage, DPIChangedMessageHandler);
   HandleNeeded;
+end;
+
+destructor TCommonVirtualImageList.Destroy;
+begin
+  TMessageManager.DefaultManager.Unsubscribe(TChangeScaleMessage, FDPIChangedMessageID);
+  inherited;
 end;
 
 procedure TCommonVirtualImageList.DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
