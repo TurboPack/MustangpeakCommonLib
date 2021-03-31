@@ -4850,9 +4850,10 @@ begin
   begin
     if not Assigned(FWin32FindDataW) then
       GetDataFromIDList;
-    Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_SYMLINK) and
-              (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-              (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0);
+    if Assigned(Win32FindDataW) then
+      Result := (Win32FindDataW.dwReserved0 = IO_REPARSE_TAG_SYMLINK) and
+                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
+                (Win32FindDataW.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT <> 0);
   end
 end;
 
