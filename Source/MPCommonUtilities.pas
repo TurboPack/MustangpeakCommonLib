@@ -485,7 +485,7 @@ var
 
 procedure FillSeparatorList(Menu: HMenu; Separators: TList);
 var
-  i: Integer;
+  i: NativeInt;
   MenuInfoW: TMenuItemInfoW;
 begin
   Separators.Clear;
@@ -522,10 +522,10 @@ begin
     begin
       if (i = GetMenuItemCount(Menu) - 1) then
       begin
-        if Integer(Separators[i]) <> -1 then
+        if NativeInt(Separators[i]) <> -1 then
           DeleteMenu(Menu, i, MF_BYPOSITION)
       end else
-      if (Integer(Separators[i]) <> -1) and (Integer(Separators[i-1]) <> -1) then
+      if (NativeInt(Separators[i]) <> -1) and (NativeInt(Separators[i-1]) <> -1) then
         DeleteMenu(Menu, i, MF_BYPOSITION)
     end;
     if Separators.Count > 0 then
