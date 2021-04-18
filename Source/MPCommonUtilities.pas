@@ -530,7 +530,7 @@ begin
     end;
     if Separators.Count > 0 then
       begin
-        if Integer(Separators[0]) <> -1 then
+        if NativeInt(Separators[0]) <> -1 then
           DeleteMenu(Menu, 0, MF_BYPOSITION)
       end
   finally

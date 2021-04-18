@@ -67,49 +67,6 @@ const
   ComCtl_600 = $00060000;
 
 const
-  {$EXTERNALSYM FOF_NO_CONNECTED_ELEMENTS}
-  FOF_NO_CONNECTED_ELEMENTS = $0000;
-  {$EXTERNALSYM FOF_NOCOPYSECURITYATTRIBS}
-  FOF_NOCOPYSECURITYATTRIBS = $0000;
-  {$EXTERNALSYM FOF_NORECURSION}
-  FOF_NORECURSION = $0000;
-  {$EXTERNALSYM FOF_NORECURSEREPARSE}
-  FOF_NORECURSEREPARSE = $0000;
-  {$EXTERNALSYM FOF_WANTNUKEWARNING}
-  FOF_WANTNUKEWARNING = $0000;
-
-  {$EXTERNALSYM GIL_DEFAULTICON}
-  GIL_DEFAULTICON =  $0040;      // get the default icon location if the final one takes too long to get
-  {$EXTERNALSYM GIL_FORSHORTCUT}
-  GIL_FORSHORTCUT =  $0080;      // the icon is for a shortcut to the object
-
-  SID_IShellIconOverlayIdentifier = '{0C6C4200-C589-11D0-999A-00C04FD655E1}';
-  IID_IShellIconOverlayIdentifier: TGUID = SID_IShellIconOverlayIdentifier;
-
-  {$EXTERNALSYM ISIOI_ICONFILE}
-  ISIOI_ICONFILE =  $00000001;         // path is returned through pwszIconFile
-  {$EXTERNALSYM ISIOI_ICONINDEX}
-  ISIOI_ICONINDEX = $00000002;          // icon index in pwszIconFile is returned through pIndex
-
-type
-  IShellIconOverlayIdentifier = interface(IUnknown)
-  [SID_IShellIconOverlayIdentifier]
-    function IsMemberOf(pwszPath: LPCWSTR; dwAttrib: DWORD): HRESULT; stdcall;
-    function GetOverlayInfo(pwszIconFile: LPWSTR; cchMax: Integer; var pIndex: Integer; var pdwFlags: DWORD): HRESULT; stdcall;
-    function GetPriority(var pPriority: Integer): HRESULT; stdcall;
-  end;
-
-const
-  {$EXTERNALSYM FILE_ATTRIBUTE_ENCRYPTED}
-  FILE_ATTRIBUTE_ENCRYPTED     = $00004000;
-  {$EXTERNALSYM FILE_ATTRIBUTE_REPARSE_POINT}
-  FILE_ATTRIBUTE_REPARSE_POINT   = $00000400;
-  {$EXTERNALSYM FILE_ATTRIBUTE_SPARSE_FILE}
-  FILE_ATTRIBUTE_SPARSE_FILE     = $00000200;
-  {$EXTERNALSYM FILE_ATTRIBUTE_NOT_CONTENT_INDEXED}
-  FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = $00002000;
-
-
   {$EXTERNALSYM IO_REPARSE_TAG_DFS}
   IO_REPARSE_TAG_DFS = $8000000A;
   {$EXTERNALSYM IO_REPARSE_TAG_DFSR}
@@ -124,24 +81,6 @@ const
   IO_REPARSE_TAG_SIS = $80000007;
   {$EXTERNALSYM IO_REPARSE_TAG_SYMLINK}
   IO_REPARSE_TAG_SYMLINK = $A000000C;
-
-  {$EXTERNALSYM FILE_FLAG_OPEN_REPARSE_POINT}
-  FILE_FLAG_OPEN_REPARSE_POINT = $00200000;
-
-  {$EXTERNALSYM FSCTL_SET_REPARSE_POINT}
-  FSCTL_SET_REPARSE_POINT = $000900A4;
-  {$EXTERNALSYM FSCTL_GET_REPARSE_POINT}
-  FSCTL_GET_REPARSE_POINT = $000900A8;
-  {$EXTERNALSYM FSCTL_DELETE_REPARSE_POINT}
-  FSCTL_DELETE_REPARSE_POINT = $000900AC;
-  {$EXTERNALSYM FSCTL_CREATE_OR_GET_OBJECT_ID}
-  FSCTL_CREATE_OR_GET_OBJECT_ID = $000900C0;
-  {$EXTERNALSYM FSCTL_SET_SPARSE}
-  FSCTL_SET_SPARSE = $000900C4;
-  {$EXTERNALSYM FSCTL_SET_ZERO_DATA}
-  FSCTL_SET_ZERO_DATA = $000900C8;
-  {$EXTERNALSYM FSCTL_SET_ENCRYPTION}
-  FSCTL_SET_ENCRYPTION = $000900D7;
 
 (*$HPPEMIT 'typedef struct _REPARSE_DATA_BUFFER {'*)
 (*$HPPEMIT ''*)
@@ -220,21 +159,6 @@ const
   {$EXTERNALSYM SYMLINK_FLAG_RELATIVE}
   SYMLINK_FLAG_RELATIVE = $00000001;
 
-
-
-
-//------------------------------------------------------------------------------
-// Property Sheets
-//------------------------------------------------------------------------------
-
-const
-  {$EXTERNALSYM PSN_TRANSLATEACCELERATOR}
-  PSN_TRANSLATEACCELERATOR =  PSN_FIRST - 12;
-  {$EXTERNALSYM PSN_QUERYINITIALFOCUS}
-  PSN_QUERYINITIALFOCUS    =  PSN_FIRST - 13;
-
-  {$EXTERNALSYM PSM_GETCURRENTPAGEHWND}
-  PSM_GETCURRENTPAGEHWND = WM_USER + 118;
 
 //------------------------------------------------------------------------------
 // IRunnableTask
@@ -516,14 +440,6 @@ const
   'WNNC_NET_SRT',
   'WNNC_NET_QUINCY'
   );
-
-//------------------------------------------------------------------------------
-// New ImageList styles
-//------------------------------------------------------------------------------
-
-const
-  {$EXTERNALSYM ILD_PRESERVEALPHA}
-  ILD_PRESERVEALPHA = $00001000;
 
 //------------------------------------------------------------------------------
 // Some new magic extended Listview Styles
@@ -2649,28 +2565,11 @@ type
                              WParm : WParam; lParm : LParam) : HResult; stdcall;
 
 //------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------
 // Assorted definitions
 //------------------------------------------------------------------------------
 const
   {$EXTERNALSYM CMF_EXTENDEDVERBS}
   CMF_EXTENDEDVERBS    =  $0100;
-
-  // Correct definition
-  {$EXTERNALSYM SHGetFileInfoW}
-  function SHGetFileInfoW(pszPath: PWideChar; dwFileAttributes: DWORD;
-    var psfi: TSHFileInfoW; cbFileInfo, uFlags: UINT): DWORD; stdcall;
-      external shell32 name 'SHGetFileInfoW';
-
-  {$EXTERNALSYM CreateProcessW}
-  function CreateProcessW(lpApplicationName: PWideChar; lpCommandLine: PWideChar;
-    lpProcessAttributes, lpThreadAttributes: PSecurityAttributes;
-    bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer;
-    lpCurrentDirectory: PWideChar; const lpStartupInfo: TStartupInfoW;
-    var lpProcessInformation: TProcessInformation): BOOL; stdcall;
-      external kernel32 name 'CreateProcessW';
 
 const
   SID_IShellFolderViewCB = '{2047E320-F2A9-11CE-AE65-08002B2E1262}';

@@ -1086,7 +1086,7 @@ type
     function GetIconIndex(OpenIcon: Boolean; IconSize: TIconSize; ForceLoad: Boolean = True): integer; virtual;
     function GetImage: TBitmap;  virtual;
     function VerifyPIDLRelationship(NamespaceArray: TNamespaceArray; Silent: Boolean = False): Boolean;
-    procedure HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT);  virtual;
+    procedure HandleContextMenuMsg(Msg: Cardinal; wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);  virtual;
     procedure InvalidateCache;  virtual;
     procedure InvalidateDetailsOfCache(FlushStrings: Boolean);
     procedure InvalidateNamespace(RefreshIcon: Boolean = True);  virtual;
@@ -1388,7 +1388,7 @@ type
     procedure DoShow; virtual;
     function DuplicateKey(Key: HKEY): HKEY;
     function FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
-    procedure HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT); stdcall;
+    procedure HandleContextMenuMsg(Msg: Cardinal; wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); stdcall;
     function InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: string; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
     procedure LoadMultiFolderPIDLArray(Namespaces: TNamespaceArray; var PIDLs: TAbsolutePIDLArray);
     procedure LoadRegistryKeyStrings(Focused: TNamespace); virtual; abstract;
@@ -2381,7 +2381,7 @@ begin
   FillChar(BrowseInfoW, SizeOf(BrowseInfoW), #0);
   BrowseInfoW.hwndOwner := GetActiveWindow;
   BrowseInfoW.pidlRoot := RootFolder;
-  BrowseInfoW.lParam := Integer( InitialPath);
+  BrowseInfoW.lParam := LPARAM(InitialPath);
   BrowseInfoW.pszDisplayName := DisplayNameW;
   {$IFDEF BCB}
   BrowseInfoW.lpfn := MPBrowseForFolderCallback;
@@ -6089,7 +6089,7 @@ begin
   Result := FShellIconOverlayInterface
 end;
 
-procedure TNamespace.HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT);
+procedure TNamespace.HandleContextMenuMsg(Msg: Cardinal; wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 { This is called when the ContextMenu calls back to its owner window to ask     }
 { questions to implement the addition of icons to the menu.  The messages sent  }
 { to the owner window are:  WM_INITMENUPOPUP, WM_DRAWITEM, or WM_MEASUREITEM.   }
@@ -9020,7 +9020,7 @@ begin
     OnShow(Self);
 end;
 
-procedure TCommonShellContextMenu.HandleContextMenuMsg(Msg, wParam, lParam: Longint; var Result: LRESULT);
+procedure TCommonShellContextMenu.HandleContextMenuMsg(Msg: Cardinal; wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 { This is called when the ContextMenu calls back to its owner window to ask     }
 { questions to implement the addition of icons to the menu.  The messages sent  }
 { to the owner window are:  WM_INITMENUPOPUP, WM_DRAWITEM, or WM_MEASUREITEM.   }
