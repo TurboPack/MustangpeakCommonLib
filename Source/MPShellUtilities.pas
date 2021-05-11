@@ -61,6 +61,10 @@ interface
   {$DEFINE GX_DEBUG}
 {$ENDIF}
 
+{$IFDEF MSWINDOWS}
+  {$WARN SYMBOL_PLATFORM OFF}
+{$ENDIF}
+
 
 {$B-}
 
