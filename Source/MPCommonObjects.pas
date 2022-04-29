@@ -2397,6 +2397,10 @@ type
   PColorRecArray = ^TColorRecArray;
   TColorRecArray = array [0..0] of TColorRec;
 
+{$IFOPT R+}
+  {$DEFINE MUSTANGPEAKRANGECHECKON}
+{$ENDIF}
+{$R-}
 procedure InitAlpha(ABitmap: TBitmap);
 var
   I: Integer;
@@ -2406,6 +2410,9 @@ begin
   for I := 0 to ABitmap.Width * ABitmap.Height - 1 do
     PColorRecArray(Src)[I].A := 0;
 end;
+{$IFDEF MUSTANGPEAKRANGECHECKON}
+  {$R+}
+{$ENDIF}
 
 type
   TAccessCustomImageList = class(TCustomImageList)
