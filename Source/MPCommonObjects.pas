@@ -481,6 +481,7 @@ type
   function SmallSysImages: TCommonSysImages;
   function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
   function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
+  function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
   procedure FlushImageLists;
   procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObject: Boolean; var ADataObject: IDataObject);
   procedure StripDuplicatesAndDesktops(NamespaceList: TList);
@@ -526,6 +527,7 @@ var
   {$if CompilerVersion >= 33}
   FLargeSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
   FSmallSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
+  FImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
   {$ifend}
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
@@ -637,6 +639,29 @@ begin
     end;
   end;
 end;
+
+function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
+var
+  lImageList: TCustomImageList;
+begin
+  if AImageList is TCommonVirtualImageList then
+    lImageList := TCommonVirtualImageList(AImageList).SourceImageList
+  else
+    lImageList := AImageList;
+  if Screen.PixelsPerInch = APPI then
+    Result := lImageList
+  else
+  begin
+    if not Assigned(FImagesForPPI) then
+      FImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
+    if not FImagesForPPI.TryGetValue(APPI, Result) then
+    begin
+      Result := ScaleImageList(lImageList, APPI, Screen.PixelsPerInch);
+      FImagesForPPI.Add(APPI, Result);
+    end;
+  end;
+end;
+
 {$else}
 function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
 begin
@@ -646,6 +671,12 @@ function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
 begin
   Result := SmallSysImages;
 end;
+
+function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
+begin
+  Result := AImageList;
+end;
+
 {$ifend}
 
 procedure StripDuplicatesAndDesktops(NamespaceList: TList);
@@ -2490,6 +2521,7 @@ finalization
   {$if CompilerVersion >= 33}
   FreeAndNil(FLargeSysImagesForPPI);
   FreeAndNil(FSmallSysImagesForPPI);
+  FreeAndNil(FImagesForPPI);
   {$ifend}
   FreeAndNil(PIDLMgr);
 
