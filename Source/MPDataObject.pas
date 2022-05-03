@@ -43,7 +43,6 @@ uses
   {$IFDEF GX_DEBUG}
   DbugIntf,
   {$ENDIF}
-  VirtualTrees.Types,
   MPShellTypes,
   MPCommonUtilities,
   MPCommonObjects,
@@ -69,7 +68,7 @@ type
   );
 
 type
-  TFormatEtcArray = VirtualTrees.Types.TFormatEtcArray;
+  TFormatEtcArray = ActiveX.TFormatEtcArray;
   TDataObjectInfo = record
     FormatEtc: TFormatEtc;
     StgMedium: TStgMedium;
