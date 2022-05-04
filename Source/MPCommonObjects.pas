@@ -456,6 +456,7 @@ type
   /// </summary>
   TCommonVirtualImageList = class(TCustomImageList)
   private
+    FDict: TObjectDictionary<Integer, TCustomImageList>;
     FDPIChangedMessageID: Integer;
     FSourceImageList: TCustomImageList;
     procedure SetSourceImageList(Value: TCustomImageList);
@@ -468,8 +469,8 @@ type
     destructor Destroy; override;
     procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
        Style: Cardinal; Enabled: Boolean = True); override;
-    property SourceImageList: TCustomImageList
-      read FSourceImageList write SetSourceImageList;
+    function GetImageList(const APPI: Integer): TCustomImageList;
+    property SourceImageList: TCustomImageList read FSourceImageList write SetSourceImageList;
     property Width;
     property Height;
   end;
@@ -527,7 +528,6 @@ var
   {$if CompilerVersion >= 33}
   FLargeSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
   FSmallSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
-  FImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
   {$ifend}
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
@@ -641,25 +641,11 @@ begin
 end;
 
 function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
-var
-  lImageList: TCustomImageList;
 begin
-  if AImageList is TCommonVirtualImageList then
-    lImageList := TCommonVirtualImageList(AImageList).SourceImageList
+  if not (AImageList is TCommonVirtualImageList) then
+    Result := AImageList
   else
-    lImageList := AImageList;
-  if Screen.PixelsPerInch = APPI then
-    Result := lImageList
-  else
-  begin
-    if not Assigned(FImagesForPPI) then
-      FImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
-    if not FImagesForPPI.TryGetValue(APPI, Result) then
-    begin
-      Result := ScaleImageList(lImageList, APPI, Screen.PixelsPerInch);
-      FImagesForPPI.Add(APPI, Result);
-    end;
-  end;
+    Result := TCommonVirtualImageList(AImageList).GetImageList(APPI);
 end;
 
 {$else}
@@ -2355,12 +2341,14 @@ end;
 constructor TCommonVirtualImageList.Create(AOwner: TComponent);
 begin
   inherited;
+  FDict := TObjectDictionary<Integer, TCustomImageList>.Create([doOwnsValues]);
   FDPIChangedMessageID := TMessageManager.DefaultManager.SubscribeToMessage(TChangeScaleMessage, DPIChangedMessageHandler);
   HandleNeeded;
 end;
 
 destructor TCommonVirtualImageList.Destroy;
 begin
+  FDict.Free;
   TMessageManager.DefaultManager.Unsubscribe(TChangeScaleMessage, FDPIChangedMessageID);
   inherited;
 end;
@@ -2473,6 +2461,21 @@ begin
     B.Free;
   end;
 end;
+
+function TCommonVirtualImageList.GetImageList(const APPI: Integer): TCustomImageList;
+begin
+  if Screen.PixelsPerInch = APPI then
+    Result := SourceImageList
+  else
+  begin
+    if not FDict.TryGetValue(APPI, Result) then
+    begin
+      Result := ScaleImageList(SourceImageList, APPI, Screen.PixelsPerInch);
+      FDict.Add(APPI, Result);
+    end;
+  end;
+end;
+
 {$IFEND}
 
 { TControlHelper }
@@ -2521,7 +2524,6 @@ finalization
   {$if CompilerVersion >= 33}
   FreeAndNil(FLargeSysImagesForPPI);
   FreeAndNil(FSmallSysImagesForPPI);
-  FreeAndNil(FImagesForPPI);
   {$ifend}
   FreeAndNil(PIDLMgr);
 
