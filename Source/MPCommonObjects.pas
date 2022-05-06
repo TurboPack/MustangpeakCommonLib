@@ -482,6 +482,8 @@ type
   function ExtraLargeSysImages: TCommonSysImages;
   function LargeSysImages: TCommonSysImages;
   function SmallSysImages: TCommonSysImages;
+  function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
+  function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
   function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
   procedure FlushImageLists;
   procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObject: Boolean; var ADataObject: IDataObject);
