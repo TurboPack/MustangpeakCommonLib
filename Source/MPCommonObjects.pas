@@ -428,8 +428,8 @@ type
   // Encapsulates the System image lists
   //
   TSysImageListSize =  (
-    sisSmall,    // Large System Images
-    sisLarge,    // Small System Images
+    sisSmall,      // Large System Images
+    sisLarge,      // Small System Images
     sisExtraLarge, // Extra Large Images (48x48)
     sisJumbo       // Jumbo Images (256x256)    Becareful with this.  M$ has layed several traps in using this:
                    // http://blog.alastria.com/2009/07/27/the-windows-api-makers-have-lost-their-minds-part-17/
@@ -438,50 +438,50 @@ type
   TCommonSysImages = class(TImageList)
   private
     FImageSize: TSysImageListSize;
-    procedure SetImageSize(const Value: TSysImageListSize);
+    procedure SetImageSize(const AValue: TSysImageListSize);
   protected
     procedure RecreateHandle;
     procedure Flush;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     property ImageSize: TSysImageListSize read FImageSize write SetImageSize;
   end;
 
-{$IF CompilerVersion >= 33}
   /// <summary>
   /// TVirtualImageList component, which inherits from TCustomImageList
   /// and uses an external TCustomImageList to draw scaled images
   /// </summary>
   TCommonVirtualImageList = class(TCustomImageList)
-  private
+  private class var
     FDict: TObjectDictionary<Integer, TCustomImageList>;
+  private
     FDPIChangedMessageID: Integer;
+    FSize: TSysImageListSize;
     FSourceImageList: TCustomImageList;
-    procedure SetSourceImageList(Value: TCustomImageList);
     procedure DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
+    function FindLargerSysImageList(const AWidth: Integer): TCustomImageList;
+    function FindSmallerSysImageList(const AWidth: Integer): TCustomImageList;
+    function FindSysImageList(const AWidth: Integer): TCustomImageList;
+    procedure SetSourceImageList(Value: TCustomImageList);
   protected
     function GetCount: Integer; override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
-       Style: Cardinal; Enabled: Boolean = True); override;
+    procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer; Style: Cardinal; Enabled: Boolean = True); override;
     function GetImageList(const APPI: Integer): TCustomImageList;
     property SourceImageList: TCustomImageList read FSourceImageList write SetSourceImageList;
     property Width;
     property Height;
+    property Size: TSysImageListSize read FSize write FSize;
   end;
-{$IFEND}
 
   function JumboSysImages : TCommonSysImages;
   function ExtraLargeSysImages: TCommonSysImages;
   function LargeSysImages: TCommonSysImages;
   function SmallSysImages: TCommonSysImages;
-  function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
-  function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
   function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
   procedure FlushImageLists;
   procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObject: Boolean; var ADataObject: IDataObject);
@@ -583,7 +583,7 @@ begin
     FExtraLargeSysImages := TCommonSysImages.Create(nil);
     FExtraLargeSysImages.ImageSize := sisExtraLarge;
   end;
-  Result := FExtraLargeSysImages
+  Result := FExtraLargeSysImages;
 end;
 
 function LargeSysImages: TCommonSysImages;
@@ -593,7 +593,7 @@ begin
     FLargeSysImages := TCommonSysImages.Create(nil);
     FLargeSysImages.ImageSize := sisLarge;
   end;
-  Result := FLargeSysImages
+  Result := FLargeSysImages;
 end;
 
 function SmallSysImages: TCommonSysImages;
@@ -603,7 +603,7 @@ begin
     FSmallSysImages := TCommonSysImages.Create(nil);
     FSmallSysImages.ImageSize := sisSmall;
   end;
-  Result := FSmallSysImages
+  Result := FSmallSysImages;
 end;
 
 {$if CompilerVersion >= 33}
@@ -2299,6 +2299,7 @@ begin
 end;
 
 { TCommonSysImages }
+
 constructor TCommonSysImages.Create(AOwner: TComponent);
 begin
   inherited;
@@ -2329,26 +2330,23 @@ begin
     Handle := THandle(IL);
 end;
 
-procedure TCommonSysImages.SetImageSize(const Value: TSysImageListSize);
+procedure TCommonSysImages.SetImageSize(const AValue: TSysImageListSize);
 begin
-  FImageSize := Value;
+  FImageSize := AValue;
   RecreateHandle;
 end;
 
-{$IF CompilerVersion >= 33}
 { TCommonVirtualImageList }
 
 constructor TCommonVirtualImageList.Create(AOwner: TComponent);
 begin
   inherited;
-  FDict := TObjectDictionary<Integer, TCustomImageList>.Create([doOwnsValues]);
   FDPIChangedMessageID := TMessageManager.DefaultManager.SubscribeToMessage(TChangeScaleMessage, DPIChangedMessageHandler);
   HandleNeeded;
 end;
 
 destructor TCommonVirtualImageList.Destroy;
 begin
-  FDict.Free;
   TMessageManager.DefaultManager.Unsubscribe(TChangeScaleMessage, FDPIChangedMessageID);
   inherited;
 end;
@@ -2380,6 +2378,43 @@ begin
   end;
 end;
 
+function TCommonVirtualImageList.FindLargerSysImageList(const AWidth: Integer): TCustomImageList;
+begin
+  if SmallSysImages.Width >= AWidth then
+    Exit(SmallSysImages);
+  if LargeSysImages.Width >= AWidth then
+    Exit(LargeSysImages);
+  if ExtraLargeSysImages.Width >= AWidth then
+    Exit(ExtraLargeSysImages);
+  if JumboSysImages.Width >= AWidth then
+    Exit(JumboSysImages);
+  Result := nil;
+end;
+
+function TCommonVirtualImageList.FindSmallerSysImageList(const AWidth: Integer): TCustomImageList;
+begin
+  if JumboSysImages.Width <= AWidth then
+    Exit(JumboSysImages);
+  if ExtraLargeSysImages.Width <= AWidth then
+    Exit(ExtraLargeSysImages);
+  if LargeSysImages.Width <= AWidth then
+    Exit(LargeSysImages);
+  Result := SmallSysImages;
+end;
+
+function TCommonVirtualImageList.FindSysImageList(const AWidth: Integer): TCustomImageList;
+begin
+  if SmallSysImages.Width = AWidth then
+    Exit(SmallSysImages);
+  if LargeSysImages.Width = AWidth then
+    Exit(LargeSysImages);
+  if ExtraLargeSysImages.Width = AWidth then
+    Exit(ExtraLargeSysImages);
+  if JumboSysImages.Width = AWidth then
+    Exit(JumboSysImages);
+  Result := nil;
+end;
+
 function TCommonVirtualImageList.GetCount: Integer;
 begin
   if Assigned(FSourceImageList) then
@@ -2388,11 +2423,10 @@ begin
     Result := 0;
 end;
 
-procedure TCommonVirtualImageList.Notification(AComponent: TComponent;
-  Operation: TOperation);
+procedure TCommonVirtualImageList.Notification(AComponent: TComponent; AOperation: TOperation);
 begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FSourceImageList) then
+  inherited Notification(AComponent, AOperation);
+  if (AOperation = opRemove) and (AComponent = FSourceImageList) then
     FSourceImageList := nil;
 end;
 
@@ -2463,20 +2497,29 @@ begin
 end;
 
 function TCommonVirtualImageList.GetImageList(const APPI: Integer): TCustomImageList;
+var
+  lImages: TCustomImageList;
+  lWidth: Integer;
 begin
-  if Screen.PixelsPerInch = APPI then
-    Result := SourceImageList
-  else
+  if APPI = Screen.PixelsPerInch then
+    Exit(FSourceImageList);
+
+  lWidth := MulDiv(FSourceImageList.Width, APPI, Screen.PixelsPerInch);
+
+  Result := FindSysImageList(lWidth);
+  if Assigned(Result) then
+    Exit;
+
+  if (not FDict.TryGetValue(lWidth, Result)) or (Result.Count <> FSourceImageList.Count) then
   begin
-    if not FDict.TryGetValue(APPI, Result) then
-    begin
-      Result := ScaleImageList(SourceImageList, APPI, Screen.PixelsPerInch);
-      FDict.Add(APPI, Result);
-    end;
+    lImages := FindLargerSysImageList(lWidth);
+    if lImages = nil then
+      lImages := FindSmallerSysImageList(lWidth);
+
+    Result := ScaleImageList(lImages, APPI, Screen.PixelsPerInch);
+    FDict.AddOrSetValue(lWidth, Result);
   end;
 end;
-
-{$IFEND}
 
 { TControlHelper }
 
@@ -2506,6 +2549,7 @@ initialization
   LoadShell32Functions;
   LoadWideFunctions;
   StreamHelper := TCommonMemoryStreamHelper.Create;
+  TCommonVirtualImageList.FDict := TObjectDictionary<Integer, TCustomImageList>.Create([doOwnsValues]);
   MarlettFont := TFont.Create;
   MarlettFont.Name := 'marlett';
   Checks := TCommonCheckBoundManager.Create;
@@ -2521,6 +2565,7 @@ finalization
   FSmallSysImages.Free;
   FExtraLargeSysImages.Free;
   FJumboSysImages.Free;
+  TCommonVirtualImageList.FDict.Free;
   {$if CompilerVersion >= 33}
   FreeAndNil(FLargeSysImagesForPPI);
   FreeAndNil(FSmallSysImagesForPPI);
@@ -2528,13 +2573,3 @@ finalization
   FreeAndNil(PIDLMgr);
 
 end.
-
-
-
-
-
-
-
-
-
-
