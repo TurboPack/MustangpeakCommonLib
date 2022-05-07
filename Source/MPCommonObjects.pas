@@ -481,9 +481,9 @@ type
   function JumboSysImages : TCommonSysImages;
   function ExtraLargeSysImages: TCommonSysImages;
   function LargeSysImages: TCommonSysImages;
+  function LargeSysImagesCommon: TCommonVirtualImageList;
   function SmallSysImages: TCommonSysImages;
-  function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
-  function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
+  function SmallSysImagesCommon: TCommonVirtualImageList;
   function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
   procedure FlushImageLists;
   procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObject: Boolean; var ADataObject: IDataObject);
@@ -526,11 +526,9 @@ var
   FJumboSysImages : TCommonSysImages = nil;
   FExtraLargeSysImages: TCommonSysImages = nil;
   FLargeSysImages: TCommonSysImages = nil;
+  FLargeSysImagesCommon: TCommonVirtualImageList = nil;
   FSmallSysImages: TCommonSysImages = nil;
-  {$if CompilerVersion >= 33}
-  FLargeSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
-  FSmallSysImagesForPPI: TObjectDictionary<Integer,TCustomImageList> = nil;
-  {$ifend}
+  FSmallSysImagesCommon: TCommonVirtualImageList = nil;
   PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
   ILIsEqual_MP: TILIsEqual = nil;
@@ -598,6 +596,17 @@ begin
   Result := FLargeSysImages;
 end;
 
+function LargeSysImagesCommon: TCommonVirtualImageList;
+begin
+  if not Assigned(FLargeSysImagesCommon) then
+  begin
+    FLargeSysImagesCommon := TCommonVirtualImageList.Create(nil);
+    FLargeSysImagesCommon.SourceImageList := LargeSysImages;
+    FLargeSysImagesCommon.Size := TSysImageListSize.sisLarge;
+  end;
+  Result := FSmallSysImagesCommon;
+end;
+
 function SmallSysImages: TCommonSysImages;
 begin
   if not Assigned(FSmallSysImages) then
@@ -608,38 +617,15 @@ begin
   Result := FSmallSysImages;
 end;
 
-{$if CompilerVersion >= 33}
-function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
+function SmallSysImagesCommon: TCommonVirtualImageList;
 begin
-  if Screen.PixelsPerInch = PPI then
-    Result := LargeSysImages
-  else
+  if not Assigned(FSmallSysImagesCommon) then
   begin
-    if not Assigned(FLargeSysImagesForPPI) then
-      FLargeSysImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
-    if not FLargeSysImagesForPPI.TryGetValue(PPI, Result) then
-    begin
-      Result := ScaleImageList(SmallSysImages, PPI, Screen.PixelsPerInch);
-      Result.DrawingStyle := dsTransparent;
-      FLargeSysImagesForPPI.Add(PPI, Result);
-    end;
+    FSmallSysImagesCommon := TCommonVirtualImageList.Create(nil);
+    FSmallSysImagesCommon.SourceImageList := SmallSysImages;
+    FSmallSysImagesCommon.Size := TSysImageListSize.sisSmall;
   end;
-end;
-
-function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
-begin
-  if Screen.PixelsPerInch = PPI then
-    Result := SmallSysImages
-  else
-  begin
-    if not Assigned(FSmallSysImagesForPPI) then
-      FSmallSysImagesForPPI := TObjectDictionary<Integer,TCustomImageList>.Create([doOwnsValues]);
-    if not FSmallSysImagesForPPI.TryGetValue(PPI, Result) then
-    begin
-      Result := ScaleImageList(SmallSysImages, PPI, Screen.PixelsPerInch);
-      FSmallSysImagesForPPI.Add(PPI, Result);
-    end;
-  end;
+  Result := FSmallSysImagesCommon;
 end;
 
 function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
@@ -649,23 +635,6 @@ begin
   else
     Result := TCommonVirtualImageList(AImageList).GetImageList(APPI);
 end;
-
-{$else}
-function LargeSysImagesForPPI(PPI: Integer): TCustomImageList;
-begin
-  Result := LargeSysImages;
-end;
-function SmallSysImagesForPPI(PPI: Integer): TCustomImageList;
-begin
-  Result := SmallSysImages;
-end;
-
-function ImagesForPPI(const AImageList: TCustomImageList; const APPI: Integer): TCustomImageList;
-begin
-  Result := AImageList;
-end;
-
-{$ifend}
 
 procedure StripDuplicatesAndDesktops(NamespaceList: TList);
 
@@ -2564,14 +2533,12 @@ finalization
   FreeAndNil(Checks);
   FreeAndNil(MarlettFont);
   FLargeSysImages.Free;
+  FLargeSysImagesCommon.Free;
   FSmallSysImages.Free;
   FExtraLargeSysImages.Free;
   FJumboSysImages.Free;
+  FSmallSysImagesCommon.Free;
   TCommonVirtualImageList.FDict.Free;
-  {$if CompilerVersion >= 33}
-  FreeAndNil(FLargeSysImagesForPPI);
-  FreeAndNil(FSmallSysImagesForPPI);
-  {$ifend}
   FreeAndNil(PIDLMgr);
 
 end.
