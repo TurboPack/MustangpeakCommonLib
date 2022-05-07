@@ -2470,6 +2470,7 @@ end;
 function TCommonVirtualImageList.GetImageList(const APPI: Integer): TCustomImageList;
 var
   lImages: TCustomImageList;
+  lSmallerImages: TCustomImageList;
   lWidth: Integer;
 begin
   if APPI = Screen.PixelsPerInch then
@@ -2483,11 +2484,12 @@ begin
 
   if (not FDict.TryGetValue(lWidth, Result)) or (Result.Count <> FSourceImageList.Count) then
   begin
+    lSmallerImages := FindSmallerSysImageList(lWidth);
     lImages := FindLargerSysImageList(lWidth);
-    if lImages = nil then
-      lImages := FindSmallerSysImageList(lWidth);
+    if (lImages = nil) or ((lImages.Width - lWidth) > (lWidth - lSmallerImages.Width)) then
+       lImages := lSmallerImages;
 
-    Result := ScaleImageList(lImages, APPI, Screen.PixelsPerInch);
+    Result := ScaleImageList(lImages, lWidth);
     FDict.AddOrSetValue(lWidth, Result);
   end;
 end;

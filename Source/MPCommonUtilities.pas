@@ -390,7 +390,7 @@ function VScrollbarWidth: Integer;
 // Graphics
 procedure FillGradient(X1, Y1, X2, Y2: integer; fStartColor, fStopColor: TColor; StartPoint, EndPoint: integer; fDrawCanvas: TCanvas);
 procedure ResizeBitmap(Bitmap: TBitmap; const NewWidth, NewHeight: Integer);
-function ScaleImageList(Source: TCustomImageList; M, D: Integer): TCustomImageList;
+function ScaleImageList(ASource: TCustomImageList; ASize: Integer): TCustomImageList;
 
 // Menu Functions
 function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
@@ -840,7 +840,7 @@ begin
 {$ifend}
 end;
 
-function ScaleImageList(Source: TCustomImageList; M, D: Integer): TCustomImageList;
+function ScaleImageList(ASource: TCustomImageList; ASize: Integer): TCustomImageList;
 const
   ANDbits: array[0..2*16-1] of  Byte = ($FF,$FF,
                                         $FF,$FF,
@@ -878,25 +878,23 @@ var
   I: integer;
   Icon: HIcon;
 begin
-  Result := TCustomImageList.CreateSize(MulDiv(Source.Width, M, D), MulDiv(Source.Height, M, D));
+  Result := TCustomImageList.CreateSize(ASize, ASize);
 
-  if M = D then
+  if ASource.Width = ASize then
   begin
-    Result.Assign(Source);
+    Result.Assign(ASource);
     Exit;
   end;
 
   Result.ColorDepth := cd32Bit;
-  Result.DrawingStyle := Source.DrawingStyle;
-  Result.BkColor := Source.BkColor;
-  Result.BlendColor := Source.BlendColor;
-  for I := 0 to Source.Count-1 do
+  Result.DrawingStyle := ASource.DrawingStyle;
+  Result.BkColor := ASource.BkColor;
+  Result.BlendColor := ASource.BlendColor;
+  for I := 0 to ASource.Count - 1 do
   begin
-    Icon := ImageList_GetIcon(Source.Handle, I, LR_DEFAULTCOLOR);
+    Icon := ImageList_GetIcon(ASource.Handle, I, LR_DEFAULTCOLOR);
     if Icon = 0 then
-    begin
-      Icon := CreateIcon(hInstance,16,16,1,1,@ANDbits,@XORbits);
-    end;
+      Icon := CreateIcon(hInstance, 16, 16, 1, 1, @ANDbits, @XORbits);
     ImageList_AddIcon(Result.Handle, Icon);
     DestroyIcon(Icon);
   end;
