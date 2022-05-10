@@ -2047,7 +2047,10 @@ var
   LongColor: DWORD;
   SourceRed, SourceGreen, SourceBlue, BkGndRed, BkGndGreen, BkGndBlue, RedTarget, GreenTarget, BlueTarget, Alpha: Byte;
   Target, Mask: TBitmap;
-  LineDeltaImage32, PixelDeltaImage32, LineDeltaTarget, PixelDeltaTarget, LineDeltaMask, PixelDeltaMask: Integer;
+  LineDeltaImage32: NativeInt;
+  LineDeltaTarget: NativeInt;
+  LineDeltaMask: NativeInt;
+  PixelDeltaImage32, PixelDeltaTarget, PixelDeltaMask: Integer;
   PLineImage32, PLineTarget, PLineMask, PPixelImage32, PPixelTarget, PPixelMask: PByte;
 begin
   // Algorithm only works for bitmaps with a height > 1 pixel, should not be a limitation
@@ -2069,9 +2072,9 @@ begin
       Mask.Canvas.Brush.Color := BackGndColor;
       Mask.Canvas.FillRect(Mask.Canvas.ClipRect);
 
-      LineDeltaImage32 := DWORD( Image32.ScanLine[1]) - DWORD( Image32.ScanLine[0]);
-      LineDeltaTarget := DWORD( Target.ScanLine[1]) - DWORD( Target.ScanLine[0]);
-      LineDeltaMask := DWORD( Mask.ScanLine[1]) - DWORD( Mask.ScanLine[0]);
+      LineDeltaImage32 := NativeInt(Image32.ScanLine[1]) - NativeInt(Image32.ScanLine[0]);
+      LineDeltaTarget := NativeInt(Target.ScanLine[1]) - NativeInt(Target.ScanLine[0]);
+      LineDeltaMask := NativeInt(Mask.ScanLine[1]) - NativeInt(Mask.ScanLine[0]);
 
       PixelDeltaImage32 := SizeOf(TRGBQuad);
       PixelDeltaTarget := SizeOf(TRGBQuad);
@@ -3310,14 +3313,14 @@ end;
 function UsesAlphaChannel(Image32: TBitmap): Boolean;
 var
   I, N: Integer;
-  LineDeltaImage32, PixelDeltaImage32: Integer;
+  LineDeltaImage32, PixelDeltaImage32: NativeInt;
   Alpha: Byte;
   PLineImage32, PPixelImage32: PByte;
 begin
   Result := False;
   if Assigned(Image32) and (Image32.PixelFormat = pf32Bit) and (Image32.Height > 1) then
   begin
-      LineDeltaImage32 := Integer( DWORD( Image32.ScanLine[1]) - DWORD( Image32.ScanLine[0]));
+      LineDeltaImage32 := NativeInt(Image32.ScanLine[1]) - NativeInt(Image32.ScanLine[0]);
       PixelDeltaImage32 := SizeOf(TRGBQuad);
       PLineImage32 := Image32.ScanLine[0];
 
@@ -3328,7 +3331,7 @@ begin
         for N := 0 to Image32.Width - 1 do
         begin
           // Source GetColorValues ; Profiled = ~24-30% of time
-          Alpha := (PDWORD( PPixelImage32)^ and $FF000000) shr 24;
+          Alpha := (PDWORD(PPixelImage32)^ and $FF000000) shr 24;
           Result := Alpha <> 0;
           if Result then
             Exit;
