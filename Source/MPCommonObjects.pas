@@ -56,8 +56,7 @@ const
   IID_ICommonExtractObj = '{7F667930-E47B-4474-BA62-B100D7DBDA70}';
 
 type
-  TILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList;
-    ImmediateParent: LongBool): LongBool; stdcall;
+  TILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList; ImmediateParent: LongBool): LongBool; stdcall;
   TILIsEqual = function(PIDL1: PItemIDList; PIDL2: PItemIDList): LongBool; stdcall;
 
   TCommonImageIndexInteger = type Integer;
@@ -204,7 +203,7 @@ type
     procedure DoUpdate; virtual;
     procedure KillMouseInWindowTimer;
     procedure MouseTimerProc(Sender: TObject);
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure PaintThemedNCBkgnd(ACanvas: TCanvas; ARect: TRect); virtual;
     procedure ResizeBackBits(NewWidth, NewHeight: Integer);
     procedure ValidateBorder;
@@ -455,22 +454,24 @@ type
   TCommonVirtualImageList = class(TCustomImageList)
   private class var
     FDict: TObjectDictionary<Integer, TCustomImageList>;
-  private
+  strict private
+    FCurrentPPI: Integer;
     FDPIChangedMessageID: Integer;
     FSize: TSysImageListSize;
     FSourceImageList: TCustomImageList;
-    procedure DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
+    procedure DPIChangedMessageHandler(const ASender: TObject; const AMsg: Messaging.TMessage);
     function FindLargerSysImageList(const AWidth: Integer): TCustomImageList;
     function FindSmallerSysImageList(const AWidth: Integer): TCustomImageList;
     function FindSysImageList(const AWidth: Integer): TCustomImageList;
-    procedure SetSourceImageList(Value: TCustomImageList);
-  protected
+    function GetImageListWidth(const AWidth: Integer): TCustomImageList;
+    procedure SetSourceImageList(AValue: TCustomImageList);
+  strict protected
     function GetCount: Integer; override;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer; Style: Cardinal; Enabled: Boolean = True); override;
+    procedure DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True); override;
     function GetImageList(const APPI: Integer): TCustomImageList;
     property SourceImageList: TCustomImageList read FSourceImageList write SetSourceImageList;
     property Width;
@@ -519,6 +520,10 @@ uses
   MPDataObject,
   MPShellUtilities,
   Math;
+
+type
+  TAccessCustomImageList = class(TCustomImageList)
+  end;
 
 var
   FreeShellLib: Boolean = False;
@@ -1003,19 +1008,16 @@ begin
   end
 end;
 
-procedure TCommonCanvasControl.Notification(AComponent: TComponent;
-  Operation: TOperation);
+procedure TCommonCanvasControl.Notification(AComponent: TComponent; AOperation: TOperation);
 begin
   inherited;
-  if Operation = opRemove then
+  if AOperation = opRemove then
   begin
     if AComponent = FImagesExtraLarge then
       FImagesExtraLarge := nil
-    else
-    if AComponent = FImagesLarge then
+    else if AComponent = FImagesLarge then
       FImagesLarge := nil
-    else
-    if AComponent = FImagesSmall then
+    else if AComponent = FImagesSmall then
       FImagesSmall := nil
   end
 end;
@@ -1738,8 +1740,7 @@ begin
 end;
 
 
-function TCommonPIDLManager.StripLastID(IDList: PItemIDList; var Last_CB: Word;
-  var LastID: PItemIDList): PItemIDList;
+function TCommonPIDLManager.StripLastID(IDList: PItemIDList; var Last_CB: Word; var LastID: PItemIDList): PItemIDList;
 // Strips the last ID but also returns the pointer to where the last CB was and the
 // value that was there before setting it to 0 to shorten the PIDL.  All that is necessary
 // is to do a LastID^ := Last_CB.mkid.cb to return the PIDL to its previous state.  Used to
@@ -1815,8 +1816,7 @@ begin
     CopyMemory(Result, PWideChar(SourceStr), (Length(SourceStr) + 1) * 2);
 end;
 
-procedure TCommonPIDLManager.ParsePIDL(AbsolutePIDL: PItemIDList; var PIDLList: TCommonPIDLList;
-  AllAbsolutePIDLs: Boolean);
+procedure TCommonPIDLManager.ParsePIDL(AbsolutePIDL: PItemIDList; var PIDLList: TCommonPIDLList; AllAbsolutePIDLs: Boolean);
 // Parses the AbsolutePIDL in to its single level PIDLs, if AllAbsolutePIDLs is true
 // then each item is not a single level PIDL but an AbsolutePIDL but walking from the
 // Desktop up to the passed AbsolutePIDL
@@ -1844,9 +1844,7 @@ begin
   end
 end;
 
-procedure TCommonPIDLManager.ParsePIDLArray(PIDLArray: PPIDLRawArray;
-  var PIDLList: TCommonPIDLList; Count: Integer; Relative,
-  CopyPIDLs: Boolean);
+procedure TCommonPIDLManager.ParsePIDLArray(PIDLArray: PPIDLRawArray; var PIDLList: TCommonPIDLList; Count: Integer; Relative, CopyPIDLs: Boolean);
 // Used to parse the List of PIDLs passed to a few of the IShellFolder interfaces
 //
 // In the API calls pass the apidl param to the PIDLArray like this:
@@ -1981,8 +1979,7 @@ begin
   S.Write(Value, SizeOf(Value))
 end;
 
-procedure TCommonMemoryStreamHelper.WriteStream(SourceStream,
-  TargetStream: TStream);
+procedure TCommonMemoryStreamHelper.WriteStream(SourceStream, TargetStream: TStream);
 var
   Len: Integer;
   X: array of Byte;
@@ -2311,7 +2308,8 @@ end;
 
 constructor TCommonVirtualImageList.Create(AOwner: TComponent);
 begin
-  inherited;
+  inherited Create(AOwner);
+  FCurrentPPI := Screen.PixelsPerInch;
   FDPIChangedMessageID := TMessageManager.DefaultManager.SubscribeToMessage(TChangeScaleMessage, DPIChangedMessageHandler);
   HandleNeeded;
 end;
@@ -2319,33 +2317,41 @@ end;
 destructor TCommonVirtualImageList.Destroy;
 begin
   TMessageManager.DefaultManager.Unsubscribe(TChangeScaleMessage, FDPIChangedMessageID);
-  inherited;
+  inherited Destroy;
 end;
 
-procedure TCommonVirtualImageList.DPIChangedMessageHandler(const Sender: TObject; const Msg: Messaging.TMessage);
+procedure TCommonVirtualImageList.DPIChangedMessageHandler(const ASender: TObject; const AMsg: Messaging.TMessage);
 var
-  W, H: Integer;
-  ApplyChange: Boolean;
-  C: TComponent;
+  lApplyChange: Boolean;
+  lComponent: TComponent;
+  lHeight: Integer;
+  lMessage: TChangeScaleMessage;
+  lWidth: Integer;
 begin
-  ApplyChange := False;
-  C := Owner;
-  while Assigned(C) do
+  lMessage := TChangeScaleMessage(AMsg);
+  if lMessage.M = FCurrentPPI then
+    Exit;
+
+  lApplyChange := False;
+  lComponent := Owner;
+  while Assigned(lComponent) do
   begin
-    if C = TChangeScaleMessage(Msg).Sender then
+    if lComponent = lMessage.Sender then
     begin
-      ApplyChange := True;
+      lApplyChange := True;
       Break;
     end;
-    C := C.Owner;
+    lComponent := lComponent.Owner;
   end;
 
-  if ApplyChange then
+  if lApplyChange then
   begin
-    W := MulDiv(Width, TChangeScaleMessage(Msg).M, TChangeScaleMessage(Msg).D);
-    H := MulDiv(Height, TChangeScaleMessage(Msg).M, TChangeScaleMessage(Msg).D);
-    SetSize(W, H);
+    lWidth := MulDiv(Width, lMessage.M, FCurrentPPI);
+    lHeight := MulDiv(Height, lMessage.M, FCurrentPPI);
+    SetSize(lWidth, lHeight);
     Change;
+
+    FCurrentPPI := lMessage.M;
   end;
 end;
 
@@ -2401,96 +2407,68 @@ begin
     FSourceImageList := nil;
 end;
 
-procedure TCommonVirtualImageList.SetSourceImageList(Value: TCustomImageList);
+procedure TCommonVirtualImageList.SetSourceImageList(AValue: TCustomImageList);
 begin
-  if Assigned(FSourceImageList) and (Value <> FSourceImageList) then
+  if Assigned(FSourceImageList) and (AValue <> FSourceImageList) then
      FSourceImageList.RemoveFreeNotification(Self);
-  if Assigned(Value) and (Value <> FSourceImageList) then
+  if Assigned(AValue) and (AValue <> FSourceImageList) then
   begin
-    SetSize(Value.Width, Value.Height);
-    ColorDepth := Value.ColorDepth;
-    BkColor := Value.BkColor;
-    BlendColor := Value.BlendColor;
-    DrawingStyle := Value.DrawingStyle;
-    Value.FreeNotification(Self);
+    SetSize(AValue.Width, AValue.Height);
+    ColorDepth := AValue.ColorDepth;
+    BkColor := AValue.BkColor;
+    BlendColor := AValue.BlendColor;
+    DrawingStyle := AValue.DrawingStyle;
+    AValue.FreeNotification(Self);
   end;
-  FSourceImageList := Value;
+  FSourceImageList := AValue;
 end;
 
-type
-  PColorRecArray = ^TColorRecArray;
-  TColorRecArray = array [0..0] of TColorRec;
-
-{$IFOPT R+}
-  {$DEFINE MUSTANGPEAKRANGECHECKON}
-{$ENDIF}
-{$R-}
-procedure InitAlpha(ABitmap: TBitmap);
+procedure TCommonVirtualImageList.DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True);
 var
-  I: Integer;
-  Src: Pointer;
+  lImageList: TCustomImageList;
 begin
-  Src := ABitmap.Scanline[ABitmap.Height - 1];
-  for I := 0 to ABitmap.Width * ABitmap.Height - 1 do
-    PColorRecArray(Src)[I].A := 0;
-end;
-{$IFDEF MUSTANGPEAKRANGECHECKON}
-  {$R+}
-{$ENDIF}
-
-type
-  TAccessCustomImageList = class(TCustomImageList)
-  end;
-
-procedure TCommonVirtualImageList.DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer;
-  Style: Cardinal; Enabled: Boolean = True);
-var
-  B: TBitmap;
-begin
-  if not Assigned (FSourceImageList) or (Index < 0) or (Index >= FSourceImageList.Count) then
-    Exit;
-  if (Width = FSourceImageList.Width) and (Height =  FSourceImageList.Height) then begin
-    TAccessCustomImageList(FSourceImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled);
-    Exit;
-  end;
-
-  B := TBitmap.Create;
-  try
-    B.PixelFormat := pf32bit;
-    B.SetSize(FSourceImageList.Width, FSourceImageList.Height);
-    InitAlpha(B);
-    TAccessCustomImageList(FSourceImageList).DoDraw(Index, B.Canvas, 0, 0, Style, Enabled);
-    ResizeBitmap(B, Width, Height);
-    Canvas.Draw(X, Y, B);
-  finally
-    B.Free;
-  end;
+  lImageList := GetImageListWidth(Width);
+  if Assigned(lImageList) and (AIndex >= 0) and (AIndex < lImageList.Count) then
+    TAccessCustomImageList(lImageList).DoDraw(AIndex, ACanvas, AX, AY, AStyle, AEnabled)
+  else
+    inherited DoDraw(AIndex, ACanvas, AX, AY, AStyle, AEnabled);
 end;
 
 function TCommonVirtualImageList.GetImageList(const APPI: Integer): TCustomImageList;
 var
-  lImages: TCustomImageList;
-  lSmallerImages: TCustomImageList;
   lWidth: Integer;
 begin
+  if FSourceImageList = nil then
+    Exit(nil);
+
   if APPI = Screen.PixelsPerInch then
     Exit(FSourceImageList);
 
   lWidth := MulDiv(FSourceImageList.Width, APPI, Screen.PixelsPerInch);
+  Result := GetImageListWidth(lWidth);
+end;
 
-  Result := FindSysImageList(lWidth);
+function TCommonVirtualImageList.GetImageListWidth(const AWidth: Integer): TCustomImageList;
+var
+  lImages: TCustomImageList;
+  lSmallerImages: TCustomImageList;
+begin
+  if FSourceImageList = nil then
+    Exit(nil);
+
+  Result := FindSysImageList(AWidth);
   if Assigned(Result) then
     Exit;
 
-  if (not FDict.TryGetValue(lWidth, Result)) or (Result.Count <> FSourceImageList.Count) then
+  if (not FDict.TryGetValue(AWidth, Result)) or (Result.Count <> FSourceImageList.Count) then
   begin
-    lSmallerImages := FindSmallerSysImageList(lWidth);
-    lImages := FindLargerSysImageList(lWidth);
-    if (lImages = nil) or ((lImages.Width - lWidth) > (lWidth - lSmallerImages.Width)) then
+    lSmallerImages := FindSmallerSysImageList(AWidth);
+    lImages := FindLargerSysImageList(AWidth);
+    if (lImages = nil) or ((lImages.Width - AWidth) > (AWidth - lSmallerImages.Width)) then
        lImages := lSmallerImages;
 
-    Result := ScaleImageList(lImages, lWidth);
-    FDict.AddOrSetValue(lWidth, Result);
+    Result := ScaleImageList(lImages, AWidth);
+    FDict.AddOrSetValue(AWidth, Result);
   end;
 end;
 
