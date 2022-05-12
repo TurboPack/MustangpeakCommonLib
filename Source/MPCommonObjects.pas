@@ -188,6 +188,7 @@ type
     FUpdateCount: Integer;
     procedure AfterPaintRect(ACanvas: TCanvas; ClipRect: TRect); virtual;
     procedure CalcThemedNCSize(var ContextRect: TRect); virtual;
+    procedure ChangeScale(AM, AD: Integer; AIsDpiChange: Boolean); override;
     procedure CMColorChange(var Message: TMessage); message CM_COLORCHANGED;
     procedure CMCtl3DChanged(var Msg: TMessage); message CM_Ctl3DChanged;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
@@ -2005,6 +2006,13 @@ procedure TCommonMemoryStreamHelper.WriteUnicodeString(S: TStream; Value: string
 begin
   WriteInteger(S, Length(Value));
   S.Write(PWideChar(Value)^, Length(Value) * 2)
+end;
+
+procedure TCommonCanvasControl.ChangeScale(AM, AD: Integer; AIsDpiChange: Boolean);
+begin
+  inherited ChangeScale(AM, AD, AIsDpiChange);
+  if AIsDpiChange and (AM <> AD) then
+    Themes.ThemesLoad;
 end;
 
 procedure TCommonCanvasControl.CMColorChange(var Message: TMessage);
