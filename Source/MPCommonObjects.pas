@@ -213,7 +213,7 @@ type
     procedure WMMouseMove(var Msg: TWMMouseMove); message WM_MOUSEMOVE;
     procedure WMNCCalcSize(var Msg: TWMNCCalcSize); message WM_NCCALCSIZE;
     procedure WMNCPaint(var Msg: TWMNCPaint); message WM_NCPAINT;
-    procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
+    procedure WMPaint(var AMsg: TWMPaint); message WM_PAINT;
     procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
     property BackBits: TBitmap read FBackBits write FBackBits;
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
@@ -1313,25 +1313,28 @@ begin
   end
 end;
 
-procedure TCommonCanvasControl.WMPaint(var Msg: TWMPaint);
+procedure TCommonCanvasControl.WMPaint(var AMsg: TWMPaint);
 // The VCL does a poor job at optimizing the paint messages.  It does not look
 // to see what rectangle the system actually needs painted.  Sometimes it only
 // needs a small slice of the window painted, why paint it all?  This implementation
 // also handles DoubleBuffering better
 var
-  PaintInfo: TPaintStruct;
-  ClientR: TRect;
+  lClientRect: TRect;
+  lColor: TColor;
+  lPaintInfo: TPaintStruct;
+  lServices: TCustomStyleServices;
 begin
-  BeginPaint(Handle, PaintInfo);
+  BeginPaint(Handle, lPaintInfo);
   try
     if (UpdateCount = 0) or ForcePaint then
     begin
       try
        if not CacheDoubleBufferBits then
         begin
+          BackBits.Free;
           BackBits := TBitmap.Create;
           BackBits.PixelFormat := pf32Bit;
-          Windows.GetClientRect(Handle, ClientR);
+          Windows.GetClientRect(Handle, lClientRect);
           if ClientWidth > 0 then
             BackBits.Width := ClientWidth
           else
@@ -1343,7 +1346,7 @@ begin
         end;
         BackBits.Canvas.Lock;
         try
-          if not IsRectEmpty(PaintInfo.rcPaint) and (ClientWidth > 0) and (ClientHeight > 0) then
+          if not IsRectEmpty(lPaintInfo.rcPaint) and (ClientWidth > 0) and (ClientHeight > 0) then
           begin
             // Assign attributes to the Canvas used
             BackBits.Canvas.Font.Assign(Font);
@@ -1352,33 +1355,39 @@ begin
 
             SetWindowOrgEx(BackBits.Canvas.Handle, 0, 0, nil);
             SetViewportOrgEx(BackBits.Canvas.Handle, 0, 0, nil);
-            FillRect(BackBits.Canvas.Handle, PaintInfo.rcPaint, Brush.Handle);
+            lServices := StyleServices(Self);
+            lColor := Brush.Color;
+            if lServices.Enabled then
+              Brush.Color := lServices.GetSystemColor(Brush.Color);
+            FillRect(BackBits.Canvas.Handle, lPaintInfo.rcPaint, Brush.Handle);
+            if lServices.Enabled then
+              Brush.Color := lColor;
             SelectClipRgn(BackBits.Canvas.Handle, 0);  // Remove the clipping region we created
 
             // Paint the rectangle that is needed
-            DoPaintRect(BackBits.Canvas, PaintInfo.rcPaint, False);
+            DoPaintRect(BackBits.Canvas, lPaintInfo.rcPaint, False);
 
             // Remove any clipping regions applied by the views.
             SelectClipRgn(BackBits.Canvas.Handle, 0);
 
-            AfterPaintRect(BackBits.Canvas, PaintInfo.rcPaint);
+            AfterPaintRect(BackBits.Canvas, lPaintInfo.rcPaint);
 
             // Blast the bits to the screen
-            BitBlt(PaintInfo.hdc, PaintInfo.rcPaint.Left, PaintInfo.rcPaint.Top,
-              PaintInfo.rcPaint.Right - PaintInfo.rcPaint.Left,
-              PaintInfo.rcPaint.Bottom - PaintInfo.rcPaint.Top,
-              BackBits.Canvas.Handle, PaintInfo.rcPaint.Left, PaintInfo.rcPaint.Top, SRCCOPY);
+            BitBlt(lPaintInfo.hdc, lPaintInfo.rcPaint.Left, lPaintInfo.rcPaint.Top,
+              lPaintInfo.rcPaint.Right - lPaintInfo.rcPaint.Left,
+              lPaintInfo.rcPaint.Bottom - lPaintInfo.rcPaint.Top,
+              BackBits.Canvas.Handle, lPaintInfo.rcPaint.Left, lPaintInfo.rcPaint.Top, SRCCOPY);
           end
         finally
           BackBits.Canvas.Unlock;
         end;
       finally
         if not CacheDoubleBufferBits then
-          FreeAndNil(FBackBits)
+          FreeAndNil(FBackBits);
       end;
-    end
+    end;
   finally
-    EndPaint(Handle, PaintInfo);
+    EndPaint(Handle, lPaintInfo);
   end
 end;
 
