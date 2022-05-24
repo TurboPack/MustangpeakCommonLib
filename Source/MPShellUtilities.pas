@@ -1030,10 +1030,7 @@ type
     function InjectCustomSubMenu(Menu: HMenu; Caption: string; PopupMenu: TPopupMenu; var SubMenu: HMenu): TMenuItemIDArray;
     function InternalGetContextMenuInterface(PIDLArray: TRelativePIDLArray): IContextMenu;
     function InternalGetDataObjectInterface(PIDLArray: TRelativePIDLArray): IDataObject;
-    function InternalShowContextMenu(Owner: TWinControl; ContextMenuCmdCallback: TContextMenuCmdCallback;
-      ContextMenuShowCallback: TContextMenuShowCallback; ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
-      PIDLArray: TRelativePIDLArray; Position: PPoint;
-      CustomShellSubMenu: TPopupMenu; CustomSubMenuCaption: string): Boolean;
+    function InternalShowContextMenu(AOwner: TWinControl; AContextMenuCmdCallback: TContextMenuCmdCallback; AContextMenuShowCallback: TContextMenuShowCallback; AContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback; APIDLArray: TRelativePIDLArray; APosition: PPoint; ACustomShellSubMenu: TPopupMenu; ACustomSubMenuCaption: string): Boolean;
     function InternalSubItems(Flags: Longword): Boolean;
     procedure ReplacePIDL(NewPIDL: PItemIDList; AParent: TNamespace);
     function ShowContextMenuMultiPath(Owner: TWinControl; Focused: TNamespace; Namespaces: TNamespaceArray; ShowPasteItem, ShowRenameItem, ShowShortCutMenuItem: Boolean; Position: PPoint = nil): Boolean;
@@ -6275,224 +6272,217 @@ begin
     Result := nil
 end;
 
-function TNamespace.InternalShowContextMenu(Owner: TWinControl;
-  ContextMenuCmdCallback: TContextMenuCmdCallback;
-  ContextMenuShowCallback: TContextMenuShowCallback;
-  ContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback;
-  PIDLArray: TRelativePIDLArray; Position: PPoint; CustomShellSubMenu: TPopupMenu;
-  CustomSubMenuCaption: string): Boolean;
+function TNamespace.InternalShowContextMenu(AOwner: TWinControl; AContextMenuCmdCallback: TContextMenuCmdCallback; AContextMenuShowCallback: TContextMenuShowCallback; AContextMenuAfterCmdCallback: TContextMenuAfterCmdCallback; APIDLArray: TRelativePIDLArray; APosition: PPoint; ACustomShellSubMenu: TPopupMenu; ACustomSubMenuCaption: string): Boolean;
 // Displays the ContextMenu of the namespace.
 const
-  MaxVerbLen = 128;
+  cMaxVerbLen = 128;
 var
-  Menu: hMenu;
-  InvokeInfo: TCMInvokeCommandInfoEx;
-  MenuCmd: Cardinal;
-  x, y, i: integer;
-  OldErrorMode: integer;
-  VerbW: string;
-  GenericVerb: Pointer;
-  Handled, AllowShow: Boolean;
-  Flags: Longword;
-  ContextMenu: IContextMenu;
-  ContextMenu2: IContextMenu2;
-  ContextMenu3: IContextMenu3;
-  MenuIDs: TMenuItemIDArray;
-  ItemInfo: TMenuItemInfo;
-  SubMenu: HMenu;
-  OldMode: UINT;
-  ShiftDown, ControlDown: Boolean;
+  lAllowShow: Boolean;
+  lContextMenu: IContextMenu;
+  lContextMenu2: IContextMenu2;
+  lContextMenu3: IContextMenu3;
+  lControlDown: Boolean;
+  lCount: Integer;
+  lFlags: UInt32;
+  lGenericVerb: Pointer;
+  lHandled: Boolean;
+  lInvokeInfo: TCMInvokeCommandInfoEx;
+  lItemInfo: TMenuItemInfo;
+  lMenu: hMenu;
+  lMenuCmd: UInt32;
+  lMenuIDs: TMenuItemIDArray;
+  lOldErrorMode: Integer;
+  lOldMode: UInt32;
+  lShiftDown: Boolean;
+  lSubMenu: HMenu;
+  lVerbW: string;
+  lx: Integer;
+  ly: Integer;
 begin
-  OldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+  lOldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
   try
-    MenuIDs := nil;
+    lMenuIDs := nil;
     Result := False;
-    Assert(Assigned(Owner), 'To show a Context Menu using TNamespace you must pass a valid Owner TWinControl');
-    if Assigned(Owner) then
+    Assert(Assigned(AOwner), 'To show a Context Menu using TNamespace you must pass a valid AOwner TWinControl');
+    if Assigned(AOwner) then
     begin
-      ShiftDown := GetKeyState(VK_SHIFT) and $8000 <> 0;
-      ControlDown := GetKeyState(VK_CONTROL) and $8000 <> 0;
+      lShiftDown := GetKeyState(VK_SHIFT) and $8000 <> 0;
+      lControlDown := GetKeyState(VK_CONTROL) and $8000 <> 0;
       try
-        if Assigned(PIDLArray) then
+        if Assigned(APIDLArray) then
         begin
-          ContextMenu := nil;
-          ContextMenu2 := nil;
-          ContextMenu3 := nil;
+          lContextMenu := nil;
+          lContextMenu2 := nil;
+          lContextMenu3 := nil;
           Result := False;
-          if Assigned(Position) then
+          if Assigned(APosition) then
           begin
-            x := Position.x;
-            y := Position.y
-          end else
+            lx := APosition.X;
+            ly := APosition.Y
+          end
+          else
           begin
-            x := Mouse.CursorPos.X;  // Snag these fast. The mouse can move a fair amount
-            y := Mouse.CursorPos.Y;  // before the popup menu is shown.
+            lx := Mouse.CursorPos.X;  // Snag these fast. The mouse can move a fair amount
+            ly := Mouse.CursorPos.Y;  // before the popup lMenu is shown.
           end;
-          FillChar(InvokeInfo, SizeOf(InvokeInfo), #0);
-          Menu := CreatePopupMenu;
-          OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
+          FillChar(lInvokeInfo, SizeOf(lInvokeInfo), #0);
+          lMenu := CreatePopupMenu;
+          lOldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
           try
             { The application must handle a rename, rename makes no sense for more than 1 item }
-            if Assigned(ContextMenuCmdCallback) and (Length(PIDLArray) = 1) then
-              Flags :=  CMF_CANRENAME or CMF_NORMAL or CMF_EXPLORE
+            if Assigned(AContextMenuCmdCallback) and (Length(APIDLArray) = 1) then
+              lFlags :=  CMF_CANRENAME or CMF_NORMAL or CMF_EXPLORE
             else
-              Flags := CMF_NORMAL or CMF_EXPLORE;
+              lFlags := CMF_NORMAL or CMF_EXPLORE;
 
-            if ShiftDown then
-              Flags := Flags or CMF_EXTENDEDVERBS;
+            if lShiftDown then
+              lFlags := lFlags or CMF_EXTENDEDVERBS;
 
-            if Assigned(PIDLArray) then
-              ContextMenu := InternalGetContextMenuInterface(PIDLArray)
+            if Assigned(APIDLArray) then
+              lContextMenu := InternalGetContextMenuInterface(APIDLArray)
             else
-              ContextMenu := ContextMenuInterface;
+              lContextMenu := ContextMenuInterface;
 
-            CurrentContextMenu := ContextMenu;
+            CurrentContextMenu := lContextMenu;
 
             CurrentContextMenu2 := nil;  // not sure it is available yet
-            if Assigned(ContextMenu) then
+            if Assigned(lContextMenu) then
             begin
-              if ContextMenu.QueryInterface(IContextMenu3, Pointer(ContextMenu3)) = E_NOINTERFACE then
+              if lContextMenu.QueryInterface(IContextMenu3, lContextMenu3) <> S_OK then
               begin
-                if ContextMenu.QueryInterface(IID_IContextMenu2, Pointer(ContextMenu2)) <> E_NOINTERFACE then
-                  CurrentContextMenu2 := ContextMenu2;
-              end else
-                CurrentContextMenu2 := ContextMenu3;
-
-              if Assigned(ContextMenu3) then
-                ContextMenu3.QueryContextMenu(Menu, 0, 1, $7FFF, Flags)
+                if lContextMenu.QueryInterface(IID_IContextMenu2, lContextMenu2) = S_OK then
+                  CurrentContextMenu2 := lContextMenu2;
+              end
               else
-              if Assigned(ContextMenu2) then
-                ContextMenu2.QueryContextMenu(Menu, 0, 1, $7FFF, Flags)
-              else
-              if Assigned(ContextMenu) then
-                ContextMenu.QueryContextMenu(Menu, 0, 1, $7FFF, Flags);
+                CurrentContextMenu2 := lContextMenu3;
 
-              // Inject our custom menu item
-              if Assigned(CustomShellSubMenu) then
-                MenuIDs := InjectCustomSubMenu(Menu, CustomSubMenuCaption, CustomShellSubMenu, SubMenu);
+              if Assigned(lContextMenu3) then
+                lContextMenu3.QueryContextMenu(lMenu, 0, 1, $7FFF, lFlags)
+              else if Assigned(lContextMenu2) then
+                lContextMenu2.QueryContextMenu(lMenu, 0, 1, $7FFF, lFlags)
+              else if Assigned(lContextMenu) then
+                lContextMenu.QueryContextMenu(lMenu, 0, 1, $7FFF, lFlags);
 
-              AllowShow := True;
-              if Assigned(ContextMenuShowCallback) then
-                ContextMenuShowCallback(Self, Menu, AllowShow);
+              // Inject our custom lMenu item
+              if Assigned(ACustomShellSubMenu) then
+                lMenuIDs := InjectCustomSubMenu(lMenu, ACustomSubMenuCaption, ACustomShellSubMenu, lSubMenu);
 
-              if AllowShow then
+              lAllowShow := True;
+              if Assigned(AContextMenuShowCallback) then
+                AContextMenuShowCallback(Self, lMenu, lAllowShow);
+
+              if lAllowShow then
               begin
-                FOldWndProcForContextMenu := Owner.WindowProc;
+                FOldWndProcForContextMenu := AOwner.WindowProc;
                 try
-                  // Hook the owner for the Window message for owner draw menus like
+                  // Hook the AOwner for the Window message for AOwner draw menus like
                   // Send To..
-                  Owner.WindowProc := WindowProcForContextMenu;
-                  MenuCmd := Cardinal( TrackPopupMenuEx(
-                                       Menu,
+                  AOwner.WindowProc := WindowProcForContextMenu;
+                  lMenuCmd := Cardinal( TrackPopupMenuEx(
+                                       lMenu,
                                        TPM_LEFTALIGN or TPM_RETURNCMD or TPM_RIGHTBUTTON,
-                                       x, y, Owner.Handle, nil))
+                                       lx, ly, AOwner.Handle, nil))
                 finally
-                  // Try it again to see if the user pressed it while the menu was shown
-                  ShiftDown := GetKeyState(VK_SHIFT) and $8000 <> 0;
-                  ControlDown := GetKeyState(VK_CONTROL) and $8000 <> 0;
-                  Owner.WindowProc := FOldWndProcForContextMenu;
+                  // Try it again to see if the user pressed it while the lMenu was shown
+                  lShiftDown := GetKeyState(VK_SHIFT) and $8000 <> 0;
+                  lControlDown := GetKeyState(VK_CONTROL) and $8000 <> 0;
+                  AOwner.WindowProc := FOldWndProcForContextMenu;
                   FOldWndProcForContextMenu := nil;
-                end
-              end else
-                MenuCmd := 0;
+                end;
+              end
+              else
+                lMenuCmd := 0;
 
-              if MenuCmd <> 0 then
+              if lMenuCmd <> 0 then
               begin
-                SetLength(VerbW, MaxVerbLen);
-                FillChar(VerbW[1], MaxVerbLen*2, #0);
-                GenericVerb := @VerbW[1];
-                Flags := GCS_VERBW;
-                if Assigned(ContextMenu3) then
-                  Result := Succeeded(ContextMenu3.GetCommandString(MenuCmd-1, Flags, nil, GenericVerb, MaxVerbLen))
-                else
-                if Assigned(ContextMenu2) then
-                  Result := Succeeded(ContextMenu2.GetCommandString(MenuCmd-1, Flags, nil, GenericVerb, MaxVerbLen))
-                else
-                if Assigned(ContextMenu) then
-                  Result := Succeeded(ContextMenu.GetCommandString(MenuCmd-1, Flags, nil, GenericVerb, MaxVerbLen));
+                SetLength(lVerbW, cMaxVerbLen);
+                FillChar(lVerbW[1], cMaxVerbLen * SizeOf(Char), #0);
+                lGenericVerb := @lVerbW[1];
+                lFlags := GCS_VERBW;
+                if Assigned(lContextMenu3) then
+                  Result := Succeeded(lContextMenu3.GetCommandString(lMenuCmd - 1, lFlags, nil, lGenericVerb, cMaxVerbLen))
+                else if Assigned(lContextMenu2) then
+                  Result := Succeeded(lContextMenu2.GetCommandString(lMenuCmd - 1, lFlags, nil, lGenericVerb, cMaxVerbLen))
+                else if Assigned(lContextMenu) then
+                  Result := Succeeded(lContextMenu.GetCommandString(lMenuCmd - 1, lFlags, nil, lGenericVerb, cMaxVerbLen));
 
-                SetLength(VerbW, lstrlenW(PWideChar(VerbW)));
+                SetLength(lVerbW, lstrlenW(PWideChar(lVerbW)));
 
                 if not Result then
-                  VerbW := STR_UNKNOWNCOMMAN;
+                  lVerbW := STR_UNKNOWNCOMMAN;
 
-                Handled := False;
-                // See if it is one of our injected menu items and call the Click event
-                for i := 0 to Length(MenuIDs) - 1 do
+                lHandled := False;
+                // See if it is one of our injected lMenu items and call the Click event
+                for lCount := 0 to Length(lMenuIDs) - 1 do
                 begin
-                  if MenuCmd = MenuIDs[i] then
+                  if lMenuCmd = lMenuIDs[lCount] then
                   begin
-                    if SubMenu <> 0 then
+                    if lSubMenu <> 0 then
                     begin
-                      Handled := True;
-                      FillChar(ItemInfo, SizeOf(ItemInfo), #0);
-                      ItemInfo.cbSize := SizeOf(TMenuItemInfo);
-                      ItemInfo.fMask := MIIM_DATA;
-                      GetMenuItemInfo(SubMenu, i, True, ItemInfo);
-                      if ItemInfo.dwItemData <> 0 then
-                        TMenuItem(ItemInfo.dwItemData).Click
+                      lHandled := True;
+                      FillChar(lItemInfo, SizeOf(lItemInfo), #0);
+                      lItemInfo.cbSize := SizeOf(TMenuItemInfo);
+                      lItemInfo.fMask := MIIM_DATA;
+                      GetMenuItemInfo(lSubMenu, lCount, True, lItemInfo);
+                      if lItemInfo.dwItemData <> 0 then
+                        TMenuItem(lItemInfo.dwItemData).Click
                     end
                   end
                 end;
 
-                if Assigned(ContextMenuCmdCallback) then
-                  ContextMenuCmdCallBack(Self, VerbW, MenuCmd, Handled);
+                if Assigned(AContextMenuCmdCallback) then
+                  AContextMenuCmdCallback(Self, lVerbW, lMenuCmd, lHandled);
 
-                if not Handled then
+                if not lHandled then
                 begin
-                  FillChar(InvokeInfo, SizeOf(InvokeInfo), #0);
-                  with InvokeInfo do
-                  begin
-                    { For some reason the lpVerbW won't work }
-                    lpVerb := MakeIntResourceA(MenuCmd-1);
-                    fMask := CMIC_MASK_UNICODE;
-                    lpVerbW := MakeIntResourceW(MenuCmd-1);
-                    // Win95 get confused if size = TCMInvokeCommandInfoEx
-                    cbSize := SizeOf(TCMInvokeCommandInfoEx);
+                  FillChar(lInvokeInfo, SizeOf(lInvokeInfo), #0);
+                  { For some reason the lpVerbW won't work }
+                  lInvokeInfo.lpVerb := MakeIntResourceA(lMenuCmd - 1);
+                  lInvokeInfo.fMask := CMIC_MASK_UNICODE;
+                  lInvokeInfo.lpVerbW := MakeIntResourceW(lMenuCmd - 1);
+                  // Win95 get confused if size = TCMInvokeCommandInfoEx
+                  lInvokeInfo.cbSize := SizeOf(TCMInvokeCommandInfoEx);
 
-                    hWnd := Owner.Handle;
-                    nShow := SW_SHOWNORMAL;
-                  end;
+                  lInvokeInfo.hWnd := AOwner.Handle;
+                  lInvokeInfo.nShow := SW_SHOWNORMAL;
 
-                  InvokeInfo.fMask := InvokeInfo.fMask or CMIC_MASK_ASYNCOK;
+                  lInvokeInfo.fMask := lInvokeInfo.fMask or CMIC_MASK_ASYNCOK;
 
-                  if ShiftDown then
-                    InvokeInfo.fMask := InvokeInfo.fMask or CMIC_MASK_SHIFT_DOWN;
-                  if ControlDown then
-                    InvokeInfo.fMask := InvokeInfo.fMask or CMIC_MASK_CONTROL_DOWN;
+                  if lShiftDown then
+                    lInvokeInfo.fMask := lInvokeInfo.fMask or CMIC_MASK_SHIFT_DOWN;
+                  if lControlDown then
+                    lInvokeInfo.fMask := lInvokeInfo.fMask or CMIC_MASK_CONTROL_DOWN;
 
-                  if Assigned(ContextMenu3) then
-                    Result := Succeeded(ContextMenu3.InvokeCommand(InvokeInfo))
-                  else
-                  if Assigned(ContextMenu2) then
-                    Result := Succeeded(ContextMenu2.InvokeCommand(InvokeInfo))
-                  else
-                  if Assigned(ContextMenu) then
-                    Result := Succeeded(ContextMenu.InvokeCommand(InvokeInfo));
+                  if Assigned(lContextMenu3) then
+                    Result := Succeeded(lContextMenu3.InvokeCommand(lInvokeInfo))
+                  else if Assigned(lContextMenu2) then
+                    Result := Succeeded(lContextMenu2.InvokeCommand(lInvokeInfo))
+                  else if Assigned(lContextMenu) then
+                    Result := Succeeded(lContextMenu.InvokeCommand(lInvokeInfo));
                 end
               end;
-              if Assigned(ContextMenuAfterCmdCallback) then
-                ContextMenuAfterCmdCallback(Self, VerbW, MenuCmd, Result);
+              if Assigned(AContextMenuAfterCmdCallback) then
+                AContextMenuAfterCmdCallback(Self, lVerbW, lMenuCmd, Result);
             end;
           finally
             { Don't access any properties or field of the object.  If the verb is     }
             { 'delete' the component using this class could have freed the instance   }
             { of the object through a ShellNotifyRegister or some other way.          }
-            DestroyMenu(Menu);
-            SetErrorMode(OldErrorMode);
+            DestroyMenu(lMenu);
+            SetErrorMode(lOldErrorMode);
           end
         end
       finally
         // Don't nil until after the hook is unset
-        ContextMenu := nil;
-        ContextMenu2 := nil;
-        ContextMenu3 := nil;
+        lContextMenu := nil;
+        lContextMenu2 := nil;
+        lContextMenu3 := nil;
         CurrentContextMenu := nil;
         CurrentContextMenu2 := nil;  // not sure it is available yet
       end
     end
   finally
-    SetErrorMode(OldMode)
+    SetErrorMode(lOldMode)
   end
 end;
 
