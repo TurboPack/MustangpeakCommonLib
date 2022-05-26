@@ -193,7 +193,7 @@ type
     procedure CMCtl3DChanged(var Msg: TMessage); message CM_Ctl3DChanged;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure CMParentFontChanged(var Message: TMessage); message CM_PARENTFONTCHANGED;
-    procedure CreateParams(var Params: TCreateParams); override;
+    procedure CreateParams(var AParams: TCreateParams); override;
     procedure CreateWnd; override;
     procedure DoBeginUpdate; virtual;
     procedure DoEndUpdate;
@@ -212,7 +212,7 @@ type
     procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMMouseMove(var Msg: TWMMouseMove); message WM_MOUSEMOVE;
     procedure WMNCCalcSize(var Msg: TWMNCCalcSize); message WM_NCCALCSIZE;
-    procedure WMNCPaint(var Msg: TWMNCPaint); message WM_NCPAINT;
+    procedure WMNCPaint(var AMsg: TWMNCPaint); message WM_NCPAINT;
     procedure WMPaint(var AMsg: TWMPaint); message WM_PAINT;
     procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
     property BackBits: TBitmap read FBackBits write FBackBits;
@@ -887,24 +887,24 @@ begin
     RecreateWnd;
 end;
 
-procedure TCommonCanvasControl.CreateParams(var Params: TCreateParams);
+procedure TCommonCanvasControl.CreateParams(var AParams: TCreateParams);
 begin
-  inherited;
-  Params.WindowClass.Style := Params.WindowClass.Style or CS_DBLCLKS and not (CS_HREDRAW or CS_VREDRAW);
-  Params.Style := Params.Style or WS_CLIPCHILDREN or WS_CLIPSIBLINGS;
-  AddBiDiModeExStyle(Params.ExStyle);
+  inherited CreateParams(AParams);
+  AParams.WindowClass.Style := AParams.WindowClass.Style or CS_DBLCLKS and (not (CS_HREDRAW or CS_VREDRAW));
+  AParams.Style := AParams.Style or WS_CLIPCHILDREN or WS_CLIPSIBLINGS;
+  AddBiDiModeExStyle(AParams.ExStyle);
 
   // Themed does not work at design time as Delphi is not themed
-  if (BorderStyle = bsSingle) and not Themed then
+  if (BorderStyle = bsSingle) and (not Themed) then
   begin
     if Ctl3D then
     begin
-      Params.ExStyle := Params.ExStyle or WS_EX_CLIENTEDGE;
-      Params.Style := Params.Style and not WS_BORDER;
+      AParams.ExStyle := AParams.ExStyle or WS_EX_CLIENTEDGE;
+      AParams.Style := AParams.Style and (not WS_BORDER);
     end
     else
-      Params.Style := Params.Style or WS_BORDER;
-  end
+      AParams.Style := AParams.Style or WS_BORDER;
+  end;
 end;
 
 procedure TCommonCanvasControl.CreateWnd;
@@ -1126,46 +1126,50 @@ end;
 
 procedure TCommonCanvasControl.ValidateBorder;
 var
-  HasClientEdge, HasBorder: Boolean;
+  lHasBorder: Boolean;
+  lHasClientEdge: Boolean;
 begin
-  HasClientEdge := (GetWindowLong(Handle, GWL_EXSTYLE) and WS_EX_CLIENTEDGE) <> 0;
-  HasBorder := (GetWindowLong(Handle, GWL_STYLE) and WS_BORDER) <> 0;
+  lHasClientEdge := (GetWindowLong(Handle, GWL_EXSTYLE) and WS_EX_CLIENTEDGE) <> 0;
+  lHasBorder := (GetWindowLong(Handle, GWL_STYLE) and WS_BORDER) <> 0;
 
   if Themed then
   begin
     // Needs neither WS_EX_CLIENTEDGE or WS_BORDER
-    if HasClientEdge or HasBorder then
+    if lHasClientEdge or lHasBorder then
     begin
-      SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and not WS_EX_CLIENTEDGE);
-      SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not WS_BORDER)
-    end
-  end else
+      SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and (not WS_EX_CLIENTEDGE));
+      SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and (not WS_BORDER));
+    end;
+  end
+  else
   begin
-    if (BorderStyle = bsSingle) then
+    if BorderStyle = bsSingle then
     begin
       if Ctl3D then
       begin
         // Needs WS_EX_CLIENTEDGE and not WS_BORDER
-        if not HasClientEdge or HasBorder then
+        if not lHasClientEdge or lHasBorder then
         begin
           SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_CLIENTEDGE);
-          SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not WS_BORDER)
-        end
-      end else
+          SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and (not WS_BORDER));
+        end;
+      end
+      else
       begin
         // Does not need WS_EX_CLIENTEDGE and needs WS_BORDER
-        if HasClientEdge or not HasBorder then
+        if lHasClientEdge or (not lHasBorder) then
         begin
-          SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and not WS_EX_CLIENTEDGE);
-          SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) or WS_BORDER)
-        end
-      end
-    end else
-    begin
-      SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and not WS_EX_CLIENTEDGE);
-      SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not WS_BORDER)
+          SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and (not WS_EX_CLIENTEDGE));
+          SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) or WS_BORDER);
+        end;
+      end;
     end
-  end
+    else
+    begin
+      SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) and (not WS_EX_CLIENTEDGE));
+      SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and (not WS_BORDER))
+    end;
+  end;
 end;
 
 procedure TCommonCanvasControl.WMDestroy(var Msg: TMessage);
@@ -1221,96 +1225,97 @@ begin
   end
 end;
 
-procedure TCommonCanvasControl.WMNCPaint(var Msg: TWMNCPaint);
+procedure TCommonCanvasControl.WMNCPaint(var AMsg: TWMNCPaint);
 // The VCL screws this up and draws over the scrollbars making them flicker and
 // be covered up by backgound painting when dragging the the window from off the
 // screen
 const
-  InnerStyles: array[TBevelCut] of Integer = (0, BDR_SUNKENINNER, BDR_RAISEDINNER, 0);
-  OuterStyles: array[TBevelCut] of Integer = (0, BDR_SUNKENOUTER, BDR_RAISEDOUTER, 0);
-  EdgeStyles: array[TBevelKind] of Integer = (0, 0, BF_SOFT, BF_FLAT);
-  Ctl3DStyles: array[Boolean] of Integer = (BF_MONO, 0);
+  cCtl3DStyles: array[Boolean] of Integer = (BF_MONO, 0);
+  cEdgeStyles: array[TBevelKind] of Integer = (0, 0, BF_SOFT, BF_FLAT);
+  cInnerStyles: array[TBevelCut] of Integer = (0, BDR_SUNKENINNER, BDR_RAISEDINNER, 0);
+  cOuterStyles: array[TBevelCut] of Integer = (0, BDR_SUNKENOUTER, BDR_RAISEDOUTER, 0);
 var
-  ClientR,            // The client area plus the scrollbars
-  Filler,             // The rectangle between the scrollbars
-  NonClientR: TRect;  // The full window with a 0,0 origin
-  DC: HDC;
-  Style, StyleEx: Longword;
-  OffsetX, OffsetY: Integer;
+  lClientRect: TRect;            // The client area plus the scrollbars
+  lDC: HDC;
+  lFiller: TRect;                // The rectangle between the scrollbars
+  lNonClientRect: TRect;         // The full window with a 0,0 origin
+  lOffsetX: NativeInt;
+  lOffsetY: NativeInt;
+  lStyle: Longword;
+  lStyleEx: Longword;
 begin
   // Let Windows paint the scrollbars first
-  DefaultHandler(Msg);
+  DefaultHandler(AMsg);
   // Always paint the NC area as refreshing it can be tricky and it sometimes
   // is not redrawn on startup
 //  if UpdateCount = 0 then
-  begin
-    DC := GetWindowDC(Handle);
-    try
-      NCCanvas.Handle := DC;
+  lDC := GetWindowDC(Handle);
+  try
+    NCCanvas.Handle := lDC;
 
-      Windows.GetClientRect(Handle, ClientR);
-      Windows.GetWindowRect(Handle, NonClientR);
+    Windows.GetClientRect(Handle, lClientRect);
+    Windows.GetWindowRect(Handle, lNonClientRect);
 
-      Windows.ScreenToClient(Handle, NonClientR.TopLeft);
-      Windows.ScreenToClient(Handle, NonClientR.BottomRight);
-      OffsetX := NonClientR.Left;
-      OffsetY := NonClientR.Top;
+    Windows.ScreenToClient(Handle, lNonClientRect.TopLeft);
+    Windows.ScreenToClient(Handle, lNonClientRect.BottomRight);
+    lOffsetX := lNonClientRect.Left;
+    lOffsetY := lNonClientRect.Top;
 
-      // The DC origin is with respect to the Window so offset everything to match
-      OffsetRect(NonClientR, -OffsetX, -OffsetY);
-      OffsetRect(ClientR, -OffsetX, -OffsetY);
+    // The lDC origin is with respect to the Window so offset everything to match
+    OffsetRect(lNonClientRect, -lOffsetX, -lOffsetY);
+    OffsetRect(lClientRect, -lOffsetX, -lOffsetY);
 
-      Style := GetWindowLong(Handle, GWL_STYLE);
-      if (Style and WS_VSCROLL) <> 0 then
+    lStyle := GetWindowLong(Handle, GWL_STYLE);
+    if (lStyle and WS_VSCROLL) <> 0 then
+    begin
+      lStyleEx := GetWindowLong(Handle, GWL_EXSTYLE);
+      if (lStyleEx and WS_EX_LEFTSCROLLBAR) <> 0 then          // RTL or LTR Reading
+        Dec(lClientRect.Left, GetSystemMetrics(SM_CYVSCROLL))
+      else
+        Inc(lClientRect.Right, GetSystemMetrics(SM_CYVSCROLL));
+    end;
+    if (lStyle and WS_HSCROLL) <> 0 then
+      Inc(lClientRect.Bottom, GetSystemMetrics(SM_CYHSCROLL));
+
+    // Paint the little square in the corner made by the scroll bars
+    if ((lStyle and WS_VSCROLL) <> 0) and ((lStyle and WS_HSCROLL) <> 0) then
+    begin
+      lFiller := lClientRect;
+      lStyleEx := GetWindowLong(Handle, GWL_EXSTYLE);
+      if (lStyleEx and WS_EX_LEFTSCROLLBAR) <> 0 then
+        lFiller.Right := lFiller.Left + GetSystemMetrics(SM_CYVSCROLL)
+      else
+        lFiller.Left := lFiller.Right - GetSystemMetrics(SM_CYVSCROLL);
+      lFiller.Top := lFiller.Bottom - GetSystemMetrics(SM_CYHSCROLL);
+      NCCanvas.Brush.Color := clBtnFace;
+      NCCanvas.FillRect(lFiller);
+    end;
+
+    // Punch out the client area and the scroll bar area
+    ExcludeClipRect(lDC, lClientRect.Left, lClientRect.Top, lClientRect.Right, lClientRect.Bottom);
+    // Fill the entire
+    Windows.FillRect(lDC, lNonClientRect, Brush.Handle);
+
+    // Will return false if USETHEMES not defined
+    if DrawWithThemes then
+      PaintThemedNCBkgnd(NCCanvas, lNonClientRect)
+    else
+    begin
+      Windows.FillRect(lDC, lNonClientRect, Brush.Handle);
+      if BevelKind <> bkNone then
       begin
-        StyleEx := GetWindowLong(Handle, GWL_EXSTYLE);
-        if (StyleEx and WS_EX_LEFTSCROLLBAR) <> 0 then          // RTL or LTR Reading
-          Dec(ClientR.Left, GetSystemMetrics(SM_CYVSCROLL))
-        else
-          Inc(ClientR.Right, GetSystemMetrics(SM_CYVSCROLL))
+        if BevelInner <> bvNone then
+          InflateRect(lClientRect, 1, 1);
+        if BevelOuter <> bvNone then
+          InflateRect(lClientRect, 1, 1);
       end;
-      if (Style and WS_HSCROLL) <> 0 then
-        Inc(ClientR.Bottom, GetSystemMetrics(SM_CYHSCROLL));
-
-      // Paint the little square in the corner made by the scroll bars
-      if ((Style and WS_VSCROLL) <> 0) and ((Style and WS_HSCROLL) <> 0) then
-      begin
-        Filler := ClientR;
-        StyleEx := GetWindowLong(Handle, GWL_EXSTYLE);
-        if (StyleEx and WS_EX_LEFTSCROLLBAR) <> 0 then
-          Filler.Right := Filler.Left + GetSystemMetrics(SM_CYVSCROLL)
-        else
-          Filler.Left := Filler.Right - GetSystemMetrics(SM_CYVSCROLL);
-        Filler.Top := Filler.Bottom - GetSystemMetrics(SM_CYHSCROLL);
-        NCCanvas.Brush.Color := clBtnFace;
-        NCCanvas.FillRect(Filler);
-      end;
-
-      // Punch out the client area and the scroll bar area
-      ExcludeClipRect(DC, ClientR.Left, ClientR.Top, ClientR.Right, ClientR.Bottom);
-      // Fill the entire
-      Windows.FillRect(DC, NonClientR, Brush.Handle);
-
-      // Will return false if USETHEMES not defined
-      if DrawWithThemes then
-        PaintThemedNCBkgnd(NCCanvas, NonClientR)
-      else begin
-        Windows.FillRect(DC, NonClientR, Brush.Handle);
-        if BevelKind <> bkNone then
-        begin
-          if BevelInner <> bvNone then
-            InflateRect(ClientR, 1, 1);
-          if BevelOuter <> bvNone then
-            InflateRect(ClientR, 1, 1);
-        end;
-        DrawEdge(DC, NonClientR, InnerStyles[BevelInner] or OuterStyles[BevelOuter],
-            Byte(BevelEdges) or EdgeStyles[BevelKind] or Ctl3DStyles[Ctl3D]);
-      end;
-    finally
-      NCCanvas.Handle := 0;
-      ReleaseDC(Handle, DC);
-    end
-  end
+      DrawEdge(lDC, lNonClientRect, cInnerStyles[BevelInner] or cOuterStyles[BevelOuter],
+        Byte(BevelEdges) or cEdgeStyles[BevelKind] or cCtl3DStyles[Ctl3D]);
+    end;
+  finally
+    NCCanvas.Handle := 0;
+    ReleaseDC(Handle, lDC);
+  end;
 end;
 
 procedure TCommonCanvasControl.WMPaint(var AMsg: TWMPaint);
