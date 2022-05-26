@@ -895,7 +895,7 @@ begin
   AddBiDiModeExStyle(AParams.ExStyle);
 
   // Themed does not work at design time as Delphi is not themed
-  if (BorderStyle = bsSingle) and (not Themed) then
+  if (BorderStyle = bsSingle) and ((not Themed) or StyleServices(Self).Enabled) then
   begin
     if Ctl3D then
     begin
@@ -1129,6 +1129,10 @@ var
   lHasBorder: Boolean;
   lHasClientEdge: Boolean;
 begin
+  //In this case the StyleServices paints the border
+  if StyleServices(Self).Enabled then
+    Exit;
+
   lHasClientEdge := (GetWindowLong(Handle, GWL_EXSTYLE) and WS_EX_CLIENTEDGE) <> 0;
   lHasBorder := (GetWindowLong(Handle, GWL_STYLE) and WS_BORDER) <> 0;
 
@@ -1241,6 +1245,7 @@ var
   lNonClientRect: TRect;         // The full window with a 0,0 origin
   lOffsetX: NativeInt;
   lOffsetY: NativeInt;
+  lServices: TCustomStyleServices;
   lStyle: Longword;
   lStyleEx: Longword;
 begin
@@ -1312,6 +1317,10 @@ begin
       DrawEdge(lDC, lNonClientRect, cInnerStyles[BevelInner] or cOuterStyles[BevelOuter],
         Byte(BevelEdges) or cEdgeStyles[BevelKind] or cCtl3DStyles[Ctl3D]);
     end;
+
+    lServices := StyleServices(Self);
+    if lServices.Enabled then
+      lServices.PaintBorder(Self, False);
   finally
     NCCanvas.Handle := 0;
     ReleaseDC(Handle, lDC);
