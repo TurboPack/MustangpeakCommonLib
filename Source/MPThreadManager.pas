@@ -59,9 +59,9 @@ type
   TNamespaceCallbackProc = procedure(Request: TPIDLCallbackThreadRequest) of object;
 
   // TMessage definition for how the data is passed to the target window via PostMessage
-  TWMThreadRequest = {$IFNDEF CPUX64}packed{$ENDIF} record
+  TWMThreadRequest = record
     Msg: Cardinal;
-    {$IFDEF CPUX64}MsgFiller: TDWordFiller;{$ENDIF}
+    MsgFiller: TDWordFiller;
     RequestID: WPARAM;
     Request: TCommonThreadRequest;
     Result: LRESULT;
@@ -357,7 +357,7 @@ type
 
     procedure AddRequest(Request: TCommonThreadRequest; DoSetEvent: Boolean);
     procedure FlushAllMessageCache(Window: TWinControl; Item: Pointer = nil);
-    procedure FlushMessageCache(Window: TWinControl; RequestID: WPARAM; Item: Pointer = nil);
+    procedure FlushMessageCache(AWindow: TWinControl; ARequestID: WPARAM; AItem: Pointer = nil);
     function RegisterControl(Window: TWinControl): Boolean;
     procedure UnRegisterAll;
     procedure UnRegisterControl(Window: TWinControl);
@@ -1113,134 +1113,147 @@ begin
   FlushMessageCache(Window, TID_START, Item);
 end;
 
-procedure TCommonThreadManager.FlushMessageCache(Window: TWinControl; RequestID: WPARAM; Item: Pointer = nil);
+procedure TCommonThreadManager.FlushMessageCache(AWindow: TWinControl; ARequestID: WPARAM; AItem: Pointer = nil);
 // First locks the thread by locking its RequestList.  This stops the thread
 // from accessing a new request.  It then flushes the Windows message cache
-// of pending messages matching the RequestId.
-// Next any pending requests in the Threads RequestList matching the RequestID
+// of pending messages matching the ARequestID.
+// Next any pending requests in the Threads RequestList matching the ARequestID
 // are removed and freed.
-// If Item <> nil then the method will only remove requests for that particular Item
-// (comparing it to the TCommonThreadRequest.Item field)
-// Pass a RequestID = TID_START to remove all request from a window
+// If AItem <> nil then the method will only remove requests for that particular AItem
+// (comparing it to the TCommonThreadRequest.AItem field)
+// Pass a ARequestID = TID_START to remove all request from a AWindow
 var
-  Msg: TMsg;
-  List: TList;
-  I: Integer;
-  R: TCommonThreadRequest;
-  RepostQuitMsg: Boolean;
-  QuitMsgExitCode: Integer;
+  lCount: Integer;
+  lList: TList;
+  lMsg: TMsg;
+  lQuitMsgExitCode: Integer;
+  lRepostQuitMsg: Boolean;
+  lRequest: TCommonThreadRequest;
 begin
-  List := nil;
+  lList := nil;
 
   if Enabled then
   begin
-    RepostQuitMsg := False;
-    QuitMsgExitCode := 0;
+    lRepostQuitMsg := False;
+    lQuitMsgExitCode := 0;
     // If the thread is not created yet then there is no point in flushing it
     if Assigned(FThread) then
-      List := Thread.RequestList.LockList;
+      lList := Thread.RequestList.LockList;
     try
       // Remove the requests in the hidden dispatch message cache
-      // I have seen PeekMessage return true and return the WM_QUIT message, this
+      // lCount have seen PeekMessage return true and return the WM_QUIT message, this
       // strips the queue of the message to shut down the app!  Don't strip it out
       // until we check to see if it is the right message
-      while PeekMessage(Msg, FilterWindow, WM_COMMONTHREADNOTIFIER, WM_COMMONTHREADNOTIFIER, PM_REMOVE) do
+      while PeekMessage(lMsg, FilterWindow, WM_COMMONTHREADNOTIFIER, WM_COMMONTHREADNOTIFIER, PM_REMOVE) do
       begin
-        if Msg.Message = WM_QUIT then
+        if lMsg.Message = WM_QUIT then
         begin
-          QuitMsgExitCode := Msg.wParam;
-          RepostQuitMsg := True;
-        end else
-        begin
-          // If the message is for the window to flush then free it, else dispatch it normally
-          R := TCommonThreadRequest(Msg.lParam);
-
-          if (R.Window = Window) and ((RequestID = TID_START) or (R.ID = RequestID)) then
-          begin
-            if Item <> nil then
-            begin
-              // If is the target item then remove it, else put it back in the queue
-              // WARNING don't SendMessage as that could cause some nasty reentrant isses
-              if R.Item = Item then
-                R.Release
-              else
-                PostMessage(R.Window.Handle, R.CallbackWndMessage, Msg.wParam, Msg.lParam)
-            end else
-              R.Release
-          end else
-          begin
-            if R.Window.HandleAllocated then
-              SendMessage(R.Window.Handle, R.CallbackWndMessage, R.ID, Msg.lParam)
-         //     SendMessage(R.Window.Handle, R.CallbackWndMessage, Msg.wParam, Msg.lParam)
-            else
-              R.Release
-          end
+          lQuitMsgExitCode := lMsg.wParam;
+          lRepostQuitMsg := True;
         end
+        else
+        begin
+          // If the message is for the AWindow to flush then free it, else dispatch it normally
+          lRequest := TObject(lMsg.lParam) as TCommonThreadRequest;
+          if Assigned(lRequest) then
+          begin
+            if (lRequest.Window = AWindow) and ((ARequestID = TID_START) or (lRequest.ID = ARequestID)) then
+            begin
+              if Assigned(AItem) then
+              begin
+                // If is the target AItem then remove it, else put it back in the queue
+                // WARNING don't SendMessage as that could cause some nasty reentrant isses
+                if lRequest.Item = AItem then
+                  lRequest.Release
+                else
+                  PostMessage(lRequest.Window.Handle, lRequest.CallbackWndMessage, lMsg.wParam, lMsg.lParam);
+              end
+              else
+                lRequest.Release;
+            end
+            else
+            begin
+              if lRequest.Window.HandleAllocated then
+                SendMessage(lRequest.Window.Handle, lRequest.CallbackWndMessage, lRequest.ID, lMsg.lParam)
+           //     SendMessage(lRequest.Window.Handle, lRequest.CallbackWndMessage, lMsg.wParam, lMsg.lParam)
+              else
+                lRequest.Release
+            end;
+          end;
+        end;
       end;
 
-      if Assigned(Window) then
+      if Assigned(AWindow) then
       begin
         // Remove the requests in the windows cache
-        if Window.HandleAllocated then
+        if AWindow.HandleAllocated then
         begin
-          // I have seen PeekMessage return true and return the WM_QUIT message, this
+          // lCount have seen PeekMessage return true and return the WM_QUIT message, this
           // strips the queue of the message to shut down the app!  Don't strip it out
           // until we check to see if it is the right message
-          while PeekMessage(Msg, Window.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
+          while PeekMessage(lMsg, AWindow.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
           begin
-            if Msg.Message = WM_QUIT then
+            if lMsg.Message = WM_QUIT then
             begin
-              QuitMsgExitCode := Msg.wParam;
-              RepostQuitMsg := True;
-            end else
-            begin
-              // If the message is for the window to flush then free it
-              R := TCommonThreadRequest(Msg.lParam);
-
-              if (R.Window = Window) and ((RequestID = TID_START) or (R.ID = RequestID)) then
-              begin
-                if Item <> nil then
-                begin
-                  // If is the target item then remove it, else put it back in the queue
-                  // WARNING don't SendMessage as that could cause some nasty reentrant isses
-                  if R.Item = Item then
-                    R.Release
-                  else
-                    PostMessage(R.Window.Handle, R.CallbackWndMessage, Msg.wParam, Msg.lParam)
-                end else
-                  R.Release
-              end
+              lQuitMsgExitCode := lMsg.wParam;
+              lRepostQuitMsg := True;
             end
+            else
+            begin
+              // If the message is for the AWindow to flush then free it
+              lRequest := TObject(lMsg.lParam) as TCommonThreadRequest;
+              if Assigned(lRequest) then
+              begin
+                if (lRequest.Window = AWindow) and ((ARequestID = TID_START) or (lRequest.ID = ARequestID)) then
+                begin
+                  if AItem <> nil then
+                  begin
+                    // If is the target AItem then remove it, else put it back in the queue
+                    // WARNING don't SendMessage as that could cause some nasty reentrant isses
+                    if lRequest.Item = AItem then
+                      lRequest.Release
+                    else
+                      PostMessage(lRequest.Window.Handle, lRequest.CallbackWndMessage, lMsg.wParam, lMsg.lParam);
+                  end
+                  else
+                    lRequest.Release;
+                end;
+              end;
+            end;
           end;
-          if RepostQuitMsg then
-            PostQuitMessage(QuitMsgExitCode);
+          if lRepostQuitMsg then
+            PostQuitMessage(lQuitMsgExitCode);
         end
       end;
 
-      if Assigned(List) then
+      if Assigned(lList) then
       begin
-        // Now remove any waiting requests from the list in the thread
-        for I := List.Count - 1 downto 0 do
+        // Now remove any waiting requests from the lList in the thread
+        for lCount := lList.Count - 1 downto 0 do
         begin
-          R := TCommonThreadRequest(List[I]);
-          if (Window = nil) or ((R.Window = Window) and ((RequestID = TID_START) or (R.ID = RequestID))) then
+          lRequest := TCommonThreadRequest(lList[lCount]);
+          if Assigned(lRequest) then
           begin
-            if Item <> nil then
+            if (AWindow = nil) or ((lRequest.Window = AWindow) and ((ARequestID = TID_START) or (lRequest.ID = ARequestID))) then
             begin
-              // Only remove the target item if assigned
-              if Item = R.Item then
+              if AItem <> nil then
               begin
-                R.Release;
-                List.Delete(I);
+                // Only remove the target AItem if assigned
+                if AItem = lRequest.Item then
+                begin
+                  lRequest.Release;
+                  lList.Delete(lCount);
+                end;
               end
-            end else
-            begin
-              R.Release;
-              List.Delete(I);
-            end
-          end
+              else
+              begin
+                lRequest.Release;
+                lList.Delete(lCount);
+              end;
+            end;
+          end;
         end;
-      end
+      end;
     finally
       if Assigned(FThread) then
         Thread.RequestList.UnlockList
