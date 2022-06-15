@@ -686,10 +686,10 @@ begin
       // Test the very list item in the List
       NS := TNamespace( NamespaceList[NamespaceList.Count - 1]);
       if PIDLMgr.IsDesktopFolder(NS.AbsolutePIDL) then
-        Dups.Add( Pointer( NamespaceList.Count - 1));  // Remove the Desktop PIDL in the last position
+        Dups.Add(Pointer(NamespaceList.Count - 1));  // Remove the Desktop PIDL in the last position
     finally
       for i := 0 to Dups.Count - 1 do
-        NamespaceList[ Integer( Dups[i])] := nil;
+        NamespaceList[NativeInt(Dups[i])] := nil;
       NamespaceList.Pack;
       Dups.Free
     end
