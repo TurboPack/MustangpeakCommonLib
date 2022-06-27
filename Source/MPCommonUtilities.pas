@@ -3494,7 +3494,9 @@ end;
 
 function IsWin7: Boolean;
 begin
-  Result := (Win32Platform = VER_PLATFORM_WIN32_NT) and (Win32MajorVersion >= 6) and (Win32MinorVersion > 0)
+  Result := (Win32Platform = VER_PLATFORM_WIN32_NT) and
+    (((Win32MajorVersion = 6) and (Win32MinorVersion > 0)) or
+    (Win32MajorVersion > 6) and (Win32MinorVersion >= 0));
 end;
 
 function RectHeight(R: TRect): Integer;
