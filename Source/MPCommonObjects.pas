@@ -464,7 +464,7 @@ type
     function FindLargerSysImageList(const AWidth: Integer): TCustomImageList;
     function FindSmallerSysImageList(const AWidth: Integer): TCustomImageList;
     function FindSysImageList(const AWidth: Integer): TCustomImageList;
-    function GetImageListWidth(const AWidth: Integer): TCustomImageList;
+    function GetImageListWidth(const AWidth: Integer): TCustomImageList; overload;
     procedure SetSourceImageList(AValue: TCustomImageList);
   strict protected
     function GetCount: Integer; override;
@@ -474,6 +474,7 @@ type
     destructor Destroy; override;
     procedure DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True); override;
     function GetImageList(const APPI: Integer): TCustomImageList;
+    function GetImageListWidth: TCustomImageList; overload;
     property SourceImageList: TCustomImageList read FSourceImageList write SetSourceImageList;
     property Width;
     property Height;
@@ -2477,6 +2478,11 @@ begin
 
   lWidth := MulDiv(FSourceImageList.Width, APPI, Screen.PixelsPerInch);
   Result := GetImageListWidth(lWidth);
+end;
+
+function TCommonVirtualImageList.GetImageListWidth: TCustomImageList;
+begin
+  Result := GetImageListWidth(Width);
 end;
 
 function TCommonVirtualImageList.GetImageListWidth(const AWidth: Integer): TCustomImageList;
