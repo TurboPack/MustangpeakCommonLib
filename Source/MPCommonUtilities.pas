@@ -461,7 +461,7 @@ uses
   {$if CompilerVersion >= 21}
   WinCodec,
   {$ifend}
-  MPCommonObjects;
+  MPCommonObjects, MPShellUtilities;
 
 type
   PLibRec = ^TLibRec;
@@ -2671,22 +2671,10 @@ begin
 end;
 
 function GetMyDocumentsVirtualFolder: PItemIDList;
-
 const
-  MYCOMPUTER_GUID = WideString('::{450d8fba-ad25-11d0-98a8-0800361b1103}');
-
-var
-  dwAttributes, pchEaten: ULONG;
-  Desktop: IShellFolder;
+  MYCOMPUTER_GUID = '::{450d8fba-ad25-11d0-98a8-0800361b1103}';
 begin
-  Result := nil;
-  dwAttributes := 0;
-  SHGetDesktopFolder(Desktop);
-  pchEaten := Length(MYCOMPUTER_GUID);
-  if not Succeeded(Desktop.ParseDisplayName(0, nil,
-    PWideChar(MYCOMPUTER_GUID), pchEaten, Result, dwAttributes))
-  then
-    Result := nil
+  Result := TPIDLCache.ForcePIDL(MYCOMPUTER_GUID, 0);
 end;
 
 function WideGetTempDir: string;

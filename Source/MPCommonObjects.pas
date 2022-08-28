@@ -309,6 +309,28 @@ type
     property SharePIDLs: Boolean read FSharePIDLs write FSharePIDLs;
   end;
 
+  IMPItemIDList = interface(IInterface)
+    ['{249931E8-8566-47C6-A59F-B6D2B762F6D8}']
+    function GetPIDL: PItemIDList;
+    property PIDL: PItemIDList read GetPIDL;
+  end;
+
+  TMPItemIDList = class(TInterfacedObject, IMPItemIDList)
+  strict private
+    FPIDL: PItemIDList;
+    function GetPIDL: PItemIDList;
+  strict protected
+    property PIDL: PItemIDList read GetPIDL;
+  public
+    constructor Create(const APIDL: PItemIDList);
+    destructor Destroy; override;
+  end;
+
+  TMPItemIDListFactory = record
+  public
+    class function New(const APIDL: PItemIDList): IMPItemIDList; static;
+  end;
+
   //
   // TCoolPIDLManager is a class the encapsulates PIDLs and makes them easier to
   // handle.
@@ -2531,6 +2553,35 @@ end;
 function TControlHelper.PPIUnScale(Value: integer): integer;
 begin
   Result := MulDiv(Value, 96, FCurrentPPI);
+end;
+
+{ TMPItemIDList }
+
+constructor TMPItemIDList.Create(const APIDL: PItemIDList);
+begin
+  inherited Create;
+  FPIDL := APIDL;
+end;
+
+destructor TMPItemIDList.Destroy;
+begin
+  CoTaskMemFree(FPIDL);
+  inherited Destroy;
+end;
+
+function TMPItemIDList.GetPIDL: PItemIDList;
+begin
+  Result := FPIDL;
+end;
+
+{ TMPItemIDListFactory }
+
+class function TMPItemIDListFactory.New(const APIDL: PItemIDList): IMPItemIDList;
+begin
+  if Assigned(APIDL) then
+    Result := TMPItemIDList.Create(APIDL)
+  else
+    Result := nil;
 end;
 
 initialization

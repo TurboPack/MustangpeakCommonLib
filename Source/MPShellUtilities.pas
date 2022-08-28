@@ -76,6 +76,7 @@ uses
   Messages,
   SysUtils,
   Classes,
+  Generics.Collections,
   Graphics,
   Controls,
   Forms,
@@ -839,6 +840,21 @@ type
     MenuItemID: Integer; Successful: Boolean) of object;
 {-------------------------------------------------------------------------------}
 
+  TPIDLDict = TDictionary<string, IMPItemIDList>;
+  TPIDLCache = class
+  strict private class var
+    FDict: TPIDLDict;
+    FEnabled: Boolean;
+    FSync: IReadWriteSync;
+  strict private
+    class function GetEnabled: Boolean; static;
+    class procedure SetEnabled(const AValue: Boolean); static;
+  public
+    class constructor Create;
+    class destructor Destroy;
+    class function ForcePIDL(const APath: string; const AHandle: THandle): PItemIDList;
+    class property Enabled: Boolean read GetEnabled write SetEnabled;
+  end;
 
 {-------------------------------------------------------------------------------}
 { TNamespace, encapsulates the Windows Shell Namespace                          }
@@ -1108,7 +1124,7 @@ type
     function IsRecycleBin: Boolean;
     function OkToBrowse(ShowExplorerMsg: Boolean): Boolean;  virtual;
     function ParseDisplayName: PItemIDList;  overload;  virtual;
-    function ParseDisplayName(Path: string): PItemIDList; overload;  virtual;
+    function ParseDisplayName(const APath: string): PItemIDList; overload; virtual;
     function Paste(Owner: TWinControl; NamespaceArray: TNamespaceArray; AsShortCut: Boolean = False): Boolean; virtual;
     procedure SetDetailByThread(ColumnIndex: Integer; Detail: string);
     procedure SetIconIndexByThread(IconIndex: Integer; OverlayIndex: Integer; ClearThreadLoading: Boolean); virtual;
@@ -2527,21 +2543,12 @@ end;
 
 function PathToPIDL(APath: string; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
 // Takes the passed Path and attempts to convert it to the equavalent PIDL
-var
-  Desktop: IShellFolder;
-  pchEaten, dwAttributes: ULONG;
 begin
-  Result := nil;
-  begin
-    SHGetDesktopFolder(Desktop);
-    dwAttributes := 0;
-    if Assigned(Desktop) then
-      Desktop.ParseDisplayName(ParentWindowHandle, nil, PWideChar(APath), pchEaten, Result, dwAttributes);
-    // Message boxes are set as children of the Application window
-    // Appears ParseDisplayName looks for the top level and first in the owner chain regardless of the ParentWindowHandle
-    if Assigned(Application) and ForceApplicationToTop then
-      BringWindowToTop(Application.Handle);
-  end
+  Result := TPIDLCache.ForcePIDL(APath, ParentWindowHandle);
+  // Message boxes are set as children of the Application window
+  // Appears ParseDisplayName looks for the top level and first in the owner chain regardless of the ParentWindowHandle
+  if Assigned(Application) and ForceApplicationToTop then
+    BringWindowToTop(Application.Handle);
 end;
 { ----------------------------------------------------------------------------- }
 
@@ -6805,22 +6812,9 @@ begin
   Result := ParseDisplayName(NameForParsing)
 end;
 
-function TNamespace.ParseDisplayName(Path: string): PItemIDList;
-var
-  chEaten: ULONG;
-  Attrib: ULONG;
-  Desktop: IShellFolder;
+function TNamespace.ParseDisplayName(const APath: string): PItemIDList;
 begin
-  Result := nil;
-  Attrib := 0;
-  SHGetDesktopFolder(Desktop);
-  if Assigned(Desktop) then
-  begin
-    if Desktop.ParseDisplayName(ParentWnd, nil, PWideChar( Path),
-      chEaten, Result, Attrib) <> NOERROR
-    then
-      Result := nil;
-  end
+  Result := TPIDLCache.ForcePIDL(APath, ParentWnd);
 end;
 
 function TNamespace.Paste(Owner: TWinControl; NamespaceArray: TNamespaceArray; AsShortCut: Boolean = False): Boolean;
@@ -9732,6 +9726,90 @@ end;
 procedure TColumnMap.Sort;
 begin
   FList.Sort(@ColumnMapSortByGUID)
+end;
+
+{ TPIDLCache }
+
+class constructor TPIDLCache.Create;
+begin
+  FSync := TMultiReadExclusiveWriteSynchronizer.Create;
+end;
+
+class destructor TPIDLCache.Destroy;
+begin
+  FDict.Free;
+  FDict := nil;
+end;
+
+class function TPIDLCache.ForcePIDL(const APath: string; const AHandle: THandle): PItemIDList;
+var
+  lAttributes: UInt32;
+  lDesktop: IShellFolder;
+  lEaten: UInt32;
+  lPIDL: PItemIDList;
+  lPIDLIntf: IMPItemIDList;
+begin
+  if FEnabled then
+  begin
+    FSync.BeginRead;
+    try
+      if FDict.TryGetValue(APath, lPIDLIntf) then
+        Exit(PIDLMgr.CopyPIDL(lPIDLIntf.PIDL));
+    finally
+      FSync.EndRead;
+    end;
+  end;
+
+  SHGetDesktopFolder(lDesktop);
+  if lDesktop = nil then
+    Exit(nil);
+
+  lAttributes := 0;
+  if not Succeeded(lDesktop.ParseDisplayName(AHandle, nil, PWideChar(APath), lEaten, lPIDL, lAttributes)) then
+    Exit(nil);
+
+  if not FEnabled then
+    Exit(lPIDL);
+
+  lPIDLIntf := TMPItemIDListFactory.New(lPIDL);
+  FSync.BeginWrite;
+  try
+    FDict.Add(APath, lPIDLIntf);
+  finally
+    FSync.EndWrite;
+  end;
+  Result := PIDLMgr.CopyPIDL(lPIDL);
+end;
+
+class function TPIDLCache.GetEnabled: Boolean;
+begin
+  Result := FEnabled;
+end;
+
+class procedure TPIDLCache.SetEnabled(const AValue: Boolean);
+begin
+  if AValue <> FEnabled then
+  begin
+    FSync.BeginWrite;
+    try
+      if AValue then
+      begin
+        if FDict = nil then
+          FDict := TPIDLDict.Create;
+      end
+      else
+      begin
+        if Assigned(FDict) then
+        begin
+          FDict.Free;
+          FDict := nil;
+        end;
+      end;
+      FEnabled := AValue;
+    finally
+      FSync.EndWrite;
+    end;
+  end;
 end;
 
 var
