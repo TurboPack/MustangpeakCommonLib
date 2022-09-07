@@ -26,7 +26,7 @@ package MPCommonLibD;
 {$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Mustangpeak Common Library Delphi Runtime Package'}
-{$LIBSUFFIX '280'}
+{$LIBSUFFIX AUTO}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
