@@ -1114,6 +1114,9 @@ begin
 end;
 
 procedure TCommonThreadManager.FlushMessageCache(AWindow: TWinControl; ARequestID: WPARAM; AItem: Pointer = nil);
+const
+  cSomeRandomThreshold = 10000;
+
 // First locks the thread by locking its RequestList.  This stops the thread
 // from accessing a new request.  It then flushes the Windows message cache
 // of pending messages matching the ARequestID.
@@ -1161,7 +1164,7 @@ begin
             begin
               if Assigned(AItem) then
               begin
-                // If is the target AItem then remove it, else put it back in the queue
+                // If is the target item then remove it, else put it back in the queue
                 // WARNING don't SendMessage as that could cause some nasty reentrant isses
                 if lRequest.Item = AItem then
                   lRequest.Release
@@ -1188,11 +1191,13 @@ begin
         // Remove the requests in the windows cache
         if AWindow.HandleAllocated then
         begin
-          // lCount have seen PeekMessage return true and return the WM_QUIT message, this
+          // I have seen PeekMessage return true and return the WM_QUIT message, this
           // strips the queue of the message to shut down the app!  Don't strip it out
           // until we check to see if it is the right message
-          while PeekMessage(lMsg, AWindow.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
+          lCount := 0;
+          while (lCount < cSomeRandomThreshold) and PeekMessage(lMsg, AWindow.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
           begin
+            Inc(lCount);
             if lMsg.Message = WM_QUIT then
             begin
               lQuitMsgExitCode := lMsg.wParam;
