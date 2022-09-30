@@ -1114,9 +1114,6 @@ begin
 end;
 
 procedure TCommonThreadManager.FlushMessageCache(AWindow: TWinControl; ARequestID: WPARAM; AItem: Pointer = nil);
-const
-  cSomeRandomThreshold = 10000;
-
 // First locks the thread by locking its RequestList.  This stops the thread
 // from accessing a new request.  It then flushes the Windows message cache
 // of pending messages matching the ARequestID.
@@ -1144,11 +1141,13 @@ begin
       lList := Thread.RequestList.LockList;
     try
       // Remove the requests in the hidden dispatch message cache
-      // lCount have seen PeekMessage return true and return the WM_QUIT message, this
+      // I have seen PeekMessage return true and return the WM_QUIT message, this
       // strips the queue of the message to shut down the app!  Don't strip it out
       // until we check to see if it is the right message
-      while PeekMessage(lMsg, FilterWindow, WM_COMMONTHREADNOTIFIER, WM_COMMONTHREADNOTIFIER, PM_REMOVE) do
+      lCount := 0;
+      while (lCount < COMMONTHREADSAFETYVALVE) and PeekMessage(lMsg, FilterWindow, WM_COMMONTHREADNOTIFIER, WM_COMMONTHREADNOTIFIER, PM_REMOVE) do
       begin
+        Inc(lCount);
         if lMsg.Message = WM_QUIT then
         begin
           lQuitMsgExitCode := lMsg.wParam;
@@ -1195,7 +1194,7 @@ begin
           // strips the queue of the message to shut down the app!  Don't strip it out
           // until we check to see if it is the right message
           lCount := 0;
-          while (lCount < cSomeRandomThreshold) and PeekMessage(lMsg, AWindow.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
+          while (lCount < COMMONTHREADSAFETYVALVE) and PeekMessage(lMsg, AWindow.Handle, WM_COMMONTHREADCALLBACK, WM_COMMONTHREADCALLBACK, PM_REMOVE) do
           begin
             Inc(lCount);
             if lMsg.Message = WM_QUIT then
@@ -1412,6 +1411,8 @@ begin
 end;
 
 procedure TCommonThreadManager.SetEnabled(const Value: Boolean);
+var
+  lCount: Integer;
 begin
   if Value <> FEnabled then
   begin
@@ -1424,8 +1425,12 @@ begin
           if not Thread.Terminated then
           begin
             Thread.Terminate;
-            while not Thread.Finished do
+            lCount := 0;
+            while (not Thread.Finished) and (lCount < COMMONTHREADSAFETYVALVE) do
+            begin
               Sleep(200);
+              Inc(lCount);
+            end;
           end;
           FreeThread;
         end
