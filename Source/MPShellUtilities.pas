@@ -9774,7 +9774,7 @@ begin
   lPIDLIntf := TMPItemIDListFactory.New(lPIDL);
   FSync.BeginWrite;
   try
-    FDict.Add(APath, lPIDLIntf);
+    FDict.AddOrSetValue(APath, lPIDLIntf);
   finally
     FSync.EndWrite;
   end;
