@@ -2258,7 +2258,7 @@ var
   TextMetrics: TTextMetric;
   Size: TSize;
   TextPosX, TextPosY, i, NewLineTop: Integer;
-  TextOutFlags: Longword;
+  TextOutFlags: Integer;
   LineRect, OldlpRect: TRect;
   Buffer: TCommonWideCharArray;
   BufferIndex: PWideChar;
@@ -2331,7 +2331,7 @@ begin
           lpRect.Right := lpRect.Left + Size.cx;
       end
     end else
-      ExtTextOutW(DC, TextPosX, TextPosY, TextOutFlags, @LineRect, PWideChar(Text), Length(Text), nil);
+      ExtTextOut(DC, TextPosX, TextPosY, TextOutFlags, @LineRect, Text, Length(Text), nil);
 
   end else
   begin
