@@ -1577,7 +1577,7 @@ type
   function NamespaceToRelativePIDLArray(Namespaces: TNamespaceArray): TRelativePIDLArray;
   function NamespaceToAbsolutePIDLList(Namespaces: TNamespaceArray): TCommonPIDLList;
   function NamespaceToNamespaceList(Namespaces: TNamespaceArray): TList;
-  function PathToPIDL(APath: string; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
+  function PathToPIDL(const APath: string; AParentWindowHandle: HWND = 0; AForceApplicationToTop: Boolean = False): PItemIDList;
   function PIDLToPath(APIDL: PItemIDList): string;
   function DirExistsVET(APath: string; ShowSystemMessages: Boolean): Boolean; overload;
   function DirExistsVET(NS: TNamespace; ShowSystemMessages: Boolean): Boolean; overload;
@@ -2541,13 +2541,13 @@ begin
 end;
 { ----------------------------------------------------------------------------- }
 
-function PathToPIDL(APath: string; ParentWindowHandle: HWND = 0; ForceApplicationToTop: Boolean = False): PItemIDList;
+function PathToPIDL(const APath: string; AParentWindowHandle: HWND = 0; AForceApplicationToTop: Boolean = False): PItemIDList;
 // Takes the passed Path and attempts to convert it to the equavalent PIDL
 begin
-  Result := TPIDLCache.ForcePIDL(APath, ParentWindowHandle);
+  Result := TPIDLCache.ForcePIDL(APath, AParentWindowHandle);
   // Message boxes are set as children of the Application window
   // Appears ParseDisplayName looks for the top level and first in the owner chain regardless of the ParentWindowHandle
-  if Assigned(Application) and ForceApplicationToTop then
+  if Assigned(Application) and AForceApplicationToTop then
     BringWindowToTop(Application.Handle);
 end;
 { ----------------------------------------------------------------------------- }
