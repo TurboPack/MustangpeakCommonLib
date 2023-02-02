@@ -1129,7 +1129,7 @@ type
     procedure SetDetailByThread(ColumnIndex: Integer; Detail: string);
     procedure SetIconIndexByThread(IconIndex: Integer; OverlayIndex: Integer; ClearThreadLoading: Boolean); virtual;
     procedure SetImageByThread(Bitmap: TBitmap; ClearThreadLoading: Boolean);  virtual;
-    function SetNameOf(NewName: string): Boolean;  virtual;
+    function SetNameOf(const ANewName: string): Boolean; virtual;
     function ShellExecuteNamespace(WorkingDir, CmdLineArguments: string; ExecuteFolder: Boolean = False;
       ExecuteFolderShortCut: Boolean = False; RunInThread: Boolean = False): Boolean;  virtual;
     function ShowContextMenu(Owner: TWinControl;
@@ -6988,30 +6988,29 @@ begin
     Exclude(FStates, nsThreadedImageLoading);
 end;
 
-function TNamespace.SetNameOf(NewName: string): Boolean;
+function TNamespace.SetNameOf(const ANewName: string): Boolean;
 const
   ALL_FOLDERS = SHCONTF_FOLDERS or SHCONTF_NONFOLDERS or SHCONTF_INCLUDEHIDDEN;
 var
-  P, NewPIDL, NewAbsPIDL: PItemIDList;
-  Oldcb: Word;
-  OldCursor: TCursor;
+  lNewAbsPIDL: PItemIDList;
+  lNewPIDL: PItemIDList;
+  lOldcb: Word;
+  lPIDL: PItemIDList;
 begin
   Result := False;
-  P := nil;
   if CanRename and Assigned(ParentShellFolder) then
   begin
-    OldCursor := Screen.Cursor;
-    Screen.Cursor := crHourglass;
+    lPIDL := nil;
     try
       { The shell frees the PIDL so we need a copy }
-      P := PIDLMgr.CopyPIDL(FRelativePIDL);
-      NewPIDL := nil;
+      lPIDL := PIDLMgr.CopyPIDL(FRelativePIDL);
+      lNewPIDL := nil;
       // If the user cancels out of a duplicate rename this STILL succeeds so we need the Valid test below
-      if Succeeded(ParentShellFolder.SetNameOf(ParentWnd, P, PWideChar(NewName), ALL_FOLDERS, NewPIDL)) then
+      if Succeeded(ParentShellFolder.SetNameOf(ParentWnd, lPIDL, PWideChar(ANewName), ALL_FOLDERS, lNewPIDL)) then
       begin
-        // Win98 will return success but never touch NewPIDL when trying to change name
+        // Win98 will return success but never touch lNewPIDL when trying to change name
         // of dialup connection.  Not sure how do it if this fails though??
-        if Assigned(NewPIDL) then
+        if Assigned(lNewPIDL) then
         begin
 
           // Lets see if the rename actually took place, if it did the original object will be gone and the PIDL will
@@ -7020,19 +7019,18 @@ begin
           begin
             Result := True;
             { Temporary shortening of AbsolutePIDL }
-            Oldcb := RelativePIDL.mkid.cb;
+            lOldcb := RelativePIDL.mkid.cb;
             RelativePIDL.mkid.cb := 0;
-            NewAbsPIDL := PIDLMgr.AppendPIDL(AbsolutePIDL, NewPIDL);
-            RelativePIDL.mkid.cb := Oldcb;
+            lNewAbsPIDL := PIDLMgr.AppendPIDL(AbsolutePIDL, lNewPIDL);
+            RelativePIDL.mkid.cb := lOldcb;
             PIDLMgr.FreePIDL(FAbsolutePIDL); // Remember Relative PIDL overlays AbsPIDL
-            FAbsolutePIDL := NewAbsPIDL;
+            FAbsolutePIDL := lNewAbsPIDL;
             FRelativePIDL := PIDLMgr.GetPointerToLastID(AbsolutePIDL);
           end;
-        end
-      end
+        end;
+      end;
     finally
-      Screen.Cursor := OldCursor;
-      PIDLMgr.FreePIDL(P)
+      PIDLMgr.FreePIDL(lPIDL)
     end
   end;
 end;
