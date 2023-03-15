@@ -9735,8 +9735,13 @@ end;
 
 class destructor TPIDLCache.Destroy;
 begin
-  FDict.Free;
-  FDict := nil;
+  FSync.BeginWrite;
+  try
+    FDict.Free;
+    FDict := nil;
+  finally
+    FSync.EndWrite;
+  end;
 end;
 
 class function TPIDLCache.ForcePIDL(const APath: string; const AHandle: THandle): PItemIDList;
