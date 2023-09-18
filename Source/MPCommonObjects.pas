@@ -470,6 +470,7 @@ type
     property ImageSize: TSysImageListSize read FImageSize write SetImageSize;
   end;
 
+  TCustomImageListProc = TProc<TCustomImageList>;
   /// <summary>
   /// TVirtualImageList component, which inherits from TCustomImageList
   /// and uses an external TCustomImageList to draw scaled images
@@ -480,6 +481,7 @@ type
   strict private
     FCurrentPPI: Integer;
     FDPIChangedMessageID: Integer;
+    FOnChangeA: TCustomImageListProc;
     FSize: TSysImageListSize;
     FSourceImageList: TCustomImageList;
     procedure DPIChangedMessageHandler(const ASender: TObject; const AMsg: Messaging.TMessage);
@@ -489,18 +491,22 @@ type
     function GetImageListWidth(const AWidth: Integer): TCustomImageList; overload;
     procedure SetSourceImageList(AValue: TCustomImageList);
   strict protected
+    procedure DoChange; override;
     function GetCount: Integer; override;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
     destructor Destroy; override;
+    class function CreateSmall(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
     procedure DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True); override;
+    class function GetImageForFile(const AFileName: string): Integer;
     function GetImageList(const APPI: Integer): TCustomImageList;
     function GetImageListWidth: TCustomImageList; overload;
     property SourceImageList: TCustomImageList read FSourceImageList write SetSourceImageList;
     property Width;
     property Height;
     property Size: TSysImageListSize read FSize write FSize;
+    property OnChangeA: TCustomImageListProc read FOnChangeA write FOnChangeA;
   end;
 
   function JumboSysImages : TCommonSysImages;
@@ -539,11 +545,8 @@ var
 implementation
 
 uses
-  UITypes,
-  MPCommonUtilities,
-  MPDataObject,
-  MPShellUtilities,
-  Math;
+  System.IOUtils, System.Math, System.UITypes, MPCommonUtilities, MPDataObject,
+  MPShellUtilities;
 
 type
   TAccessCustomImageList = class(TCustomImageList)
@@ -2368,6 +2371,23 @@ begin
   HandleNeeded;
 end;
 
+class function TCommonVirtualImageList.CreateSmall(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
+var
+  lImages: TCommonVirtualImageList;
+begin
+  lImages := Create(AOwner);
+  try
+    lImages.SourceImageList := SmallSysImages;
+    lImages.Size := TSysImageListSize.sisSmall;
+    lImages.FCurrentPPI := Screen.PixelsPerInch;
+    lImages.OnChangeA := AOnChangeA;
+    Result := lImages.GetImageListWidth;
+    lImages := nil;
+  finally
+    lImages.Free;
+  end;
+end;
+
 destructor TCommonVirtualImageList.Destroy;
 begin
   TMessageManager.DefaultManager.Unsubscribe(TChangeScaleMessage, FDPIChangedMessageID);
@@ -2477,6 +2497,13 @@ begin
   FSourceImageList := AValue;
 end;
 
+procedure TCommonVirtualImageList.DoChange;
+begin
+  inherited DoChange;
+  if Assigned(FOnChangeA) then
+    FOnChangeA(GetImageListWidth);
+end;
+
 procedure TCommonVirtualImageList.DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True);
 var
   lImageList: TCustomImageList;
@@ -2486,6 +2513,11 @@ begin
     TAccessCustomImageList(lImageList).DoDraw(AIndex, ACanvas, AX, AY, AStyle, AEnabled)
   else
     inherited DoDraw(AIndex, ACanvas, AX, AY, AStyle, AEnabled);
+end;
+
+class function TCommonVirtualImageList.GetImageForFile(const AFileName: string): Integer;
+begin
+  Result := DefaultSystemImageForFileExt(TPath.GetExtension(AFileName));
 end;
 
 function TCommonVirtualImageList.GetImageList(const APPI: Integer): TCustomImageList;
