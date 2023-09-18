@@ -604,6 +604,7 @@ begin
   begin
     FJumboSysImages := TCommonSysImages.Create(nil);
     FJumboSysImages.ImageSize := sisJumbo;
+    FJumboSysImages.Scaled := True;
   end;
   Result := FJumboSysImages;
 end;
@@ -614,6 +615,7 @@ begin
   begin
     FExtraLargeSysImages := TCommonSysImages.Create(nil);
     FExtraLargeSysImages.ImageSize := sisExtraLarge;
+    FExtraLargeSysImages.Scaled := True;
   end;
   Result := FExtraLargeSysImages;
 end;
@@ -624,6 +626,7 @@ begin
   begin
     FLargeSysImages := TCommonSysImages.Create(nil);
     FLargeSysImages.ImageSize := sisLarge;
+    FLargeSysImages.Scaled := True;
   end;
   Result := FLargeSysImages;
 end;
@@ -645,6 +648,7 @@ begin
   begin
     FSmallSysImages := TCommonSysImages.Create(nil);
     FSmallSysImages.ImageSize := sisSmall;
+    FSmallSysImages.Scaled := True;
   end;
   Result := FSmallSysImages;
 end;
@@ -2559,6 +2563,8 @@ begin
        lImages := lSmallerImages;
 
     Result := ScaleImageList(lImages, AWidth);
+    TAccessCustomImageList(Result).Scaled := True;
+
     FDict.AddOrSetValue(AWidth, Result);
   end;
 end;
