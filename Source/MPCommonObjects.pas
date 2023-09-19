@@ -497,6 +497,7 @@ type
   public
     constructor Create(AOwner: TComponent); overload; override;
     destructor Destroy; override;
+    class function CreateLarge(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
     class function CreateSmall(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
     procedure DoDraw(AIndex: Integer; ACanvas: TCanvas; AX, AY: Integer; AStyle: Cardinal; AEnabled: Boolean = True); override;
     class function GetImageForFile(const AFileName: string): Integer;
@@ -2375,6 +2376,22 @@ begin
   HandleNeeded;
 end;
 
+class function TCommonVirtualImageList.CreateLarge(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
+var
+  lImages: TCommonVirtualImageList;
+begin
+  lImages := Create(AOwner);
+  try
+    lImages.SourceImageList := LargeSysImages;
+    lImages.Size := TSysImageListSize.sisLarge;
+    lImages.OnChangeA := AOnChangeA;
+    Result := lImages.GetImageListWidth;
+    lImages := nil;
+  finally
+    lImages.Free;
+  end;
+end;
+
 class function TCommonVirtualImageList.CreateSmall(AOwner: TComponent; AOnChangeA: TCustomImageListProc): TCustomImageList;
 var
   lImages: TCommonVirtualImageList;
@@ -2383,7 +2400,6 @@ begin
   try
     lImages.SourceImageList := SmallSysImages;
     lImages.Size := TSysImageListSize.sisSmall;
-    lImages.FCurrentPPI := Screen.PixelsPerInch;
     lImages.OnChangeA := AOnChangeA;
     Result := lImages.GetImageListWidth;
     lImages := nil;
