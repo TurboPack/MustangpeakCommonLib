@@ -1273,14 +1273,14 @@ type
 
   TVirtualNameSpaceList  = class(TObjectList)
   private
-    function GetItems(Index: Integer): TNamespace;
-    procedure SetItems(Index: Integer; ANamespace: TNamespace);
+    function GetItems(Index: NativeInt): TNamespace;
+    procedure SetItems(Index: NativeInt; ANamespace: TNamespace);
   public
     function Add(ANamespace: TNamespace): Integer;
     procedure FillArray(var NamespaceArray: TNamespaceArray);
     function IndexOf(ANamespace: TNamespace): Integer;
     procedure Insert(Index: Integer; ANamespace: TNamespace);
-    property Items[Index: Integer]: TNamespace read GetItems write SetItems; default;
+    property Items[Index: NativeInt]: TNamespace read GetItems write SetItems; default;
   end;
 
  //
@@ -1307,8 +1307,8 @@ type
 
   TMenuItemMap = class(TList)
   protected
-    function Get(Index: Integer): PMenuItemLink;
-    procedure Put(Index: Integer; Item: PMenuItemLink);
+    function Get(Index: NativeInt): PMenuItemLink;
+    procedure Put(Index: NativeInt; Item: PMenuItemLink);
   public
     function Add: PMenuItemLink;
     function First: PMenuItemLink;
@@ -1317,7 +1317,7 @@ type
     function Insert(Index: Integer): PMenuItemLink; reintroduce;
     function Last: PMenuItemLink;
     function Remove(Item: PMenuItemLink): Integer;
-    property Items[Index: Integer]: PMenuItemLink read Get write Put; default;
+    property Items[Index: NativeInt]: PMenuItemLink read Get write Put; default;
   end;
 
   TCommonShellContextMenu = class(TComponent, IUnknown, IShellFolder, IDropTarget)
@@ -7970,7 +7970,7 @@ begin
     NamespaceArray[0] := Items[I];
 end;
 
-function TVirtualNamespaceList.GetItems(Index: Integer): TNamespace;
+function TVirtualNamespaceList.GetItems(Index: NativeInt): TNamespace;
 begin
   Result := TNamespace(inherited Items[Index]);
 end;
@@ -7985,7 +7985,7 @@ begin
   inherited Insert(Index, ANamespace);
 end;
 
-procedure TVirtualNamespaceList.SetItems(Index: Integer; ANamespace: TNamespace);
+procedure TVirtualNamespaceList.SetItems(Index: NativeInt; ANamespace: TNamespace);
 begin
   inherited Items[Index] := ANamespace;
 end;
@@ -9393,7 +9393,7 @@ begin
   Result := PMenuItemLink( inherited First)
 end;
 
-function TMenuItemMap.Get(Index: Integer): PMenuItemLink;
+function TMenuItemMap.Get(Index: NativeInt): PMenuItemLink;
 begin
   Result := PMenuItemLink( inherited Get(Index))
 end;
@@ -9433,7 +9433,7 @@ begin
     inherited Insert(Index, Result)
 end;
 
-procedure TMenuItemMap.Put(Index: Integer; Item: PMenuItemLink);
+procedure TMenuItemMap.Put(Index: NativeInt; Item: PMenuItemLink);
 begin
   inherited Put(Index, Item)
 end;

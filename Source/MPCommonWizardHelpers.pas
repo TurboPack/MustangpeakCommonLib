@@ -220,7 +220,7 @@ type
     function GetAuthor: string;
     function GetComment: string; virtual;
     function GetPage: string; virtual;
-    function GetGlyph: Cardinal;
+    function GetGlyph: THandle;
 
     // IOTARepositoryWizard60
     function GetDesigner: string;
@@ -672,7 +672,7 @@ begin
   Result := FState
 end;
 
-function TCommonWizardNotifierObject.GetGlyph: Cardinal;
+function TCommonWizardNotifierObject.GetGlyph: THandle;
 begin
   Result := LoadIcon(hInstance, PWideChar(GetGlpyhResourceID));
 end;
