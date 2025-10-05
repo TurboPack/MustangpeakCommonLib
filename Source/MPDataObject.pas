@@ -990,7 +990,8 @@ end;
 function TCommonStreamClipFormat.LoadFromClipboard: Boolean;
 begin
   Result := False;
-  Assert(True=False, 'TCoolStream.LoadFromClipboard not Implemented');
+  if not Result then
+    Assert(True=False, 'TCoolStream.LoadFromClipboard not Implemented');
 end;
 
 function TCommonStreamClipFormat.LoadFromDataObject(DataObject: IDataObject;
@@ -1026,7 +1027,8 @@ end;
 function TCommonStreamClipFormat.SaveToClipboard: Boolean;
 begin
   Result := False;
-  Assert(True=False, 'TCoolStream.SaveToClipboard not Implemented');
+  if not Result then
+    Assert(True=False, 'TCoolStream.SaveToClipboard not Implemented');
 end;
 
 function TCommonStreamClipFormat.SaveToDataObject(DataObject: IDataObject;
