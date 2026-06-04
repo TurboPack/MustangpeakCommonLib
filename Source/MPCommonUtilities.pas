@@ -473,7 +473,6 @@ type
 
 var
   FLibList: TList;
-  PIDLMgr: TCommonPIDLManager;
   Shell32Handle,
   Kernel32Handle,
   AdvAPI32Handle,
@@ -2826,7 +2825,7 @@ begin
     begin
       Result := StrRet.pOleStr;
       if Assigned(StrRet.pOleStr) then
-        PIDLMgr.FreeOLEStr(StrRet.pOLEStr);
+        TCommonPIDLManager.FreeOLEStr(StrRet.pOLEStr);
      end;
   end;
 end;
@@ -3241,7 +3240,6 @@ end;
 
 function PIDLToPath(PIDL: PItemIDList): string;
 var
-  PIDLMgr: TCommonPIDLManager;
   LastID: PItemIDList;
   LastCB: Word;
   Desktop, Folder: IShellFolder;
@@ -3251,30 +3249,25 @@ begin
   if Assigned(PIDL) then
   begin
     FillChar(StrRet, SizeOf(StrRet), #0);
-    PIDLMgr := TCommonPIDLManager.Create;
-    try
-      SHGetDesktopFolder(Desktop);
-      if PIDLMgr.IsDesktopFolder(PIDL) then
-      begin
-        if Succeeded(Desktop.GetDisplayNameOf(PIDL, SHGDN_FORPARSING, StrRet)) then
-          Result := StrRetToStr(StrRet, PIDL);
-      end else
-      begin
-        PIDLMgr.StripLastID(PIDL, LastCB, LastID);
-        if Assigned(LastID) then
-          try
-            if Succeeded(Desktop.BindToObject(PIDL, nil, IShellFolder, pointer(Folder))) then
-            begin
-              LastID.mkid.cb := LastCB;
-              if Succeeded(Folder.GetDisplayNameOf(LastID, SHGDN_FORPARSING, StrRet)) then
-                 Result := StrRetToStr(StrRet, LastID);
-            end
-          finally
+    SHGetDesktopFolder(Desktop);
+    if TCommonPIDLManager.IsDesktopFolder(PIDL) then
+    begin
+      if Succeeded(Desktop.GetDisplayNameOf(PIDL, SHGDN_FORPARSING, StrRet)) then
+        Result := StrRetToStr(StrRet, PIDL);
+    end else
+    begin
+      TCommonPIDLManager.StripLastID(PIDL, LastCB, LastID);
+      if Assigned(LastID) then
+        try
+          if Succeeded(Desktop.BindToObject(PIDL, nil, IShellFolder, pointer(Folder))) then
+          begin
             LastID.mkid.cb := LastCB;
+            if Succeeded(Folder.GetDisplayNameOf(LastID, SHGDN_FORPARSING, StrRet)) then
+               Result := StrRetToStr(StrRet, LastID);
           end
-      end
-    finally
-      PIDLMgr.Free
+        finally
+          LastID.mkid.cb := LastCB;
+        end
     end
   end
 end;
@@ -4438,12 +4431,10 @@ end;
 
 initialization
   Assert(IsUnicode, 'Windows veersion not supported');
-  PIDLMgr := TCommonPIDLManager.Create;
   LoadWideFunctions;
 
 // If this unit is to be weak packages this must be removed
 finalization
-  FreeAndNil(PIDLMgr);
   CommonUnloadAllLibraries;
 end.
 

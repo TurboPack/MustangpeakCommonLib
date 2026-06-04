@@ -391,7 +391,6 @@ uses
   MPResources, MPShellUtilities;
 
 var
-  PIDLMgr: TCommonPIDLManager;
   GlobalThread: TCommonThreadManager;
   GlobalCallbackThread: TCallbackThreadManager;
   ThreadsAlive: Integer = 0;
@@ -469,7 +468,7 @@ end;
 
 destructor TPIDLThreadRequest.Destroy;
 begin
-  PIDLMgr.FreePIDL(PIDL);
+  TCommonPIDLManager.FreePIDL(PIDL);
   inherited Destroy;
 end;
 
@@ -477,7 +476,7 @@ procedure TPIDLThreadRequest.Assign(Source: TPersistent);
 begin
   inherited Assign(Source);
   if Source is TPIDLThreadRequest then
-    PIDL := PIDLMgr.CopyPIDL(TPIDLThreadRequest( Source).PIDL);
+    PIDL := TCommonPIDLManager.CopyPIDL(TPIDLThreadRequest( Source).PIDL);
 end;
 
 { TEasyIconThreadRequest }
@@ -496,7 +495,7 @@ function TShellIconThreadRequest.HandleRequest: Boolean;
     Result := False;
     Overlay := -1;
     Index := -1;
-    PIDLMgr.StripLastID(PIDL, OldCB, Old_ID);
+    TCommonPIDLManager.StripLastID(PIDL, OldCB, Old_ID);
     try
       SHGetDesktopFolder(Desktop);
       Desktop.BindToObject(PIDL, nil, IShellFolder, Pointer(Folder));
@@ -636,7 +635,7 @@ begin
     FRunning := True;
     InitializeThread;
     try
-      Execute
+      Execute;
     except
     end
   finally
@@ -699,6 +698,8 @@ end;
 
 procedure TCommonThread.FinalizeThread;
 begin
+  TPIDLCache.FreeCache;
+  TCommonPIDLManager.FreeMalloc;
   try
     if OLEInitialized then
       OLEUnInitialize
@@ -1544,7 +1545,7 @@ end;
 
 destructor TCommonShellExecuteThread.Destroy;
 begin
-  PIDLMgr.FreePIDL(FPIDL);
+  TCommonPIDLManager.FreePIDL(FPIDL);
   inherited Destroy;
 end;
 
@@ -1566,13 +1567,11 @@ end;
 
 initialization
   IsMultiThread := True;
-  PIDLMgr := TCommonPIDLManager.Create;
 
 
 finalization
   FreeAndNil(GlobalThread);
   FreeAndNil(GlobalCallbackThread);
-  FreeAndNil(PIDLMgr);
 
 {$WARN SYMBOL_PLATFORM ON}
 

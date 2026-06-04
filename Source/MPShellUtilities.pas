@@ -841,19 +841,31 @@ type
 {-------------------------------------------------------------------------------}
 
   TPIDLDict = TDictionary<string, IMPItemIDList>;
-  TPIDLCache = class
-  strict private class var
-    FDict: TPIDLDict;
-    FEnabled: Boolean;
-    FSync: IReadWriteSync;
+  IPIDLDict = interface(IInterface)
+    ['{F5977F69-8354-4DEC-98F0-9271CC87EFFC}']
+    function GetObj: TPIDLDict;
+    property Obj: TPIDLDict read GetObj;
+  end;
+
+  TPIDLDictIntf = class(TInterfacedObject, IPIDLDict)
   strict private
-    class function GetEnabled: Boolean; static;
-    class procedure SetEnabled(const AValue: Boolean); static;
+    FObj: TPIDLDict;
+    function GetObj: TPIDLDict;
+  strict protected
+    property Obj: TPIDLDict read GetObj;
   public
-    class constructor Create;
-    class destructor Destroy;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  TPIDLCache = class
+  strict private class threadvar
+    FDict: IPIDLDict;
+  strict private
+    class function ForceDict: IPIDLDict; inline;
+  public
     class function ForcePIDL(const APath: string; const AHandle: THandle): PItemIDList;
-    class property Enabled: Boolean read GetEnabled write SetEnabled;
+    class procedure FreeCache;
   end;
 
 {-------------------------------------------------------------------------------}
@@ -1632,7 +1644,6 @@ type
 
 var
  { A few global common Namespaces to be used for various purposes.               }
-  PIDLMgr: TCommonPIDLManager;
   GamesFolder: TNamespace = nil;
   DesktopFolder: TNamespace = nil;
   RecycleBinFolder: TNamespace = nil;
@@ -1978,17 +1989,17 @@ begin
   if not Assigned(APIDL) then Exit;
 
   Flags := SFGAO_FOLDER;
-  if PIDLMgr.IsDesktopFolder(APIDL) then
+  if TCommonPIDLManager.IsDesktopFolder(APIDL) then
     Result := True
   else begin
     SHGetDesktopFolder(Desktop);
-    if PIDLMgr.IDCount(APIDL) = 1 then
+    if TCommonPIDLManager.IDCount(APIDL) = 1 then
     begin
       if Succeeded( Desktop.GetAttributesOf(1, APIDL, Flags)) then
         Result := Flags and SFGAO_FOLDER <> 0
     end else
     begin
-      PIDLMgr.StripLastID(APIDL, Last_CB, LastPIDL);
+      TCommonPIDLManager.StripLastID(APIDL, Last_CB, LastPIDL);
       if Assigned(LastPIDL) then
         try
           if Succeeded( Desktop.BindToObject(APIDL, nil, IShellFolder, Pointer( Parent))) then
@@ -2059,16 +2070,16 @@ begin
   PIDL := nil;
 
   if SysUtils.AnsiLowerCase(TestPath) = '%desktop%' then
-    PIDL := PIDLMgr.CopyPIDL(DesktopFolder.AbsolutePIDL)
+    PIDL := TCommonPIDLManager.CopyPIDL(DesktopFolder.AbsolutePIDL)
   else
   if SysUtils.AnsiLowerCase(TestPath) = '%network%' then
-    PIDL := PIDLMgr.CopyPIDL(NetworkNeighborHoodFolder.AbsolutePIDL)
+    PIDL := TCommonPIDLManager.CopyPIDL(NetworkNeighborHoodFolder.AbsolutePIDL)
   else
   if SysUtils.AnsiLowerCase(TestPath) = '%printer%' then
-    PIDL := PIDLMgr.CopyPIDL(PrinterFolder.AbsolutePIDL)
+    PIDL := TCommonPIDLManager.CopyPIDL(PrinterFolder.AbsolutePIDL)
   else
   if (SysUtils.AnsiLowerCase(TestPath) = '%drives%') or (SysUtils.AnsiLowerCase(TestPath) = '%mycomputer%') then
-    PIDL := PIDLMgr.CopyPIDL(DrivesFolder.AbsolutePIDL)
+    PIDL := TCommonPIDLManager.CopyPIDL(DrivesFolder.AbsolutePIDL)
   else begin
     if SpecialVariableReplacePath(TestPath) then
       if DirectoryExists(TestPath) then
@@ -2415,8 +2426,8 @@ begin
     SelectedPath := NS.NameParseAddress;
     NS.Free;
   end;
-  PIDLMgr.FreePIDL(RootPIDL);
-  PIDLMgr.FreePIDL(InitialPathPIDL);
+  TCommonPIDLManager.FreePIDL(RootPIDL);
+  TCommonPIDLManager.FreePIDL(InitialPathPIDL);
 end;
 
 function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
@@ -2462,7 +2473,7 @@ begin
   if Assigned(Namespaces) then
   begin
     for i := 0 to Length(Namespaces) - 1 do
-      Result.Add(PIDLMgr.CopyPIDL(Namespaces[i].AbsolutePIDL))
+      Result.Add(TCommonPIDLManager.CopyPIDL(Namespaces[i].AbsolutePIDL))
   end
 end;
 
@@ -2495,7 +2506,7 @@ begin
           NS := NS.Parent
       end
     end;
-    Result := PIDLMgr.CopyPIDL(NS.AbsolutePIDL)
+    Result := TCommonPIDLManager.CopyPIDL(NS.AbsolutePIDL)
   end
 end;
 
@@ -3416,7 +3427,7 @@ begin
 // This is not really a true clone since we don't copy the parent, but it is
 // dangerous to do that.  Be careful using this function since things can
 // potentially change in the shell.
-  Result := TNamespace.Create(PIDLMgr.CopyPIDL(AbsolutePIDL), nil);
+  Result := TNamespace.Create(TCommonPIDLManager.CopyPIDL(AbsolutePIDL), nil);
   Result.FreePIDLOnDestroy := ReleasePIDLOnDestroy;
 end;
 
@@ -3436,7 +3447,7 @@ begin
     if Column < 0 then
       Column := 0;
 
-    if PIDLMgr.IsDesktopFolder(PIDLToCompare) and IsDesktop then
+    if TCommonPIDLManager.IsDesktopFolder(PIDLToCompare) and IsDesktop then
       Result := 0
     else begin
       Folder := Parent.ShellFolder;
@@ -3445,9 +3456,9 @@ begin
         if IsAbsolutePIDL then
         begin
           Result := -1;
-          PIDL := PIDLMgr.GetPointerToLastID(PIDLToCompare);
+          PIDL := TCommonPIDLManager.GetPointerToLastID(PIDLToCompare);
           // First test is if the PIDL length is the same
-          if PIDLMgr.IDCount(PIDLToCompare) = PIDLMgr.IDCount(AbsolutePIDL) then
+          if TCommonPIDLManager.IDCount(PIDLToCompare) = TCommonPIDLManager.IDCount(AbsolutePIDL) then
           begin
             if Assigned(Parent) then
             begin
@@ -3581,7 +3592,7 @@ begin
   if not Assigned(AParent) then
   begin
     { Either a nil for PID or if the PID is the Desktop PIDL means a full tree }
-    if not Assigned(PIDL) or PIDLMgr.IsDesktopFolder(PIDL) then
+    if not Assigned(PIDL) or TCommonPIDLManager.IsDesktopFolder(PIDL) then
     begin
       { If PID is already assigned then use it }
       if not Assigned(PIDL) then
@@ -3594,20 +3605,20 @@ begin
     { FULLY QUALIFIED PIDL to a namespace that is to be the Root.         }
     begin
       FAbsolutePIDL := PIDL;
-      FRelativePIDL := PIDLMgr.GetPointerToLastID(FAbsolutePIDL);
+      FRelativePIDL := TCommonPIDLManager.GetPointerToLastID(FAbsolutePIDL);
     end;
   end else
   { If the folder is a child of the desktop special conditions apply see above }
-  if PIDLMgr.IsDesktopFolder(AParent.AbsolutePIDL) then
+  if TCommonPIDLManager.IsDesktopFolder(AParent.AbsolutePIDL) then
   begin
     FRelativePIDL := PIDL;
     FAbsolutePIDL := PIDL;
   end else
   { Normal building of the PIDLs and Shells }
   begin
-    FAbsolutePIDL := PIDLMgr.AppendPIDL(AParent.FAbsolutePIDL, PIDL);
-    FRelativePIDL := PIDLMgr.GetPointerToLastID(FAbsolutePIDL);
-    PIDLMgr.FreePIDL(PIDL);
+    FAbsolutePIDL := TCommonPIDLManager.AppendPIDL(AParent.FAbsolutePIDL, PIDL);
+    FRelativePIDL := TCommonPIDLManager.GetPointerToLastID(FAbsolutePIDL);
+    TCommonPIDLManager.FreePIDL(PIDL);
   end;
 end;
 
@@ -3685,8 +3696,8 @@ end;
 destructor TNamespace.Destroy;
 begin
   // Remember RelativePIDL points to end of AbsolutePIDL so only 1 actual PIDL.
-  if FreePIDLOnDestroy and Assigned(PIDLMgr) then
-    PIDLMgr.FreePIDL(FAbsolutePIDL);
+  if FreePIDLOnDestroy then
+    TCommonPIDLManager.FreePIDL(FAbsolutePIDL);
   if Assigned(FWin32FindDataW) then
     FreeMem(FWin32FindDataW, SizeOf(TWin32FindDataW));
   if Assigned(FSHGetFileInfoRec) then
@@ -3746,7 +3757,7 @@ begin
   //        LVCFMT_COL_HAS_IMAGES: Result := tiContainsImage
         end;
         if (Details.str.uType = STRRET_WSTR) and Assigned(Details.str.pOleStr) then
-          PIDLMgr.FreeOLEStr(Details.str.pOLEStr);
+          TCommonPIDLManager.FreeOLEStr(Details.str.pOLEStr);
       end
     end
   end
@@ -4067,7 +4078,7 @@ begin
             (FShellCache.Data.SupportedColumns < COLUMNLIMIT) do
           begin
             if (Details.str.uType = STRRET_WSTR) and Assigned(Details.str.pOleStr) then
-              PIDLMgr.FreeOLEStr(Details.str.pOLEStr);
+              TCommonPIDLManager.FreeOLEStr(Details.str.pOLEStr);
             FillChar(Details, SizeOf(Details), #0);
             Inc(FShellCache.Data.SupportedColumns);
           end;
@@ -4818,11 +4829,11 @@ var
 begin
   if not Assigned(FParent) then
   begin
-    P := PIDLMgr.CopyPIDL(AbsolutePIDL);
-    if PIDLMgr.IDCount(P) > 1 then
-      FParent := TNamespace.Create(PIDLMgr.StripLastID(P), nil)
+    P := TCommonPIDLManager.CopyPIDL(AbsolutePIDL);
+    if TCommonPIDLManager.IDCount(P) > 1 then
+      FParent := TNamespace.Create(TCommonPIDLManager.StripLastID(P), nil)
     else begin
-      PIDLMgr.FreePIDL(P);
+      TCommonPIDLManager.FreePIDL(P);
       FParent := TNamespace.Create(nil, nil);
     end;
     Include(FStates, nsOwnsParent);
@@ -5050,7 +5061,7 @@ function TNamespace.GetDropTarget: Boolean;
 { location in the DropTargetInterface property.                                 }
 begin
   Result := TestAttributesOf(SFGAO_DROPTARGET, False) or
-    PIDLMgr.IsDesktopFolder(RelativePIDL);
+    TCommonPIDLManager.IsDesktopFolder(RelativePIDL);
 end;
 
 function TNamespace.GetDropTargetInterface: IDropTarget;
@@ -5350,7 +5361,7 @@ begin
       if QueryInfoInterface.GetInfoTip(0, Buffer) = S_OK then
       begin
         Result := Buffer;
-        PIDLMgr.FreeOLEStr(Buffer);
+        TCommonPIDLManager.FreeOLEStr(Buffer);
       end;
     end;
   except
@@ -5802,11 +5813,11 @@ begin
   if not Assigned(FShellFolder) then
   begin
     SHGetDesktopFolder(Desktop);
-    if PIDLMgr.IDCount(AbsolutePIDL) > 1 then
+    if TCommonPIDLManager.IDCount(AbsolutePIDL) > 1 then
     begin
-      P := PIDLMgr.StripLastID(PIDLMgr.CopyPIDL(AbsolutePIDL));
+      P := TCommonPIDLManager.StripLastID(TCommonPIDLManager.CopyPIDL(AbsolutePIDL));
       Desktop.BindToObject(P, nil, IID_IShellFolder, Pointer(ParentFolder));
-      PIDLMgr.FreePIDL(P)
+      TCommonPIDLManager.FreePIDL(P)
     end else
       ParentFolder := Desktop;
 
@@ -6530,7 +6541,7 @@ begin
           begin
             Result := Enum.Next(1, Item, Fetched) = NOERROR;
             if Assigned(Item) then
-              PIDLMgr.FreePIDL(Item)
+              TCommonPIDLManager.FreePIDL(Item)
           end
         end
       end
@@ -6655,13 +6666,13 @@ begin
         begin
           if ComparePIDL(Item, False) = 0 then
           begin
-            PIDLMgr.FreePIDL(FAbsolutePIDL);
-            FAbsolutePIDL := PIDLMgr.AppendPIDL(Parent.AbsolutePIDL, Item);
-            FRelativePIDL := PIDLMgr.GetPointerToLastID(FAbsolutePIDL);
+            TCommonPIDLManager.FreePIDL(FAbsolutePIDL);
+            FAbsolutePIDL := TCommonPIDLManager.AppendPIDL(Parent.AbsolutePIDL, Item);
+            FRelativePIDL := TCommonPIDLManager.GetPointerToLastID(FAbsolutePIDL);
             InvalidateNamespace;
             Done := True
           end;
-          PIDLMgr.FreePIDL(Item)
+          TCommonPIDLManager.FreePIDL(Item)
         end
       end
     end
@@ -6696,14 +6707,14 @@ var
   OldCB: Word;
 begin
   Result := False;
-  if PIDLMgr.IDCount(AbsolutePIDL) > 1 then
+  if TCommonPIDLManager.IDCount(AbsolutePIDL) > 1 then
   begin
-    PIDL := PIDLMgr.NextID(FAbsolutePIDL);
-    PIDL := PIDLMgr.NextID(PIDL);  // Now we have the Drive
-    PIDL := PIDLMgr.NextID(PIDL);  // Now we have the one past the Drive
+    PIDL := TCommonPIDLManager.NextID(FAbsolutePIDL);
+    PIDL := TCommonPIDLManager.NextID(PIDL);  // Now we have the Drive
+    PIDL := TCommonPIDLManager.NextID(PIDL);  // Now we have the one past the Drive
     OldCb := PIDL.mkid.cb;
     PIDL.mkid.cb := 0;
-    NewPIDL := PIDLMgr.CopyPIDL(FAbsolutePIDL);
+    NewPIDL := TCommonPIDLManager.CopyPIDL(FAbsolutePIDL);
     PIDL.mkid.cb := OldCB;
     // NS is now a TNamespace to the Drive
     NS := TNamespace.Create(NewPIDL, nil);
@@ -6734,7 +6745,7 @@ end;
 
 function TNamespace.IsDesktop: Boolean;
 begin
-  Result := PIDLMgr.IsDesktopFolder(AbsolutePIDL)
+  Result := TCommonPIDLManager.IsDesktopFolder(AbsolutePIDL)
 end;
 
 function TNamespace.IsMyComputer: Boolean;
@@ -6989,7 +7000,7 @@ begin
     lPIDL := nil;
     try
       { The shell frees the PIDL so we need a copy }
-      lPIDL := PIDLMgr.CopyPIDL(FRelativePIDL);
+      lPIDL := TCommonPIDLManager.CopyPIDL(FRelativePIDL);
       lNewPIDL := nil;
       // If the user cancels out of a duplicate rename this STILL succeeds so we need the Valid test below
       if Succeeded(ParentShellFolder.SetNameOf(ParentWnd, lPIDL, PWideChar(ANewName), ALL_FOLDERS, lNewPIDL)) then
@@ -7007,16 +7018,16 @@ begin
             { Temporary shortening of AbsolutePIDL }
             lOldcb := RelativePIDL.mkid.cb;
             RelativePIDL.mkid.cb := 0;
-            lNewAbsPIDL := PIDLMgr.AppendPIDL(AbsolutePIDL, lNewPIDL);
+            lNewAbsPIDL := TCommonPIDLManager.AppendPIDL(AbsolutePIDL, lNewPIDL);
             RelativePIDL.mkid.cb := lOldcb;
-            PIDLMgr.FreePIDL(FAbsolutePIDL); // Remember Relative PIDL overlays AbsPIDL
+            TCommonPIDLManager.FreePIDL(FAbsolutePIDL); // Remember Relative PIDL overlays AbsPIDL
             FAbsolutePIDL := lNewAbsPIDL;
-            FRelativePIDL := PIDLMgr.GetPointerToLastID(AbsolutePIDL);
+            FRelativePIDL := TCommonPIDLManager.GetPointerToLastID(AbsolutePIDL);
           end;
         end;
       end;
     finally
-      PIDLMgr.FreePIDL(lPIDL)
+      TCommonPIDLManager.FreePIDL(lPIDL)
     end
   end;
 end;
@@ -7126,7 +7137,7 @@ begin
       ShellExecuteThread.ShellExecuteInfoW.hProcess := ShellExecuteInfoW.hProcess;
       ShellExecuteThread.lpDirectory := ShellExecuteInfoW.lpDirectory;
       ShellExecuteThread.lpParameters := ShellExecuteInfoW.lpParameters;
-      ShellExecuteThread.PIDL := PIDLMgr.CopyPIDL(ShellExecuteInfoW.lpIDList);
+      ShellExecuteThread.PIDL := TCommonPIDLManager.CopyPIDL(ShellExecuteInfoW.lpIDList);
       ShellExecuteThread.Resume;
       Result := True;
     end else
@@ -7272,7 +7283,7 @@ begin
     { correct to do the test for childPIDLs relative from the parent.           }
     if IsDesktop and (Length(NamespaceArray) = 1) then
     begin
-      Result := (PIDLMgr.IDCount(NamespaceArray[i].AbsolutePIDL) = 1) or (NamespaceArray[0].IsDesktop)
+      Result := (TCommonPIDLManager.IDCount(NamespaceArray[i].AbsolutePIDL) = 1) or (NamespaceArray[0].IsDesktop)
     end else
     begin
       if Assigned(Parent) then
@@ -7322,7 +7333,7 @@ end;
 
 function TNamespace.EnumFuncDummy(MessageWnd: HWnd; APIDL: PItemIDList; AParent: TNamespace; Data: Pointer; var Terminate: Boolean): Boolean;
 begin
-  PIDLMgr.FreePIDL(APIDL);
+  TCommonPIDLManager.FreePIDL(APIDL);
   Result := True;
 end;
 
@@ -7391,12 +7402,12 @@ end;
 procedure TNamespace.ReplacePIDL(NewPIDL: PItemIDList; AParent: TNamespace);
 begin
   InvalidateNamespace(True);
-  PIDLMgr.FreeAndNilPIDL(FAbsolutePIDL);
+  TCommonPIDLManager.FreeAndNilPIDL(FAbsolutePIDL);
   if Assigned(Parent) then
-    FAbsolutePIDL := PIDLMgr.AppendPIDL(AParent.FAbsolutePIDL, PIDLMgr.CopyPIDL(NewPIDL))
+    FAbsolutePIDL := TCommonPIDLManager.AppendPIDL(AParent.FAbsolutePIDL, TCommonPIDLManager.CopyPIDL(NewPIDL))
   else
-    FAbsolutePIDL := PIDLMgr.CopyPIDL(NewPIDL);
-  FRelativePIDL := PIDLMgr.GetPointerToLastID(FAbsolutePIDL);
+    FAbsolutePIDL := TCommonPIDLManager.CopyPIDL(NewPIDL);
+  FRelativePIDL := TCommonPIDLManager.GetPointerToLastID(FAbsolutePIDL);
 end;
 
 
@@ -8705,7 +8716,7 @@ begin
             begin
               FromDesktop := False;
               SHGetDesktopFolder(Desktop);
-              if PIDLMgr.IsDesktopFolder(ParentPIDL) then
+              if TCommonPIDLManager.IsDesktopFolder(ParentPIDL) then
                 FActiveFolder := Desktop
               else
                 Desktop.BindToObject(ParentPIDL, nil, IShellFolder, Pointer( FActiveFolder));
@@ -8814,7 +8825,7 @@ begin
               end
             end
           finally
-            PIDLMgr.FreePIDL(DesktopPIDL);
+            TCommonPIDLManager.FreePIDL(DesktopPIDL);
             ContextMenu := nil;
             ContextMenu2 := nil;
             CurrentContextMenu := nil;
@@ -9262,7 +9273,7 @@ begin
           Found := LocalFocused.ShellFolder.CompareIDs(0, InitialItemList[i], FinalItemList[i]) <> 0;
         if Found then
         begin
-          NS := TNamespace.Create(PIDLMgr.CopyPIDL(FinalItemList[i]), LocalFocused);
+          NS := TNamespace.Create(TCommonPIDLManager.CopyPIDL(FinalItemList[i]), LocalFocused);
           DoNewItem(NS);
           NS.Free
         end;
@@ -9668,20 +9679,11 @@ end;
 
 { TPIDLCache }
 
-class constructor TPIDLCache.Create;
+class function TPIDLCache.ForceDict: IPIDLDict;
 begin
-  FSync := TMultiReadExclusiveWriteSynchronizer.Create;
-end;
-
-class destructor TPIDLCache.Destroy;
-begin
-  FSync.BeginWrite;
-  try
-    FDict.Free;
-    FDict := nil;
-  finally
-    FSync.EndWrite;
-  end;
+  if FDict = nil then
+    FDict := TPIDLDictIntf.Create;
+  Result := FDict;
 end;
 
 class function TPIDLCache.ForcePIDL(const APath: string; const AHandle: THandle): PItemIDList;
@@ -9692,16 +9694,8 @@ var
   lPIDL: PItemIDList;
   lPIDLIntf: IMPItemIDList;
 begin
-  if FEnabled then
-  begin
-    FSync.BeginRead;
-    try
-      if FDict.TryGetValue(APath, lPIDLIntf) then
-        Exit(PIDLMgr.CopyPIDL(lPIDLIntf.PIDL));
-    finally
-      FSync.EndRead;
-    end;
-  end;
+  if ForceDict.Obj.TryGetValue(APath, lPIDLIntf) then
+    Exit(TCommonPIDLManager.CopyPIDL(lPIDLIntf.PIDL));
 
   SHGetDesktopFolder(lDesktop);
   if lDesktop = nil then
@@ -9711,48 +9705,33 @@ begin
   if not Succeeded(lDesktop.ParseDisplayName(AHandle, nil, PWideChar(APath), lEaten, lPIDL, lAttributes)) then
     Exit(nil);
 
-  if not FEnabled then
-    Exit(lPIDL);
-
   lPIDLIntf := TMPItemIDListFactory.New(lPIDL);
-  FSync.BeginWrite;
-  try
-    FDict.AddOrSetValue(APath, lPIDLIntf);
-  finally
-    FSync.EndWrite;
-  end;
-  Result := PIDLMgr.CopyPIDL(lPIDL);
+  ForceDict.Obj.AddOrSetValue(APath, lPIDLIntf);
+  Result := TCommonPIDLManager.CopyPIDL(lPIDL);
 end;
 
-class function TPIDLCache.GetEnabled: Boolean;
+class procedure TPIDLCache.FreeCache;
 begin
-  Result := FEnabled;
+  FDict := nil;
 end;
 
-class procedure TPIDLCache.SetEnabled(const AValue: Boolean);
+{ TPIDLDictIntf }
+
+constructor TPIDLDictIntf.Create;
 begin
-  if AValue <> FEnabled then
-  begin
-    FSync.BeginWrite;
-    try
-      if AValue then
-      begin
-        if FDict = nil then
-          FDict := TPIDLDict.Create;
-      end
-      else
-      begin
-        if Assigned(FDict) then
-        begin
-          FDict.Free;
-          FDict := nil;
-        end;
-      end;
-      FEnabled := AValue;
-    finally
-      FSync.EndWrite;
-    end;
-  end;
+  inherited Create;
+  FObj := TPIDLDict.Create;
+end;
+
+destructor TPIDLDictIntf.Destroy;
+begin
+  FObj.Free;
+  inherited Destroy;
+end;
+
+function TPIDLDictIntf.GetObj: TPIDLDict;
+begin
+  Result := FObj;
 end;
 
 var
@@ -9765,7 +9744,6 @@ initialization
   if not LoadShell32Functions then
     Halt(0);
   LoadWideFunctions;
-  PIDLMgr := TCommonPIDLManager.Create;
   if IsWinVista then
   begin
     DesktopFolder := CreateKnownFolderNamespace(FOLDERID_Desktop, False, False);
@@ -9824,7 +9802,6 @@ finalization
   FreeAndNil(ProgramFilesFolder);
   FreeAndNil(UserLibraryFolder);
   FreeAndNil(ControlPanelFolderEx);
-  FreeAndNil(PIDLMgr);
   {$IFDEF GXDEBUG_EXPLORERTHREADINSTANCE_REFCOUNT}
   StringList := TStringList.Create;
   if Assigned(MP_SHSetInstanceExplorer) then

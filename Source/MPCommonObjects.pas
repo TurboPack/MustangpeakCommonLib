@@ -286,16 +286,13 @@ type
   PCommonPIDLList = ^TCommonPIDLList;
   TCommonPIDLList = class(TList)
   private
-    FLocalPIDLMgr: TCommonPIDLManager;  // this can be in an IDataObject that the shell holds on to, causing our global PIDLMgr to be freed on application destroy before the shell releases the IDataObject
     FName: string;       // user Data
     FSharePIDLs: Boolean;    // If true the class will not free the PIDL's automaticlly when destroyed
     FDestroying: Boolean;  // Instance of a PIDLManager used to easily deal with the PIDL's
-    function GetPIDL(Index: integer): PItemIDList;
+    function GetPIDL(Index: Integer): PItemIDList;
   protected
     property Destroying: Boolean read FDestroying;
-    property LocalPIDLMgr: TCommonPIDLManager read FLocalPIDLMgr write FLocalPIDLMgr;
   public
-    constructor Create;
     destructor Destroy; override;
 
     procedure Clear; override;
@@ -336,38 +333,36 @@ type
   // handle.
   //
   TCommonPIDLManager = class
-  private
-  protected
+  strict protected class threadvar
     FMalloc: IMalloc;  // The global Memory allocator
   public
-    constructor Create;
-    destructor Destroy; override;
+    class destructor Destroy;
 
-    function AllocGlobalMem(Size: Integer): PByte;
-    function AllocStrGlobal(SourceStr: string): POleStr;
-    function AppendPIDL(DestPIDL, SrcPIDL: PItemIDList): PItemIDList;
-    function BindToParent(AbsolutePIDL: PItemIDList; var Folder: IShellFolder): Boolean;
-    function CopyPIDL(APIDL: PItemIDList): PItemIDList;
-    function EqualPIDL(PIDL1, PIDL2: PItemIDList): Boolean;
-    procedure FreeAndNilPIDL(var PIDL: PItemIDList);
-    procedure FreeOLEStr(OLEStr: LPWSTR);
-    procedure FreePIDL(PIDL: PItemIDList);
-    function CopyLastID(IDList: PItemIDList): PItemIDList;
-    function GetPointerToLastID(IDList: PItemIDList): PItemIDList;
-    function IDCount(APIDL: PItemIDList): integer;
-    function IsDesktopFolder(APIDL: PItemIDList): Boolean;
-    function IsEmptyPIDL(APIDL: PItemIDList): Boolean;
-    function IsSubPIDL(FullPIDL, SubPIDL: PItemIDList): Boolean;
-    function NextID(APIDL: PItemIDList): PItemIDList;
-    function PIDLSize(APIDL: PItemIDList): integer;
-    function LoadFromStream(Stream: TStream): PItemIDList;
-    procedure ParsePIDL(AbsolutePIDL: PItemIDList; var PIDLList: TCommonPIDLList; AllAbsolutePIDLs: Boolean);
-    procedure ParsePIDLArray(PIDLArray: PPIDLRawArray; var PIDLList: TCommonPIDLList; Count: Integer; Relative, CopyPIDLs: Boolean);
-    function StripLastID(IDList: PItemIDList): PItemIDList; overload;
-    function StripLastID(IDList: PItemIDList; var Last_CB: Word; var LastID: PItemIDList): PItemIDList; overload;
-    procedure SaveToStream(Stream: TStream; PIDL: PItemIdList);
-
-    property Malloc: IMalloc read FMalloc;
+    class function AllocGlobalMem(ASize: Integer): PByte;
+    class function AllocStrGlobal(const ASourceStr: string): POleStr;
+    class function AppendPIDL(const ADestPIDL, ASrcPIDL: PItemIDList): PItemIDList;
+    class function BindToParent(const AAbsolutePIDL: PItemIDList; var AFolder: IShellFolder): Boolean;
+    class function CopyPIDL(const APIDL: PItemIDList): PItemIDList;
+    class function EqualPIDL(const PIDL1, PIDL2: PItemIDList): Boolean;
+    class procedure FreeAndNilPIDL(var APIDL: PItemIDList);
+    class procedure FreeMalloc;
+    class procedure FreeOLEStr(const AOLEStr: LPWSTR);
+    class procedure FreePIDL(APIDL: PItemIDList);
+    class function CopyLastID(const AIDList: PItemIDList): PItemIDList;
+    class function GetPointerToLastID(const AIDList: PItemIDList): PItemIDList;
+    class function IDCount(const APIDL: PItemIDList): Integer;
+    class function IsDesktopFolder(const APIDL: PItemIDList): Boolean;
+    class function IsEmptyPIDL(const APIDL: PItemIDList): Boolean;
+    class function IsSubPIDL(const AFullPIDL, ASubPIDL: PItemIDList): Boolean;
+    class function NextID(APIDL: PItemIDList): PItemIDList;
+    class function PIDLSize(APIDL: PItemIDList): Integer;
+    class function LoadFromStream(const AStream: TStream): PItemIDList;
+    class procedure ParsePIDL(const AAbsolutePIDL: PItemIDList; var APIDLList: TCommonPIDLList; const AAllAbsolutePIDLs: Boolean);
+    class procedure ParsePIDLArray(const APIDLArray: PPIDLRawArray; var APIDLList: TCommonPIDLList; const ACount: Integer; const ARelative, ACopyPIDLs: Boolean);
+    class function StripLastID(AIDList: PItemIDList): PItemIDList; overload;
+    class function StripLastID(AIDList: PItemIDList; var ALast_CB: Word; var ALastID: PItemIDList): PItemIDList; overload;
+    class procedure SaveToStream(const AStream: TStream; const APIDL: PItemIdList);
+    class function Malloc: IMalloc; inline;
   end;
 
   //
@@ -532,9 +527,9 @@ type
     function FCurrentPPI: Integer;
     {$IFEND}
     (* Scale a value according to the FCurrentPPI *)
-    function PPIScale(Value: integer): integer;
+    function PPIScale(Value: Integer): Integer;
     (* Reverse PPI Scaling  *)
-    function PPIUnScale(Value: integer): integer;
+    function PPIUnScale(Value: Integer): Integer;
   end;
 
 var
@@ -542,6 +537,9 @@ var
   Checks: TCommonCheckBoundManager;
   MarlettFont: TFont;
 
+
+resourcestring
+  SCannotAllocateTheIMallocMemory = 'Cannot allocate the IMalloc memory interface';
 
 implementation
 
@@ -562,14 +560,13 @@ var
   FLargeSysImagesCommon: TCommonVirtualImageList = nil;
   FSmallSysImages: TCommonSysImages = nil;
   FSmallSysImagesCommon: TCommonVirtualImageList = nil;
-  PIDLMgr: TCommonPIDLManager = nil;
   ILIsParent_MP: TILIsParent = nil;
   ILIsEqual_MP: TILIsEqual = nil;
 
 function MultiPathNamespaceListSort(Item1, Item2: Pointer): Integer;
 // Simply sorts the PIDLs by their length, it has nothing to do with the name
 begin
-  Result := PIDLMgr.IDCount(TNamespace(Item2).AbsolutePIDL) - PIDLMgr.IDCount(TNamespace(Item1).AbsolutePIDL)
+  Result := TCommonPIDLManager.IDCount(TNamespace(Item2).AbsolutePIDL) - TCommonPIDLManager.IDCount(TNamespace(Item1).AbsolutePIDL)
 end;
 
 function ILIsParent(PIDL1: PItemIDList; PIDL2: PItemIDList; ImmediateParent: LongBool): LongBool;
@@ -692,13 +689,13 @@ begin
       while i < NamespaceList.Count - 1 do  // Note here we don't run the very last item in the List
       begin
         NS := TNamespace( NamespaceList[i]);
-        if not PIDLMgr.IsDesktopFolder(NS.AbsolutePIDL) then
+        if not TCommonPIDLManager.IsDesktopFolder(NS.AbsolutePIDL) then
         begin
-          SourceLen := PIDLMgr.IDCount(NS.AbsolutePIDL);
+          SourceLen := TCommonPIDLManager.IDCount(NS.AbsolutePIDL);
           j := i + 1;
           NSNext := TNamespace( NamespaceList[j]);
           // Now run from the next Namespace to the end if the list or until the number of ItemIDs is different (which means they can't be equal)
-          while (j < NamespaceList.Count) and (SourceLen = PIDLMgr.IDCount(NSNext.AbsolutePIDL)) do
+          while (j < NamespaceList.Count) and (SourceLen = TCommonPIDLManager.IDCount(NSNext.AbsolutePIDL)) do
           begin
             if ILIsEqual(NS.AbsolutePIDL, NSNext.AbsolutePIDL) then
               Dups.Add( Pointer( j));
@@ -712,7 +709,7 @@ begin
       end;
       // Test the very list item in the List
       NS := TNamespace( NamespaceList[NamespaceList.Count - 1]);
-      if PIDLMgr.IsDesktopFolder(NS.AbsolutePIDL) then
+      if TCommonPIDLManager.IsDesktopFolder(NS.AbsolutePIDL) then
         Dups.Add(Pointer(NamespaceList.Count - 1));  // Remove the Desktop PIDL in the last position
     finally
       for i := 0 to Dups.Count - 1 do
@@ -1441,19 +1438,13 @@ end;
 
 { TCoolPIDLList }
 
-constructor TCommonPIDLList.Create;
-begin
-  inherited Create;
-  FLocalPIDLMgr := TCommonPIDLManager.Create;
-end;
-
 procedure TCommonPIDLList.Clear;
 var
-  i: integer;
+  i: Integer;
 begin
   if not SharePIDLs then
     for i := 0 to Count - 1 do
-      LocalPIDLMgr.FreePIDL( PItemIDList( Items[i]));
+      TCommonPIDLManager.FreePIDL( PItemIDList( Items[i]));
   inherited;
 end;
 
@@ -1470,17 +1461,16 @@ begin
   end
 end;
 
-function TCommonPIDLList.CopyAdd(PIDL: PItemIDList): integer;
+function TCommonPIDLList.CopyAdd(PIDL: PItemIDList): Integer;
 // Adds a Copy of the passed PIDL to the list
 begin
-  Result := Add( LocalPIDLMgr.CopyPIDL(PIDL));
+  Result := Add(TCommonPIDLManager.CopyPIDL(PIDL));
 end;
 
 destructor TCommonPIDLList.Destroy;
 begin
   FDestroying := True;
   inherited;
-  FreeAndNil(FLocalPIDLMgr);
 end;
 
 function TCommonPIDLList.FindPIDL(TestPIDL: PItemIDList): Integer;
@@ -1493,13 +1483,13 @@ begin
   Result := -1;
   while (i < Count) and (Result < 0) do
   begin
-    if LocalPIDLMgr.EqualPIDL(TestPIDL, GetPIDL(i)) then
+    if TCommonPIDLManager.EqualPIDL(TestPIDL, GetPIDL(i)) then
       Result := i;
     Inc(i);
   end;
 end;
 
-function TCommonPIDLList.GetPIDL(Index: integer): PItemIDList;
+function TCommonPIDLList.GetPIDL(Index: Integer): PItemIDList;
 begin
   Result := PItemIDList( Items[Index]);
 end;
@@ -1507,13 +1497,13 @@ end;
 function TCommonPIDLList.LoadFromStream(Stream: TStream): Boolean;
 // Loads the PIDL list from a stream
 var
-  PIDLCount, i: integer;
+  PIDLCount, i: Integer;
 begin
   Result := True;
   try
     Stream.ReadBuffer(PIDLCount, SizeOf(Integer));
     for i := 0 to PIDLCount - 1 do
-      Add( LocalPIDLMgr.LoadFromStream(Stream));
+      Add(TCommonPIDLManager.LoadFromStream(Stream));
   except
     Result := False;
   end;
@@ -1522,13 +1512,13 @@ end;
 function TCommonPIDLList.SaveToStream(Stream: TStream): Boolean;
 // Saves the PIDL list to a stream
 var
-  i: integer;
+  i: Integer;
 begin
   Result := True;
   try
     Stream.WriteBuffer(Count, SizeOf(Count));
     for i := 0 to Count - 1 do
-      LocalPIDLMgr.SaveToStream(Stream, Items[i]);
+      TCommonPIDLManager.SaveToStream(Stream, Items[i]);
   except
     Result := False;
   end;
@@ -1547,7 +1537,7 @@ begin
       begin
         Items[i] := nil;
         if not SharePIDLs then
-          PIDLMgr.FreePIDL(PIDL);
+          TCommonPIDLManager.FreePIDL(PIDL);
       end
     end
   finally
@@ -1555,181 +1545,185 @@ begin
   end
 end;
 
-function TCommonPIDLManager.AllocGlobalMem(Size: Integer): PByte;
+class function TCommonPIDLManager.AllocGlobalMem(ASize: Integer): PByte;
 begin
-  Result := Malloc.Alloc(Size);
+  Result := Malloc.Alloc(ASize);
   if Result <> nil then
-    ZeroMemory(Result, Size);
+    ZeroMemory(Result, ASize);
 end;
 
 // Routines to do most anything you would want to do with a PIDL
 
-function TCommonPIDLManager.AppendPIDL(DestPIDL, SrcPIDL: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.AppendPIDL(const ADestPIDL, ASrcPIDL: PItemIDList): PItemIDList;
 // Returns the concatination of the two PIDLs. Neither passed PIDLs are
 // freed so it is up to the caller to free them.
 var
-  DestPIDLSize, SrcPIDLSize: integer;
+  lDestPIDLSize: Integer;
+  lSrcPIDLSize: Integer;
 begin
-  DestPIDLSize := 0;
-  SrcPIDLSize := 0;
+  lDestPIDLSize := 0;
+  lSrcPIDLSize := 0;
   // Appending a PIDL to the DesktopPIDL is invalid so don't allow it.
-  if Assigned(DestPIDL) then
-    if not IsDesktopFolder(DestPIDL) then
-      DestPIDLSize := PIDLSize(DestPIDL) - SizeOf(DestPIDL^.mkid.cb);
+  if Assigned(ADestPIDL) then
+  begin
+    if not IsDesktopFolder(ADestPIDL) then
+      lDestPIDLSize := PIDLSize(ADestPIDL) - SizeOf(ADestPIDL^.mkid.cb);
+  end;
 
-  if Assigned(SrcPIDL) then
-    SrcPIDLSize := PIDLSize(SrcPIDL);
+  if Assigned(ASrcPIDL) then
+    lSrcPIDLSize := PIDLSize(ASrcPIDL);
 
-  Result := FMalloc.Alloc(DestPIDLSize + SrcPIDLSize);
+  Result := Malloc.Alloc(lDestPIDLSize + lSrcPIDLSize);
   if Assigned(Result) then
   begin
-    if Assigned(DestPIDL) and (DestPIDLSize > 0) then
-      CopyMemory(Result, DestPIDL, DestPIDLSize);
-    if Assigned(SrcPIDL) and (SrcPIDLSize > 0) then
-      CopyMemory(PAnsiChar(Result) + DestPIDLSize, SrcPIDL, SrcPIDLSize);
+    if Assigned(ADestPIDL) and (lDestPIDLSize > 0) then
+      CopyMemory(Result, ADestPIDL, lDestPIDLSize);
+    if Assigned(ASrcPIDL) and (lSrcPIDLSize > 0) then
+      CopyMemory(PAnsiChar(Result) + lDestPIDLSize, ASrcPIDL, lSrcPIDLSize);
   end;
 end;
 
-function TCommonPIDLManager.BindToParent(AbsolutePIDL: PItemIDList; var Folder: IShellFolder): Boolean;
+class function TCommonPIDLManager.BindToParent(const AAbsolutePIDL: PItemIDList; var AFolder: IShellFolder): Boolean;
 var
-  Desktop: IShellFolder;
-  Last_CB: Word;
-  LastID: PItemIDList;
+  lDesktop: IShellFolder;
+  lLast_CB: Word;
+  lLastID: PItemIDList;
 begin
-  SHGetDesktopFolder(Desktop);
-  if PIDLMgr.IDCount(AbsolutePIDL) = 1 then
+  SHGetDesktopFolder(lDesktop);
+  if TCommonPIDLManager.IDCount(AAbsolutePIDL) = 1 then
   begin
-    Folder := Desktop;
-    Result := True
-  end else
+    AFolder := lDesktop;
+    Result := True;
+  end
+  else
   begin
-    StripLastID(AbsolutePIDL, Last_CB, LastID);
+    StripLastID(AAbsolutePIDL, lLast_CB, lLastID);
     try
-      Result := Succeeded(Desktop.BindToObject(AbsolutePIDL, nil, IShellFolder, Pointer(Folder)))
+      Result := Succeeded(lDesktop.BindToObject(AAbsolutePIDL, nil, IShellFolder, Pointer(AFolder)))
     finally
-      LastID.mkid.cb := Last_CB
+      lLastID.mkid.cb := lLast_CB;
     end
   end
 end;
 
-function TCommonPIDLManager.CopyPIDL(APIDL: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.CopyPIDL(const APIDL: PItemIDList): PItemIDList;
 // Copies the PIDL and returns a newly allocated PIDL. It is not associated
 // with any instance of TCoolPIDLManager so it may be assigned to any instance.
 var
-  Size: integer;
+  lSize: Integer;
 begin
   if Assigned(APIDL) then
   begin
-    Size := PIDLSize(APIDL);
-    Result := FMalloc.Alloc(Size);
+    lSize := PIDLSize(APIDL);
+    Result := Malloc.Alloc(lSize);
     if Result <> nil then
-      CopyMemory(Result, APIDL, Size);
-  end else
+      CopyMemory(Result, APIDL, lSize);
+  end
+  else
     Result := nil
 end;
 
-constructor TCommonPIDLManager.Create;
-begin
-  inherited Create;
-  if SHGetMalloc(FMalloc) = E_FAIL then
-    raise EOutOfMemory.Create('Can not allocate the IMalloc memory interface')
-end;
-
-destructor TCommonPIDLManager.Destroy;
+class destructor TCommonPIDLManager.Destroy;
 begin
   FMalloc := nil;
-  inherited
 end;
 
-function TCommonPIDLManager.EqualPIDL(PIDL1, PIDL2: PItemIDList): Boolean;
+class function TCommonPIDLManager.EqualPIDL(const PIDL1, PIDL2: PItemIDList): Boolean;
 begin
   if Assigned(PIDL1) and Assigned(PIDL2) then
-    Result := Boolean( ILIsEqual(PIDL1, PIDL2))
+    Result := Boolean(ILIsEqual(PIDL1, PIDL2))
   else
     Result := False
 end;
 
-procedure TCommonPIDLManager.FreeOLEStr(OLEStr: LPWSTR);
+class procedure TCommonPIDLManager.FreeOLEStr(const AOLEStr: LPWSTR);
 // Frees an OLE string created by the Shell; as in StrRet
 begin
-  FMalloc.Free(OLEStr)
+  Malloc.Free(AOLEStr);
 end;
 
-procedure TCommonPIDLManager.FreePIDL(PIDL: PItemIDList);
+class procedure TCommonPIDLManager.FreePIDL(APIDL: PItemIDList);
 // Frees the PIDL using the shell memory allocator
 begin
-  if Assigned(PIDL) then
-    FMalloc.Free(PIDL)
+  if Assigned(APIDL) then
+    Malloc.Free(APIDL)
 end;
 
-function TCommonPIDLManager.CopyLastID(IDList: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.CopyLastID(const AIDList: PItemIDList): PItemIDList;
 // Returns a copy of the last PID in the list
 var
-  Count, i: integer;
-  PIDIndex: PItemIDList;
+  lCount: Integer;
+  lIDIndex: PItemIDList;
+  lInner: Integer;
 begin
-  PIDIndex := IDList;
-  Count := IDCount(IDList);
-  if Count > 1 then
-    for i := 0 to Count - 2 do
-     PIDIndex := NextID(PIDIndex);
-  Result := CopyPIDL(PIDIndex);
+  lIDIndex := AIDList;
+  lCount := IDCount(AIDList);
+  if lCount > 1 then
+  begin
+    for lInner := 0 to lCount - 2 do
+     lIDIndex := NextID(lIDIndex);
+  end;
+  Result := CopyPIDL(lIDIndex);
 end;
 
-function TCommonPIDLManager.GetPointerToLastID(IDList: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.GetPointerToLastID(const AIDList: PItemIDList): PItemIDList;
 // Return a pointer to the last PIDL in the complex PIDL passed to it.
 // Useful to overlap an Absolute complex PIDL with the single level
 // Relative PIDL.
 var
-  Count, i: integer;
-  PIDIndex: PItemIDList;
+  lCount: Integer;
+  lInner: Integer;
+  lPIDIndex: PItemIDList;
 begin
-  if Assigned(IDList) then
+  if Assigned(AIDList) then
   begin
-    PIDIndex := IDList;
-    Count := IDCount(IDList);
-    if Count > 1 then
-      for i := 0 to Count - 2 do
-       PIDIndex := NextID(PIDIndex);
-    Result := PIDIndex;
-  end else
-    Result := nil
+    lPIDIndex := AIDList;
+    lCount := IDCount(AIDList);
+    if lCount > 1 then
+    begin
+      for lInner := 0 to lCount - 2 do
+       lPIDIndex := NextID(lPIDIndex);
+    end;
+    Result := lPIDIndex;
+  end
+  else
+    Result := nil;
 end;
 
-function TCommonPIDLManager.IDCount(APIDL: PItemIDList): integer;
+class function TCommonPIDLManager.IDCount(const APIDL: PItemIDList): Integer;
 // Counts the number of Simple PIDLs contained in a Complex PIDL.
 var
-  Next: PItemIDList;
+  lNext: PItemIDList;
 begin
   Result := 0;
-  Next := APIDL;
-  if Assigned(Next) then
+  lNext := APIDL;
+  if Assigned(lNext) then
   begin
-    while Next^.mkid.cb <> 0 do
+    while lNext^.mkid.cb <> 0 do
     begin
       Inc(Result);
-      Next := NextID(Next);
+      lNext := NextID(lNext);
     end
   end
 end;
 
-function TCommonPIDLManager.IsDesktopFolder(APIDL: PItemIDList): Boolean;
+class function TCommonPIDLManager.IsDesktopFolder(const APIDL: PItemIDList): Boolean;
 // Tests the passed PIDL to see if it is the root Desktop Folder
 begin
   if Assigned(APIDL) then
     Result := APIDL.mkid.cb = 0
   else
-    Result := False
+    Result := False;
 end;
 
-function TCommonPIDLManager.NextID(APIDL: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.NextID(APIDL: PItemIDList): PItemIDList;
 // Returns a pointer to the next Simple PIDL in a Complex PIDL.
 begin
   Result := APIDL;
   Inc(PAnsiChar(Result), APIDL^.mkid.cb);
 end;
 
-function TCommonPIDLManager.PIDLSize(APIDL: PItemIDList): integer;
+class function TCommonPIDLManager.PIDLSize(APIDL: PItemIDList): Integer;
 // Returns the total Memory in bytes the PIDL occupies.
 begin
   Result := 0;
@@ -1744,188 +1738,206 @@ begin
   end;
 end;
 
-function TCommonPIDLManager.LoadFromStream(Stream: TStream): PItemIDList;
-// Loads the PIDL from a Stream
+class function TCommonPIDLManager.LoadFromStream(const AStream: TStream): PItemIDList;
+// Loads the PIDL from a AStream
 var
-  Size: integer;
+  lSize: Integer;
 begin
   Result := nil;
-  if Assigned(Stream) then
+  if Assigned(AStream) then
   begin
-    Stream.ReadBuffer(Size, SizeOf(Integer));
-    if Size > 0 then
+    AStream.ReadBuffer(lSize, SizeOf(Integer));
+    if lSize > 0 then
     begin
-      Result := FMalloc.Alloc(Size);
-      Stream.ReadBuffer(Result^, Size);
+      Result := FMalloc.Alloc(lSize);
+      AStream.ReadBuffer(Result^, lSize);
     end
   end
 end;
 
-function TCommonPIDLManager.StripLastID(IDList: PItemIDList): PItemIDList;
-// Removes the last PID from the list. Returns the same, shortened, IDList passed
+class function TCommonPIDLManager.Malloc: IMalloc;
+begin
+  if FMalloc = nil then
+  begin
+    if SHGetMalloc(FMalloc) = E_FAIL then
+      raise EOutOfMemory.Create(SCannotAllocateTheIMallocMemory);
+  end;
+  Result := FMalloc;
+end;
+
+class function TCommonPIDLManager.StripLastID(AIDList: PItemIDList): PItemIDList;
+// Removes the last PID from the list. Returns the same, shortened, AIDList passed
 // to the function
 var
-  MarkerID: PItemIDList;
+  lMarkerID: PItemIDList;
 begin
-  Result := IDList;
-  MarkerID := IDList;
-  if Assigned(IDList) then
+  Result := AIDList;
+  lMarkerID := AIDList;
+  if Assigned(AIDList) then
   begin
-    while IDList.mkid.cb <> 0 do
+    while AIDList.mkid.cb <> 0 do
     begin
-      MarkerID := IDList;
-      IDList := NextID(IDList);
+      lMarkerID := AIDList;
+      AIDList := NextID(AIDList);
     end;
-    MarkerID.mkid.cb := 0;
+    lMarkerID.mkid.cb := 0;
   end;
 end;
 
-procedure TCommonPIDLManager.SaveToStream(Stream: TStream; PIDL: PItemIdList);
-// Saves the PIDL from a Stream
+class procedure TCommonPIDLManager.SaveToStream(const AStream: TStream; const APIDL: PItemIdList);
+// Saves the APIDL from a AStream
 var
-  Size: Integer;
+  lSize: Integer;
 begin
-  Size := PIDLSize(PIDL);
-  Stream.WriteBuffer(Size, SizeOf(Size));
-  Stream.WriteBuffer(PIDL^, Size);
+  lSize := PIDLSize(APIDL);
+  AStream.WriteBuffer(lSize, SizeOf(lSize));
+  AStream.WriteBuffer(APIDL^, lSize);
 end;
 
 
-function TCommonPIDLManager.StripLastID(IDList: PItemIDList; var Last_CB: Word; var LastID: PItemIDList): PItemIDList;
+class function TCommonPIDLManager.StripLastID(AIDList: PItemIDList; var ALast_CB: Word; var ALastID: PItemIDList): PItemIDList;
 // Strips the last ID but also returns the pointer to where the last CB was and the
 // value that was there before setting it to 0 to shorten the PIDL.  All that is necessary
-// is to do a LastID^ := Last_CB.mkid.cb to return the PIDL to its previous state.  Used to
+// is to do a ALastID^ := ALast_CB.mkid.cb to return the PIDL to its previous state.  Used to
 // temporarily strip the last ID of a PIDL
 var
-  MarkerID: PItemIDList;
+  lMarkerID: PItemIDList;
 begin
-  Last_CB := 0;
-  LastID := nil;
-  Result := IDList;
-  MarkerID := IDList;
-  if Assigned(IDList) then
+  ALast_CB := 0;
+  ALastID := nil;
+  Result := AIDList;
+  lMarkerID := AIDList;
+  if Assigned(AIDList) then
   begin
-    while IDList.mkid.cb <> 0 do
+    while AIDList.mkid.cb <> 0 do
     begin
-      MarkerID := IDList;
-      IDList := NextID(IDList);
+      lMarkerID := AIDList;
+      AIDList := NextID(AIDList);
     end;
-    Last_CB := MarkerID.mkid.cb;
-    LastID := MarkerID;
-    MarkerID.mkid.cb := 0;
+    ALast_CB := lMarkerID.mkid.cb;
+    ALastID := lMarkerID;
+    lMarkerID.mkid.cb := 0;
   end;
 end;
 
-function TCommonPIDLManager.IsEmptyPIDL(APIDL: PItemIDList): Boolean;
+class function TCommonPIDLManager.IsEmptyPIDL(const APIDL: PItemIDList): Boolean;
 begin
   Result := False;
   if Assigned(APIDL) then
     Result := APIDL.mkid.cb <= SizeOf(APIDL.mkid.cb)
 end;
 
-function TCommonPIDLManager.IsSubPIDL(FullPIDL, SubPIDL: PItemIDList): Boolean;
-// Tests to see if the SubPIDL can be expanded into the passed FullPIDL
+class function TCommonPIDLManager.IsSubPIDL(const AFullPIDL, ASubPIDL: PItemIDList): Boolean;
+// Tests to see if the ASubPIDL can be expanded into the passed AFullPIDL
 var
-  i, PIDLLen, SubPIDLLen: integer;
-  PIDL: PItemIDList;
-  OldCB: Word;
+  lCount: Integer;
+  lOldCB: Word;
+  lPIDL: PItemIDList;
+  lPIDLLen: Integer;
+  lSubPIDLLen: Integer;
 begin
   Result := False;
-  if Assigned(FullPIDL) and Assigned(SubPIDL) then
+  if Assigned(AFullPIDL) and Assigned(ASubPIDL) then
   begin
-    SubPIDLLen := IDCount(SubPIDL);
-    PIDLLen := IDCount(FullPIDL);
-    if SubPIDLLen <= PIDLLen then
+    lSubPIDLLen := IDCount(ASubPIDL);
+    lPIDLLen := IDCount(AFullPIDL);
+    if lSubPIDLLen <= lPIDLLen then
     begin
-      PIDL := FullPIDL;
-      for i := 0 to SubPIDLLen - 1 do
-        PIDL := NextID(PIDL);
-      OldCB := PIDL.mkid.cb;
-      PIDL.mkid.cb := 0;
+      lPIDL := AFullPIDL;
+      for lCount := 0 to lSubPIDLLen - 1 do
+        lPIDL := NextID(lPIDL);
+      lOldCB := lPIDL.mkid.cb;
+      lPIDL.mkid.cb := 0;
       try
-        Result := ILIsEqual(FullPIDL, SubPIDL);
+        Result := ILIsEqual(AFullPIDL, ASubPIDL);
       finally
-        PIDL.mkid.cb := OldCB
+        lPIDL.mkid.cb := lOldCB
       end
     end
   end
 end;
 
-procedure TCommonPIDLManager.FreeAndNilPIDL(var PIDL: PItemIDList);
+class procedure TCommonPIDLManager.FreeAndNilPIDL(var APIDL: PItemIDList);
 var
-  OldPIDL: PItemIDList;
+  lOldPIDL: PItemIDList;
 begin
-  OldPIDL := PIDL;
-  PIDL := nil;
-  FreePIDL(OldPIDL)
+  lOldPIDL := APIDL;
+  APIDL := nil;
+  FreePIDL(lOldPIDL)
 end;
 
-function TCommonPIDLManager.AllocStrGlobal(SourceStr: string): POleStr;
+class procedure TCommonPIDLManager.FreeMalloc;
 begin
-  Result := Malloc.Alloc((Length(SourceStr) + 1) * 2); // Add the null
+  FMalloc := nil;
+end;
+
+class function TCommonPIDLManager.AllocStrGlobal(const ASourceStr: string): POleStr;
+begin
+  Result := Malloc.Alloc((Length(ASourceStr) + 1) * SizeOf(Char)); // Add the null
   if Result <> nil then
-    CopyMemory(Result, PWideChar(SourceStr), (Length(SourceStr) + 1) * 2);
+    CopyMemory(Result, PWideChar(ASourceStr), (Length(ASourceStr) + 1) * SizeOf(Char));
 end;
 
-procedure TCommonPIDLManager.ParsePIDL(AbsolutePIDL: PItemIDList; var PIDLList: TCommonPIDLList; AllAbsolutePIDLs: Boolean);
-// Parses the AbsolutePIDL in to its single level PIDLs, if AllAbsolutePIDLs is true
-// then each item is not a single level PIDL but an AbsolutePIDL but walking from the
-// Desktop up to the passed AbsolutePIDL
+class procedure TCommonPIDLManager.ParsePIDL(const AAbsolutePIDL: PItemIDList; var APIDLList: TCommonPIDLList; const AAllAbsolutePIDLs: Boolean);
+// Parses the AAbsolutePIDL in to its single level PIDLs, if AAllAbsolutePIDLs is true
+// then each item is not a single level PIDL but an AAbsolutePIDL but walking from the
+// Desktop up to the passed AAbsolutePIDL
 var
-  OldCB: Word;
-  Head, Tail: PItemIDList;
+  lHead: PItemIDList;
+  lOldCB: Word;
+  lTail: PItemIDList;
 begin
-  Head := AbsolutePIDL;
-  Tail := Head;
-  if Assigned(PIDLList) and Assigned(Head) then
+  lHead := AAbsolutePIDL;
+  lTail := lHead;
+  if Assigned(APIDLList) and Assigned(lHead) then
   begin
-    while Tail.mkid.cb <> 0 do
+    while lTail.mkid.cb <> 0 do
     begin
-      Tail := NextID(Tail);
-      OldCB := Tail.mkid.cb;
+      lTail := NextID(lTail);
+      lOldCB := lTail.mkid.cb;
       try
-        Tail.mkid.cb := 0;
-        PIDLList.Add(CopyPIDL(Head));
+        lTail.mkid.cb := 0;
+        APIDLList.Add(CopyPIDL(lHead));
       finally
-        Tail.mkid.cb := OldCB;
+        lTail.mkid.cb := lOldCB;
       end;
-      if not AllAbsolutePIDLs then
-        Head := Tail
+      if not AAllAbsolutePIDLs then
+        lHead := lTail
     end
   end
 end;
 
-procedure TCommonPIDLManager.ParsePIDLArray(PIDLArray: PPIDLRawArray; var PIDLList: TCommonPIDLList; Count: Integer; Relative, CopyPIDLs: Boolean);
+class procedure TCommonPIDLManager.ParsePIDLArray(const APIDLArray: PPIDLRawArray; var APIDLList: TCommonPIDLList; const ACount: Integer; const ARelative, ACopyPIDLs: Boolean);
 // Used to parse the List of PIDLs passed to a few of the IShellFolder interfaces
 //
-// In the API calls pass the apidl param to the PIDLArray like this:
-//    PIDLArray(@apidl, PIDLList, cidl, True, TrueOrFalse)
-//  PIDLArray:   A pointer to an array of PItemIDLists
-//  PIDLList:    A TList that will be filled with each PIDL
-//  Count:       The number of PItemIDLists in the PIDLArray
-//  Relative:    If the PItemIDLists are complex fill the PIDLList with the last ItemID of each
+// In the API calls pass the apidl param to the APIDLArray like this:
+//    APIDLArray(@apidl, APIDLList, cidl, True, TrueOrFalse)
+//  APIDLArray:   A pointer to an array of PItemIDLists
+//  APIDLList:    A TList that will be filled with each PIDL
+//  ACount:       The number of PItemIDLists in the APIDLArray
+//  ARelative:    If the PItemIDLists are complex fill the APIDLList with the last ItemID of each
 //               else use the complex PIDL
-//  CopyPIDLs:   Make copies of the PIDLs if true, if false make sure PIDLList is set to share PIDLs!
+//  ACopyPIDLs:   Make copies of the PIDLs if true, if false make sure APIDLList is set to share PIDLs!
 //
 var
-  i: Integer;
+  lCount: Integer;
 begin
-  if Assigned(PIDLList) and Assigned(PIDLArray) then
+  if Assigned(APIDLList) and Assigned(APIDLArray) then
   begin
-    for i := 0 to Count - 1 do
+    for lCount := 0 to ACount - 1 do
     begin
-      if Relative then
+      if ARelative then
       begin
-        if CopyPIDLs then
-          PIDLList.Add(CopyPIDL(GetPointerToLastID(PIDLArray^[i])))
+        if ACopyPIDLs then
+          APIDLList.Add(CopyPIDL(GetPointerToLastID(APIDLArray^[lCount])))
         else
-          PIDLList.Add(GetPointerToLastID(PIDLArray^[i]))
+          APIDLList.Add(GetPointerToLastID(APIDLArray^[lCount]))
       end else
       begin
-        if CopyPIDLs then
-          PIDLList.Add(CopyPIDL(PIDLArray^[i]))
+        if ACopyPIDLs then
+          APIDLList.Add(CopyPIDL(APIDLArray^[lCount]))
         else
-          PIDLList.Add(PIDLArray^[i])
+          APIDLList.Add(APIDLArray^[lCount])
       end
     end
   end
@@ -2595,12 +2607,12 @@ begin
 end;
 {$IFEND}
 
-function TControlHelper.PPIScale(Value: integer): integer;
+function TControlHelper.PPIScale(Value: Integer): Integer;
 begin
   Result := MulDiv(Value, FCurrentPPI, 96);
 end;
 
-function TControlHelper.PPIUnScale(Value: integer): integer;
+function TControlHelper.PPIUnScale(Value: Integer): Integer;
 begin
   Result := MulDiv(Value, 96, FCurrentPPI);
 end;
@@ -2642,7 +2654,6 @@ initialization
   MarlettFont := TFont.Create;
   MarlettFont.Name := 'marlett';
   Checks := TCommonCheckBoundManager.Create;
-  PIDLMgr := TCommonPIDLManager.Create;
 
 finalization
   if FreeShellLib then
@@ -2657,6 +2668,5 @@ finalization
   FJumboSysImages.Free;
   FSmallSysImagesCommon.Free;
   TCommonVirtualImageList.FDict.Free;
-  FreeAndNil(PIDLMgr);
 
 end.

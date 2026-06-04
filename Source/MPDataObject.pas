@@ -376,7 +376,6 @@ uses
   MPShellUtilities;
 
 var
-  PIDLMgr: TCommonPIDLManager;
   ShellILIsEqual: function(PIDL1: PItemIDList; PIDL2: PItemIDList): LongBool; stdcall;
   ShellILIsEqualChecked: Boolean = False;
 
@@ -412,7 +411,7 @@ begin
           begin
             P := ShellIDList.AbsolutePIDL(i);
             Result := ShellILIsEqual(P, APIDL);
-            PIDLMgr.FreePIDL(P);
+            TCommonPIDLManager.FreePIDL(P);
             Inc(i)
           end
         end
@@ -1072,7 +1071,7 @@ function TCommonShellIDList.AbsolutePIDL(Index: integer): PItemIDList;
 begin
   if Assigned(FCIDA) then
   begin
-    Result := PIDLMgr.AppendPIDL(InternalParentPIDL, InternalChildPIDL(Index));
+    Result := TCommonPIDLManager.AppendPIDL(InternalParentPIDL, InternalChildPIDL(Index));
   end else
     Result := nil
 end;
@@ -1084,7 +1083,7 @@ begin
   if Assigned(APIDLList) and Assigned(FCIDA) then
   begin
     for i := 0 to PIDLCount - 1 do
-      APIDLList.Add( PIDLMgr.AppendPIDL(InternalParentPIDL, InternalChildPIDL(i)))
+      APIDLList.Add(TCommonPIDLManager.AppendPIDL(InternalParentPIDL, InternalChildPIDL(i)))
   end;
 end;
 
@@ -1106,7 +1105,7 @@ begin
     Inc(Count, SizeOf(FCIDA.cidl));
     Inc(Count, SizeOf(FCIDA.aoffset) * (APIDLList.Count));
     for i := 0 to APIDLList.Count - 1 do
-      Inc(Count, PIDLMgr.PIDLSize( APIDLList[i]));
+      Inc(Count, TCommonPIDLManager.PIDLSize(APIDLList[i]));
     GetMem(FCIDA, Count);
     Head := FCIDA;
     { Head points to the position of the first PIDL }
@@ -1119,7 +1118,7 @@ begin
       {$R-}
       FCIDA.aoffset[i] := LongWord(Head-PAnsiChar( CIDA));
       {$R+}
-      PIDLLength := PIDLMgr.PIDLSize(APIDLList[i]);
+      PIDLLength := TCommonPIDLManager.PIDLSize(APIDLList[i]);
       Move(APIDLList[i]^, Head^, PIDLLength);
       Inc(PAnsiChar(Head), PIDLLength);
     end;
@@ -1144,9 +1143,9 @@ begin
   begin
     Inc(Count, SizeOf( FCIDA.cidl));
     Inc(Count, SizeOf( FCIDA.aoffset) * (PIDLCount + 1)); // Does't count [0]
-    Inc(Count, PIDLMgr.PIDLSize(InternalParentPIDL));
+    Inc(Count, TCommonPIDLManager.PIDLSize(InternalParentPIDL));
     for i := 0 to PIDLCount - 1 do
-      Inc(Count, PIDLMgr.PIDLSize(InternalChildPIDL(i)));
+      Inc(Count, TCommonPIDLManager.PIDLSize(InternalChildPIDL(i)));
   end;
   Result := Count;
 end;
@@ -1233,7 +1232,7 @@ end;
 
 function TCommonShellIDList.ParentPIDL: PItemIDList;
 begin
-  Result := PIDLMgr.CopyPIDL( InternalParentPIDL)
+  Result := TCommonPIDLManager.CopyPIDL(InternalParentPIDL)
 end;
 
 function TCommonShellIDList.PIDLCount: integer;
@@ -1249,7 +1248,7 @@ end;
 function TCommonShellIDList.RelativePIDL(Index: integer): PItemIDList;
 { Retrieves the single ItemID child by index                                    }
 begin
-  Result := PIDLMgr.CopyPIDL( InternalChildPIDL(Index))
+  Result := TCommonPIDLManager.CopyPIDL(InternalChildPIDL(Index))
 end;
 
 procedure TCommonShellIDList.RelativePIDLs(APIDLList: TCommonPIDLList);
@@ -2277,9 +2276,5 @@ initialization
   CF_FILECONTENTS := RegisterClipboardFormat(CFSTR_FILECONTENTS);
   CF_FILEDESCRIPTORA := RegisterClipboardFormat(CFSTR_FILEDESCRIPTORA);
   CF_FILEDESCRIPTORW := RegisterClipboardFormat(CFSTR_FILEDESCRIPTORW);
-  PIDLMgr := TCommonPIDLManager.Create;
-
-finalization
-  PIDLMgr.Free;
 
 end.
