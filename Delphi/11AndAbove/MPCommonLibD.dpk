@@ -35,12 +35,13 @@ requires
   vcl;
 
 contains
-  MPShellTypes in '..\..\Source\MPShellTypes.pas',
-  MPCommonUtilities in '..\..\Source\MPCommonUtilities.pas',
-  MPResources in '..\..\Source\MPResources.pas',
   MPCommonObjects in '..\..\Source\MPCommonObjects.pas',
+  MPCommonUtilities in '..\..\Source\MPCommonUtilities.pas',
   MPDataObject in '..\..\Source\MPDataObject.pas',
-  MPThreadManager in '..\..\Source\MPThreadManager.pas',
-  MPShellUtilities in '..\..\Source\MPShellUtilities.pas';
+  MPResources in '..\..\Source\MPResources.pas',
+  MPShellFunc in '..\..\Source\MPShellFunc.pas',
+  MPShellTypes in '..\..\Source\MPShellTypes.pas',
+  MPShellUtilities in '..\..\Source\MPShellUtilities.pas',
+  MPThreadManager in '..\..\Source\MPThreadManager.pas';
 
 end.

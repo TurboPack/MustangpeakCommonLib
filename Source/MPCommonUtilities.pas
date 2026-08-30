@@ -393,7 +393,7 @@ procedure ResizeBitmap(Bitmap: TBitmap; const NewWidth, NewHeight: Integer);
 function ScaleImageList(ASource: TCustomImageList; ASize: Integer): TCustomImageList;
 
 // Menu Functions
-function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
+function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer; MenuID: UINT = $FFFF; hSubMenu: HMenu = 0; Enabled: Boolean = True; Checked: Boolean = False; Default: Boolean = False): Integer;
 procedure ValidateMenuSeparators(Menu: HMenu);
 
 // Helpers to create a callback function out of a object method
@@ -406,7 +406,7 @@ type
   TCallbackStub = class(TInterfacedObject, ICallbackStub)
   private
     fStubPointer : Pointer;
-    fCodeSize : integer;
+    fCodeSize : NativeUInt;
     function GetStubPointer: Pointer;
   public
     constructor Create(Obj : TObject; MethodPtr: Pointer; NumArgs : integer);
@@ -461,7 +461,7 @@ uses
   {$if CompilerVersion >= 21}
   WinCodec,
   {$ifend}
-  MPCommonObjects, MPShellUtilities;
+  MPShellFunc, MPCommonObjects, MPShellUtilities;
 
 type
   PLibRec = ^TLibRec;
@@ -494,7 +494,7 @@ begin
     FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
     MenuInfoW.cbSize := SizeOf(MenuInfoW);
     MenuInfoW.fMask := MIIM_ID or MIIM_TYPE or MIIM_SUBMENU or MIIM_STATE or MIIM_CHECKMARKS or MIIM_DATA;
-    if GetMenuItemInfoW(Menu, i, True, MenuInfoW) then
+    if GetMenuItemInfoW(Menu, ToUInt32(i), True, MenuInfoW) then
     begin
       if (MenuInfoW.fType and MFT_SEPARATOR = MFT_SEPARATOR) and (MenuInfoW.hSubMenu = 0) then
         Separators.Add(Pointer(i))
@@ -509,7 +509,7 @@ procedure ValidateMenuSeparators(Menu: HMenu);
 // Removes duplicate separates in a menu
 //
 var
-  i: Integer;
+  i: NativeInt;
   Separators: TList;
 begin
   Separators := TList.Create;
@@ -523,10 +523,10 @@ begin
       if (i = GetMenuItemCount(Menu) - 1) then
       begin
         if NativeInt(Separators[i]) <> -1 then
-          DeleteMenu(Menu, i, MF_BYPOSITION)
+          DeleteMenu(Menu, ToUInt32(i), MF_BYPOSITION)
       end else
       if (NativeInt(Separators[i]) <> -1) and (NativeInt(Separators[i-1]) <> -1) then
-        DeleteMenu(Menu, i, MF_BYPOSITION)
+        DeleteMenu(Menu, ToUInt32(i), MF_BYPOSITION)
     end;
     if Separators.Count > 0 then
       begin
@@ -689,7 +689,7 @@ end;
 
 function WideExpandEnviromentString(EnviromentString: string): string;
 var
-  Length: Integer;
+  Length: UInt32;
 begin
   Result := EnviromentString;
   Length := ExpandEnvironmentStrings(PWideChar( EnviromentString), nil, 0);
@@ -789,9 +789,9 @@ begin
   for y := Y1 to Y2 do begin
     fDrawCanvas.MoveTo(X1, y);
     if (EndPoint > 0) and (y <= EndPoint) and (y >= StartPoint) then begin
-      fDrawCanvas.Pen.Color := RGB(Round(GetRValue(fStartColor) + (((GetRValue(fStopColor) - GetRValue(fStartColor)) / (Y2 - Y1)) *Abs(y - Y1))),
-          Round(GetGValue(fStartColor) + (((GetGValue(fStopColor) - GetGValue(fStartColor)) / (Y2 - Y1)) * Abs(y - Y1))),
-          Round(GetBValue(fStartColor) + (((GetBValue(fStopColor) - GetBValue(fStartColor)) / (y2 - Y1)) * Abs(y - Y1))));
+      fDrawCanvas.Pen.Color := TColor.FromUInt32(RGB(ToUInt8(Round(GetRValue(fStartColor.ToUInt32) + (((GetRValue(fStopColor.ToUInt32) - GetRValue(fStartColor.ToUInt32)) / (Y2 - Y1)) *Abs(y - Y1)))),
+          ToUInt8(Round(GetGValue(fStartColor.ToUInt32) + (((GetGValue(fStopColor.ToUInt32) - GetGValue(fStartColor.ToUInt32)) / (Y2 - Y1)) * Abs(y - Y1)))),
+          ToUInt8(Round(GetBValue(fStartColor.ToUInt32) + (((GetBValue(fStopColor.ToUInt32) - GetBValue(fStartColor.ToUInt32)) / (y2 - Y1)) * Abs(y - Y1))))));
       fDrawCanvas.LineTo(X2, y);
     end;
   end;
@@ -812,7 +812,7 @@ begin
     Factory := TWICImage.ImagingFactory;
     Factory.CreateBitmapScaler(Scaler);
     try
-      Scaler.Initialize(Source.Handle, NewWidth, NewHeight,
+      Scaler.Initialize(Source.Handle, ToUInt32(NewWidth), ToUInt32(NewHeight),
         WICBitmapInterpolationModeHighQualityCubic);
       Source.Handle := IWICBitmap(Scaler);
     finally
@@ -1007,7 +1007,7 @@ function FindUniqueMenuID(AMenu: HMenu): Cardinal;
         FillChar(MenuInfoW, SizeOf(MenuInfoW), #0);
         MenuInfoW.cbSize := SizeOf(MenuInfoW);
         MenuInfoW.fMask := MIIM_SUBMENU or MIIM_ID;
-        GetMenuItemInfoW(AMenu, i, True, MenuInfoW);
+        GetMenuItemInfoW(AMenu, ToUInt32(i), True, MenuInfoW);
         if MenuInfoW.hSubMenu <> 0 then
           Reset := RunMenu(MenuInfoW.hSubMenu, ID);
         IsDuplicate := MenuInfoW.wID = ID;
@@ -1017,17 +1017,17 @@ function FindUniqueMenuID(AMenu: HMenu): Cardinal;
     end;
 
 begin
-  Result := UniqueMenuIDSeed;
+  Result := ToUInt32(UniqueMenuIDSeed);
   while RunMenu(AMenu, Result) do
     Inc(Result);
-  UniqueMenuIDSeed := Result;
+  UniqueMenuIDSeed := ToInt32(Result);
   Inc(UniqueMenuIDSeed);
   if UniqueMenuIDSeed > 32000 then
     UniqueMenuIDSeed := 1000;
 end;
 
 function AddContextMenuItem(Menu: HMenu; ACaption: string; Index: Integer;
-  MenuID: UINT = $FFFF; hSubMenu: UINT = 0; Enabled: Boolean = True;
+  MenuID: UINT = $FFFF; hSubMenu: HMenu = 0; Enabled: Boolean = True;
   Checked: Boolean = False; Default: Boolean = False): Integer;
 //
 // Pass '-' for a separator
@@ -1064,7 +1064,7 @@ begin
     end
   end;
   InfoW.dwTypeData := PWideChar(ACaption);
-  InfoW.cch := Length(ACaption);
+  InfoW.cch := ToUInt32(Length(ACaption));
 
   if InfoW.fType = MFT_STRING then
   begin
@@ -1078,11 +1078,11 @@ begin
   end else
     InfoW.wID := $FFFF; // Separators don't get an unique ID
 
-  Result := InfoW.wID;
+  Result := ToInt32(InfoW.wID);
   if Index < 0 then
-    InsertMenuItem(Menu, GetMenuItemCount(Menu), True, InfoW)
+    InsertMenuItem(Menu, ToUInt32(GetMenuItemCount(Menu)), True, InfoW)
   else
-    InsertMenuItem(Menu, Index, True, InfoW);  // Inserts by Position
+    InsertMenuItem(Menu, ToUInt32(Index), True, InfoW);  // Inserts by Position
 end;
 
 procedure ShadowBlendBits(Bits: TBitmap; BackGndColor: TColor);
@@ -2094,22 +2094,22 @@ begin
         begin
           // Source GetColorValues ; Profiled = ~24-30% of time
           LongColor := PDWORD( PPixelImage32)^;
-          SourceBlue := LongColor and $000000FF;
-          SourceGreen := (LongColor and $0000FF00) shr 8;
-          SourceRed := (LongColor and $00FF0000) shr 16;
-          Alpha := (LongColor and $FF000000) shr 24;
+          SourceBlue := ToUInt8(LongColor and $000000FF);
+          SourceGreen := ToUInt8((LongColor and $0000FF00) shr 8);
+          SourceRed := ToUInt8((LongColor and $00FF0000) shr 16);
+          Alpha := ToUInt8((LongColor and $FF000000) shr 24);
 
           // Mask GetColorValues ; Profiled = ~24-30% of time
           LongColor := PDWORD( PPixelMask)^;
-          BkGndBlue := LongColor and $000000FF;
-          BkGndGreen := (LongColor and $0000FF00) shr 8;
-          BkGndRed := (LongColor and $00FF0000) shr 16;
+          BkGndBlue := ToUInt8(LongColor and $000000FF);
+          BkGndGreen := ToUInt8((LongColor and $0000FF00) shr 8);
+          BkGndRed := ToUInt8((LongColor and $00FF0000) shr 16);
 
           // displayColor = sourceColor�alpha / 256 + backgroundColor�(256 � alpha) / 256
           // Profiled = ~15-24% of time
-          RedTarget := SourceRed*Alpha shr 8 + BkGndRed*(255-Alpha) shr 8;
-          GreenTarget := SourceGreen*Alpha shr 8 + BkGndGreen*(255-Alpha) shr 8;
-          BlueTarget := SourceBlue*Alpha shr 8 + BkGndBlue*(255-Alpha) shr 8;
+          RedTarget := ToUInt8(SourceRed*Alpha shr 8 + BkGndRed*(255-Alpha) shr 8);
+          GreenTarget := ToUInt8(SourceGreen*Alpha shr 8 + BkGndGreen*(255-Alpha) shr 8);
+          BlueTarget := ToUInt8(SourceBlue*Alpha shr 8 + BkGndBlue*(255-Alpha) shr 8);
 
       //    RedTarget := BkGndRed*Alpha shr 8 + SourceRed*(255-Alpha) shr 8;
       //    GreenTarget := BkGndGreen*Alpha shr 8 + SourceGreen*(255-Alpha) shr 8;
@@ -2833,7 +2833,7 @@ end;
 
 function SystemDirectory: string;
 var
-  Len: integer;
+  Len: UInt32;
 begin
   Result := '';
   Len := GetSystemDirectory(PWideChar(Result), 0);
@@ -3066,13 +3066,13 @@ end;
 
 function DiskInDrive(C: AnsiChar): Boolean;
 var
-  OldErrorMode: Integer;
+  OldErrorMode: UInt32;
 begin
   C := UpCase(C);
   if C in ['A'..'Z'] then
   begin
     OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
-    Result :=  DiskFree(Ord(C) - Ord('A') + 1) > -1;
+    Result := DiskFree(ToUInt8(Ord(C) - Ord('A') + 1)) > -1;
     SetErrorMode(OldErrorMode);
   end else
     Result := False
@@ -3214,7 +3214,7 @@ end;
 
 function WindowsDirectory: string;
 var
-  Len: integer;
+  Len: UInt32;
 begin
   Result := '';
   Len := GetWindowsDirectory(PWideChar(Result), 0);
@@ -3324,7 +3324,7 @@ begin
         for N := 0 to Image32.Width - 1 do
         begin
           // Source GetColorValues ; Profiled = ~24-30% of time
-          Alpha := (PDWORD(PPixelImage32)^ and $FF000000) shr 24;
+          Alpha := ToUInt8((PDWORD(PPixelImage32)^ and $FF000000) shr 24);
           Result := Alpha <> 0;
           if Result then
             Exit;
@@ -3408,7 +3408,7 @@ begin
             end;
           WM_QUIT:
             begin
-              PostQuitMessage(Msg.wParam);
+              PostQuitMessage(ToInt32(Msg.wParam));
               Done := True;
             end
         else
@@ -3737,7 +3737,7 @@ begin
   begin
     GetTextExtentPoint32W(DC, PWideChar(TextToShorten), Length(TextToShorten), Size);
     GetTextExtentPoint32W(DC, '...', 3, EllipsisSize);
-    StrLen := Length(TextToShorten);
+    StrLen := ToUInt32(Length(TextToShorten));
     if Size.cx > MaxSize then
     begin
       Low:=0;
@@ -3745,7 +3745,7 @@ begin
       while (Low<High) do
         begin
           Middle:=(Low+High+1) shr 1;
-          GetTextExtentPoint32W(DC, @TextToShorten[1], Middle, Size);
+          GetTextExtentPoint32W(DC, @TextToShorten[1], ToInt32(Middle), Size);
           Size.cx := Size.cx + EllipsisSize.cx;
           if (Size.cx<=MaxSize) then
             Low:=Middle
@@ -3801,7 +3801,7 @@ begin
        if Len > 0 then
        begin
          Head := @TextToSplit[1];
-         CopyMemory(Buffer, Head, Len*2);
+         CopyMemory(Buffer, Head, ToNativeUInt(Len*2));
          Result := 1;
        end;
        Buffer[Len] := #0;
@@ -3848,7 +3848,7 @@ begin
          // If we reach the MaxSplits make the last line be the rest of the text.
          if (SplitCount > 0) and (SplitCount = MaxSplits) then
            Inc(Tail, lstrlenW(Tail));
-         CopyMemory(BufferHead, Head, (Tail-Head)*2);
+         CopyMemory(BufferHead, Head, ToNativeUInt((Tail-Head)*2));
          Inc(BufferHead, Tail-Head);
          BufferHead^ := WideNull;
          Inc(BufferHead);
@@ -4026,9 +4026,9 @@ end;
 
 function MakeTRBG(Color: TColor): TCommonRGB;
 var
-  RGB: Longint;
+  RGB: UInt32;
 begin
-  RGB := ColorToRGB(Color);
+  RGB := ToUInt32(ColorToRGB(Color));
   Result.B := GetBValue(RGB) / 255;
   Result.G := GetGValue(RGB) / 255;
   Result.R := GetRValue(RGB) / 255;
@@ -4046,7 +4046,7 @@ function MakeColorRef(RGB: TCommonRGB; Gamma: Double = 1): COLORREF;
 begin
   GammaCorrection(RGB, Gamma);
   with RGB do
-    Result := Windows.RGB(Round(R * 255), Round(G * 255), Round(B * 255));
+    Result := Windows.RGB(ToUInt8(Round(R * 255)), ToUInt8(Round(G * 255)), ToUInt8(Round(B * 255)));
 end;
 
 procedure GammaCorrection(var RGB: TCommonRGB; Gamma: Double);
@@ -4145,7 +4145,7 @@ end;
 procedure ActivateTopLevelWindow(Child: HWND);
 var
   Parent: HWND;
-  Style: LongWord;
+  Style: NativeInt;
 begin
   Parent := GetParent(Child);
   while Parent <> 0 do
@@ -4364,7 +4364,7 @@ $c3// ret
 var
   i: Integer;
   P,PP,Q: PByte;
-  lCount : integer;
+  lCount : NativeUInt;
   lSize : integer;
   lOffset : integer;
 begin

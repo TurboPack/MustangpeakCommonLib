@@ -672,11 +672,12 @@ type
 
   TColumnMap = class
   private
-    FList: TList;
-    function GetColumnItem(Index: Integer): TColumnItem;
-    function GetCount: Integer;
+    FList: TObjectList<TColumnItem>;
+    function GetColumnItem(Index: NativeInt): TColumnItem;
+    function GetCount: NativeInt;
     procedure RestoreDefaultNamespaceColumnMap(FolderName: string; ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray);
-    procedure SetColumnItem(Index: Integer; Value: TColumnItem);
+    procedure SetColumnItem(Index: NativeInt; Value: TColumnItem);
+    procedure SetList(const AValue: TObjectList<TColumnItem>);
   protected
     function DefaultControlPanelColumnWidth(iColumn: Integer): Integer;
     function DefaultFileSystemColumnWidth(iColumn: Integer): Integer;
@@ -686,7 +687,7 @@ type
     procedure DefaultColumnWidth(FolderType: TCommonFolderMapType; i: Integer);
     procedure ForceandLoadMapItem(FolderNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
     procedure MimicColumnSCID(ColumnNS: TNamespace; ColumnWidths: TColumnWidthArray; FolderName: string; FolderType: TCommonFolderMapType; i: Integer; Key: TPropertyKey);
-    property List: TList read FList write FList;
+    property List: TObjectList<TColumnItem> read FList write SetList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -697,8 +698,8 @@ type
     procedure Clear;
     procedure RestoreDefaults;
     procedure Sort;
-    property ColumnItem[Index: Integer]: TColumnItem read GetColumnItem write SetColumnItem; default;
-    property Count: Integer read GetCount;
+    property ColumnItem[Index: NativeInt]: TColumnItem read GetColumnItem write SetColumnItem; default;
+    property Count: NativeInt read GetCount;
   end;
 
 
@@ -1390,7 +1391,7 @@ type
     procedure DoProperties(ShellFolder: IShellFolder; DataObject: IDataObject; DFMICS: PDFMICS; var DoDefault: Boolean); virtual;
     procedure DoShow; virtual;
     function DuplicateKey(Key: HKEY): HKEY;
-    function FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
+    function FindCommandId(CmdID: WPARAM; var MenuItem: TMenuItem): Boolean;
     procedure HandleContextMenuMsg(Msg: Cardinal; wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); stdcall;
     function InternalShowContextMenu(Owner: TWinControl; ParentPIDL: PItemIDList; ChildPIDLs: TAbsolutePIDLArray; Verb: string; Position: PPoint = nil; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean;
     procedure LoadMultiFolderPIDLArray(Namespaces: TNamespaceArray; var PIDLs: TAbsolutePIDLArray);
@@ -1435,7 +1436,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
+    function MergeMenuIntoContextMenu(Menu: TPopupMenu; ContextMenu: HMenu; Index: Integer; idStart: UINT): UInt32;
     procedure ClearMenuMap;
     property DeleteValidated: Boolean read FDeleteValidated write FDeleteValidated;
     property ReferenceCounted: Boolean read FReferenceCounted write FReferenceCounted;
@@ -1567,8 +1568,8 @@ type
   function PIDLToPath(APIDL: PItemIDList): string;
   function DirExistsVET(APath: string; ShowSystemMessages: Boolean): Boolean; overload;
   function DirExistsVET(NS: TNamespace; ShowSystemMessages: Boolean): Boolean; overload;
-  procedure PIDLListQuickSort(PIDLList: TCommonPIDLList; const ParentFolder: IShellFolder; L, R: Integer; SortColumn: Integer = 0);
-  procedure PIDLQuickSort(PIDLList: TPIDLArray; const ParentFolder: IShellFolder; L, R: Integer);
+  procedure PIDLListQuickSort(PIDLList: TCommonPIDLList; const ParentFolder: IShellFolder; L, R: NativeInt; SortColumn: Integer = 0);
+  procedure PIDLQuickSort(PIDLList: TPIDLArray; const ParentFolder: IShellFolder; L, R: NativeInt);
 
   // Time Conversions
   //** NOTE these are not string functions they will use ANSI strings internally
@@ -1584,7 +1585,7 @@ type
   function FileIconInit(FullInit: BOOL): BOOL; stdcall;
   function IENamespaceShown(PerUser: Boolean): Boolean;
   function GUIDToInterfaceStr(riid: TGUID): String;
-  function CFM_FlagsToShellContextMenuFlags(Flags: DWORD): TShellContextMenuFlags;
+  function CFM_FlagsToShellContextMenuFlags(Flags: WPARAM): TShellContextMenuFlags;
   function ClipboardContainsShellFormats: Boolean;
   function MapVerbToIntResource(ContextMenu: IContextMenu; Menu: HMenu; Verb: string; var IntResVerbW: LPCWSTR; var IntResVerbA: LPCSTR): Boolean;
   function StringListToNullSeparatedDoubleNullEndedString(StringList: TStringList): PChar;
@@ -1688,7 +1689,7 @@ var
 implementation
 
 uses
-  System.Types, Vcl.Dialogs;
+  System.Generics.Defaults, System.Math, System.Types, Vcl.Dialogs, MPShellFunc;
 
 type
   TShellILIsParent = function(PIDL1: PItemIDList; PIDL2: PItemIDList;
@@ -1701,12 +1702,12 @@ var
   MprDLL: THandle = 0;
   ShellFunctionsLoaded: Boolean = False;
 
-function GUIDBinarySearch(FolderType: TCommonFolderMapType; TargetGUID: string; pid: Integer; List: TColumnMap; Min, Max: Longint) : Longint;
+function GUIDBinarySearch(FolderType: TCommonFolderMapType; TargetGUID: string; pid: Integer; List: TColumnMap; Min, Max: NativeInt) : NativeInt;
 //
 // List must be sorted first
 //
 var
-  Middle, CompareResult : LongInt;
+  Middle, CompareResult : NativeInt;
 begin
   // During the search the target's index will be between
   // min and max: min <= target index <= max
@@ -1738,17 +1739,6 @@ begin
 
   // If we get here the target is not in the list.
   Result := -1;
-end;
-
-function ColumnMapSortByGUID(Item1, Item2: Pointer): Integer;
-begin
-  Result := Integer( TColumnItem( Item1).FolderType) - Integer( TColumnItem( Item2).FolderType);
-  if Result = 0 then
-    Result := WideCompareText(TColumnItem( Item1).GUID, TColumnItem( Item2).GUID);
-  if Result = 0 then
-    Result := TColumnItem( Item1).Key.pid - TColumnItem( Item2).Key.pid;
-  if (Result = 0) and (Item1 <> Item2) then
-    Assert(True = False, 'Duplicate Column Map Item');
 end;
 
 function Wow64RedirectDisable: Pointer;
@@ -1848,10 +1838,12 @@ end;
 
 function DeleteFiles_MP(DataObject: IDataObject; ParentWnd: HWnd; AllowUndo, MultiFolderSource: Boolean): Boolean;
 var
+  lAnsi: AnsiString;
   SHFileOpStructW: TSHFileOpStructW;
   ShellIDList: TCommonShellIDList;
   NSList: TList;
   i, Len, CharSize: Integer;
+  iNative: NativeInt;
   NS: TNamespace;
   PFiles, Head: Pointer;
   CommonDataObj2: ICommonDataObject2;
@@ -1876,11 +1868,11 @@ begin
       Len := 0;
       CharSize := SizeOf(Char);  // Works with D2009 as well
 
-      for i := 0 to NSList.Count - 1 do
+      for iNative := 0 to NSList.Count - 1 do
       begin
-        NS := TNamespace( NSList[i]);
+        NS := TNamespace( NSList[iNative]);
         if NS.FileSystem then
-          Len := Len + (Length( TNamespace( NSList[i]).NameForParsing) + 1) * CharSize; // File name + #0
+          Len := Len + (Length( TNamespace( NSList[iNative]).NameForParsing) + 1) * CharSize; // File name + #0
       end;
       Inc(Len, CharSize);  // Add the second final #0
 
@@ -1888,18 +1880,21 @@ begin
       FillChar(PFiles^, Len, #0);
       Head := PFiles;
 
-      for i := 0 to NSList.Count - 1 do
+      for iNative := 0 to NSList.Count - 1 do
       begin
-        NS := TNamespace( NSList[i]);
+        NS := TNamespace( NSList[iNative]);
         if CharSize = 2 then
-          MoveMemory(Head, PWideChar( NS.NameForParsing), Length(NS.NameForParsing) * CharSize)
+          MoveMemory(Head, PWideChar(NS.NameForParsing), ToNativeUInt(Length(NS.NameForParsing) * CharSize))
         else
-          MoveMemory(Head, PAnsiChar( AnsiString( NS.NameForParsing)), Length(NS.NameForParsing) * CharSize);
+        begin
+          lAnsi := ToAnsiString(NS.NameForParsing);
+          MoveMemory(Head, PAnsiChar(lAnsi), ToNativeUInt(Length(lAnsi)));
+        end;
         Inc(PAnsiChar( Head), (Length(NS.NameForParsing) + 1) * CharSize);
       end;
     finally
-      for i := 0 to NSList.Count - 1 do
-        TObject(NSList[i]).Free;
+      for iNative := 0 to NSList.Count - 1 do
+        TObject(NSList[iNative]).Free;
       NSList.Free;
       ShellIDList.Free;
     end;
@@ -1961,7 +1956,7 @@ begin
   Head := Result;
   for i := 0 to StringList.Count - 1 do
   begin
-    MoveMemory(Head, PChar( StringList[i]), Length(StringList[i]) * SizeOf(Result^));
+    MoveMemory(Head, PChar( StringList[i]), ToNativeUInt(Length(StringList[i]) * SizeOf(Result^)));
     Inc(Head, Length(StringList[i]) * SizeOf(Result^) + SizeOf(Result^))
   end;
 end;
@@ -2228,7 +2223,7 @@ begin
      Result := 'Unknown GUID: ' + GUIDToString(riid)
 end;
 
-function CFM_FlagsToShellContextMenuFlags(Flags: DWORD): TShellContextMenuFlags;
+function CFM_FlagsToShellContextMenuFlags(Flags: WPARAM): TShellContextMenuFlags;
 begin
   Result := [];
   if CMF_CANRENAME and Flags <> 0 then
@@ -2340,8 +2335,8 @@ begin
     if not VerbFound then
     begin
       // move the string into the supplied buffer
-      lstrcpyA(IntResVerbA, PAnsiChar( AnsiString( Verb)));
-      lstrcpyW(IntResVerbW, PWideChar( Verb));
+      lstrcpyA(IntResVerbA, PAnsiChar(ToAnsiString(Verb)));
+      lstrcpyW(IntResVerbW, PWideChar(Verb));
     end;
   end;
 end;
@@ -2426,10 +2421,10 @@ begin
   Result := -1;
   if Assigned(Menu) and (ContextMenu <> 0) then
   begin
-    Result := idStart;
+    Result := ToInt32(idStart);
     for i := Menu.Items.Count - 1 downto 0 do
     begin
-      AddContextMenuItem(ContextMenu, Menu.Items[i].Caption, Index, Result);
+      AddContextMenuItem(ContextMenu, Menu.Items[i].Caption, Index, ToUInt32(Result));
       Inc(Result);
       if Menu.Items[i].Count > 0 then
         beep;
@@ -2442,7 +2437,7 @@ end;
 { ----------------------------------------------------------------------------- }
 function NamespaceToRelativePIDLArray(Namespaces: TNamespaceArray): TRelativePIDLArray;
 var
-  i: integer;
+  i: NativeInt;
 begin
   Result := nil;
   if Assigned(Namespaces) then
@@ -2455,7 +2450,7 @@ end;
 
 function NamespaceToAbsolutePIDLList(Namespaces: TNamespaceArray): TCommonPIDLList;
 var
-  i: integer;
+  i: NativeInt;
 begin
   Result := TCommonPIDLList.Create;
   Result.SharePIDLs := True;
@@ -2468,7 +2463,7 @@ end;
 
 function NamespaceToNamespaceList(Namespaces: TNamespaceArray): TList;
 var
-  i: Integer;
+  i: NativeInt;
 begin
   Result := TList.Create;
   for i := 0 to Length(Namespaces) - 1 do
@@ -2515,7 +2510,7 @@ end;
 
 function NamespaceToAbsolutePIDLArray(Namespaces: TNamespaceArray): TAbsolutePIDLArray;
 var
-  i: integer;
+  i: NativeInt;
 begin
   Result := nil;
   if Assigned(Namespaces) then
@@ -3028,9 +3023,9 @@ end;
 // Local Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-procedure PIDLQuickSort(PIDLList: TPIDLArray; const ParentFolder: IShellFolder; L, R: Integer);
+procedure PIDLQuickSort(PIDLList: TPIDLArray; const ParentFolder: IShellFolder; L, R: NativeInt);
 var
-  I, J: Integer;
+  I, J: NativeInt;
   P, T: PItemIDList;
   CompareResult: HResult;
 begin
@@ -3083,12 +3078,12 @@ begin
 end;
 
 
-procedure PIDLListQuickSort(PIDLList: TCommonPIDLList; const ParentFolder: IShellFolder; L, R: Integer; SortColumn: Integer = 0);
+procedure PIDLListQuickSort(PIDLList: TCommonPIDLList; const ParentFolder: IShellFolder; L, R: NativeInt; SortColumn: Integer = 0);
 //
 // Ensure this stays ThreadSafe
 //
 var
-  I, J: Integer;
+  I, J: NativeInt;
   P, T: PItemIDList;
   CompareResult: HResult;
 begin
@@ -3233,10 +3228,10 @@ begin
       exit;
       end
     else with ExtGetDskFreSpcStruc do begin
-      BytesperSector := ExtFree_BytesPerSector;
-      SectorsperCluster := ExtFree_SectorsPerCluster;
-      TotalClusters := ExtFree_TotalClusters;
-      FreeClusters :=  ExtFree_AvailableClusters;
+      BytesperSector := ToUInt32(ExtFree_BytesPerSector);
+      SectorsperCluster := ToUInt32(ExtFree_SectorsPerCluster);
+      TotalClusters := ToUInt32(ExtFree_TotalClusters);
+      FreeClusters := ToUInt32(ExtFree_AvailableClusters);
       result := true;
     end;
   end;
@@ -3873,7 +3868,7 @@ begin
         if Assigned(ShellFolder2) then
         begin
           Flags := 0;
-          if ShellFolder2.GetDefaultColumnState(ColumnIndex, Flags) = NOERROR then
+          if ShellFolder2.GetDefaultColumnState(ToUInt32(ColumnIndex), Flags) = NOERROR then
           begin
             if SHCOLSTATE_TYPE_STR and Flags <> 0 then Include(ShellCache.Data.DetailsOfCache[ColumnIndex].States, csTypeString);
             if SHCOLSTATE_TYPE_INT and Flags <> 0 then Include(ShellCache.Data.DetailsOfCache[ColumnIndex].States, csTypeInt);
@@ -3908,7 +3903,7 @@ function TNamespace.DetailsOf(ColumnIndex: integer): string;
 // Threading only works on Namespaces that support IShellFolder2 (WinME, Win2k and up)
 var
   Details: TShellDetails;
-  OldError: Integer;
+  OldError: UInt32;
   TempCache: PDetailsOfCacheRec;
   PIDL: PItemIDList;
   NS: TNamespace;
@@ -4007,7 +4002,7 @@ begin
     if Assigned(ParentShellFolder2) then
     begin
       FillChar(ColumnID, SizeOf(ColumnID), #0);
-      if ParentShellFolder2.MapColumnToSCID(ColumnIndex, ColumnID) = NOERROR then
+      if ParentShellFolder2.MapColumnToSCID(ToUInt32(ColumnIndex), ColumnID) = NOERROR then
       begin
         VarClear(V);
         if ParentShellFolder2.GetDetailsEx(RelativePIDL, ColumnID, V) = S_OK then
@@ -4127,7 +4122,7 @@ begin
         if DetailsColumnTitle(i) <> '' then
         begin
           SetLength(Result, Length(Result) + 1);
-          Result[Length(Result) - 1] := i
+          Result[Length(Result) - 1] := ToUInt16(i)
         end
       end
     end;
@@ -4156,7 +4151,7 @@ function TNamespace.DragEffect(grfKeyState: integer): HRESULT;
 
 var
   KeyEffect: HResult;
-  ValidEffects: Longword;
+  ValidEffects: Int32;
 begin
   // See what the user is requesting by looking at the key board
   KeyEffect := RequestedDragEffect(grfKeyState);
@@ -4260,7 +4255,7 @@ var
   Fetched: Longword;
   Item: PItemIDList;
   Terminate: Boolean;
-  OldError: integer;
+  OldError: UInt32;
   OldWow64: Pointer;
 begin
   Result := 0;
@@ -4329,7 +4324,7 @@ var
   Fetched: Longword;
   Item: PItemIDList;
   Terminate: Boolean;
-  OldError: integer;
+  OldError: UInt32;
   OldWow64: Pointer;
 begin
   Result := 0;
@@ -4461,8 +4456,8 @@ begin
 
         InvokeInfo.nShow := SW_SHOWNORMAL;
 
-        InvokeInfo.lpDirectory := PAnsiChar( AnsiString( WorkingDir));
-        InvokeInfo.lpDirectoryW := PWideChar( WorkingDir);
+        InvokeInfo.lpDirectory := PAnsiChar(ToAnsiString(WorkingDir));
+        InvokeInfo.lpDirectoryW := PWideChar(WorkingDir);
 
         InvokeInfo.fMask := InvokeInfo.fMask or CMIC_MASK_ASYNCOK;
 
@@ -4795,7 +4790,7 @@ begin
               SetLength(Result, lstrlenW(PWideChar(Result)));
               if Pos(string( '\??\'), Result) > 0 then
               begin
-                MoveMemory(Pointer( @Result[1]), @Result[5], (Length(Result) - 4) * 2);
+                MoveMemory(Pointer( @Result[1]), @Result[5], (ToNativeUInt(Length(Result)) - 4) * 2);
                 SetLength(Result, Length(Result) - 4);
               end
             end
@@ -4879,7 +4874,7 @@ begin
               SetLength(Result, lstrlenW(PWideChar(Result)));
               if Pos(string( '\??\'), Result) > 0 then
               begin
-                MoveMemory(Pointer( @Result[1]), @Result[5], (Length(Result) - 4) * 2);
+                MoveMemory(Pointer( @Result[1]), @Result[5], (ToNativeUInt(Length(Result)) - 4) * 2);
                 SetLength(Result, Length(Result) - 4);
               end
             end
@@ -4932,7 +4927,7 @@ end;
 
 procedure TNamespace.EnsureDetailCache;
 var
-  i: Integer;
+  i: NativeInt;
   TempCache: PDetailsOfCacheRec;
 begin
   if not (scDetailsOfCache in ShellCache.ShellCacheFlags) then
@@ -5294,7 +5289,7 @@ function TNamespace.GetIconIndex(OpenIcon: Boolean; IconSize: TIconSize; ForceLo
     if AnOpenIcon then
       Flags := Flags or SHGFI_OPENICON;
     FillChar(InfoW, SizeOf(InfoW), #0);
-    if SHGetFileInfo(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), Flags) <> 0 then
+    if SHGetFileInfo(PWideChar(AbsolutePIDL), 0, InfoW, SizeOf(InfoW), ToUInt32(Flags)) <> 0 then
       Index := InfoW.iIcon
     else
       Index := 0;
@@ -5552,7 +5547,7 @@ end;
 
 procedure TNamespace.InvalidateDetailsOfCache(FlushStrings: Boolean);
 var
-  i: Integer;
+  i: NativeInt;
 begin
   for i := 0 to Length( ShellCache.Data.DetailsOfCache) - 1 do
   begin
@@ -6147,7 +6142,7 @@ begin
   ItemInfoW.cbSize := SizeOf(ItemInfoW);
   ItemInfoW.fmask := MIIM_TYPE;
   ItemInfoW.fType := MFT_SEPARATOR;
-  InsertMenuItemW(Menu, ItemCount, True, ItemInfoW);
+  InsertMenuItemW(Menu, ToUInt32(ItemCount), True, ItemInfoW);
 
   FillChar(ItemInfoW, SizeOf(ItemInfoW), #0);
   ItemInfoW.cbSize := SizeOf(ItemInfoW);
@@ -6155,7 +6150,7 @@ begin
   ItemInfoW.hSubMenu := SubMenu;
   ItemInfoW.dwTypeData := PWideChar(Caption);
   // Insert the Root Menu Item
-  if InsertMenuItemW(Menu, ItemCount + 1, True, ItemInfoW) then
+  if InsertMenuItemW(Menu, ToUInt32(ItemCount + 1), True, ItemInfoW) then
   begin
     SetLength(Result, PopupMenu.Items.Count);
 
@@ -6219,7 +6214,7 @@ begin
     if Assigned(ParentShellFolder)  then
     begin
       Found := Succeeded(ParentShellFolder.GetUIObjectOf(ParentWnd,
-        Length(PIDLArray), PItemIDList( PIDLArray[0]),
+        ToUInt32(Length(PIDLArray)), PItemIDList( PIDLArray[0]),
         IID_IContextMenu, nil, Pointer(Result)))
     end;
     if not Found and Assigned(ShellFolder) and (Length(PIDLArray) = 1) then
@@ -6251,7 +6246,7 @@ begin
     if Assigned(ParentShellFolder)  then
     begin
       Found := ParentShellFolder.GetUIObjectOf(ParentWnd,
-        Length(PIDLArray), PItemIDList( PIDLArray[0]),
+        ToUInt32(Length(PIDLArray)), PItemIDList( PIDLArray[0]),
         IDataObject, nil, Pointer(Result)) = NOERROR;
     end;
     if not Found and Assigned(ShellFolder) and (Length(PIDLArray) = 1) then
@@ -6275,7 +6270,7 @@ var
   lContextMenu2: IContextMenu2;
   lContextMenu3: IContextMenu3;
   lControlDown: Boolean;
-  lCount: Integer;
+  lCount: NativeInt;
   lFlags: UInt32;
   lGenericVerb: Pointer;
   lHandled: Boolean;
@@ -6284,7 +6279,7 @@ var
   lMenu: hMenu;
   lMenuCmd: UInt32;
   lMenuIDs: TMenuItemIDArray;
-  lOldErrorMode: Integer;
+  lOldErrorMode: UInt32;
   lOldMode: UInt32;
   lShiftDown: Boolean;
   lSubMenu: HMenu;
@@ -6416,7 +6411,7 @@ begin
                       FillChar(lItemInfo, SizeOf(lItemInfo), #0);
                       lItemInfo.cbSize := SizeOf(TMenuItemInfo);
                       lItemInfo.fMask := MIIM_DATA;
-                      GetMenuItemInfo(lSubMenu, lCount, True, lItemInfo);
+                      GetMenuItemInfo(lSubMenu, ToUInt32(lCount), True, lItemInfo);
                       if lItemInfo.dwItemData <> 0 then
                         TMenuItem(lItemInfo.dwItemData).Click
                     end
@@ -6424,7 +6419,7 @@ begin
                 end;
 
                 if Assigned(AContextMenuCmdCallback) then
-                  AContextMenuCmdCallback(Self, lVerbW, lMenuCmd, lHandled);
+                  AContextMenuCmdCallback(Self, lVerbW, ToInt32(lMenuCmd), lHandled);
 
                 if not lHandled then
                 begin
@@ -6455,7 +6450,7 @@ begin
                 end
               end;
               if Assigned(AContextMenuAfterCmdCallback) then
-                AContextMenuAfterCmdCallback(Self, lVerbW, lMenuCmd, Result);
+                AContextMenuAfterCmdCallback(Self, lVerbW, ToInt32(lMenuCmd), Result);
             end;
           finally
             { Don't access any properties or field of the object.  If the verb is     }
@@ -6486,7 +6481,7 @@ begin
   Result := True;
   S := NameForParsing;
   if ((Length(S) = 3) and (S[2] = ':') and (S[3] = '\')) then
-    Result := DiskInDrive(AnsiChar(AnsiString(S)[1]));
+    Result := DiskInDrive(AnsiChar(ToAnsiString(S)[1]));
   if not Result then
   begin
     if ShowExplorerMsg then
@@ -6806,7 +6801,7 @@ end;
 function TNamespace.Paste(Owner: TWinControl; NamespaceArray: TNamespaceArray; AsShortCut: Boolean = False): Boolean;
 var
   NSA: TNamespaceArray;
-  i: integer;
+  i: NativeInt;
 begin
   Result := False;
   if CanPasteToAll(NamespaceArray) then
@@ -6869,7 +6864,7 @@ begin
       FCatInfo.CatGUID[i] := GUID_NULL;
       FCatInfo.CanCatatorize[i] := False;
       FCatInfo.DefaultColumn := -1;
-      if Succeeded(ShellFolder2.MapColumnToSCID(i, ColumnID)) then
+      if Succeeded(ShellFolder2.MapColumnToSCID(ToUInt32(i), ColumnID)) then
       begin
         CatInfo.ColumnID[i] := ColumnID;
         if Succeeded(CategoryProviderInterface.CanCategorizeOnSCID(ColumnID)) then
@@ -7498,8 +7493,8 @@ begin
     GetMem(Buffer, MAX_PATH * 4);
     try
       try
-        Size.cx := Width;
-        Size.cy := Height;
+        Size.cx := ToInt32(Width);
+        Size.cy := ToInt32(Height);
         if ExtractImageInterface.GetLocation(Buffer, MAX_PATH, FPriority, Size,
           ColorDepth, FFlags) = NOERROR then
         begin
@@ -7671,7 +7666,7 @@ begin
         if hkmExtendedKey in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_EXT;
         if hkmShift in KeyModifier then pwHotKeyHi := pwHotKeyHi or HOTKEYF_SHIFT;
 
-        pwHotKeyHi := pwHotKeyHi shl 8;     // Make lower 8 bits the upper 8 bits
+        pwHotKeyHi := ToUInt16(pwHotKeyHi shl 8);     // Make lower 8 bits the upper 8 bits
         pwHotKeyHi := pwHotKeyHi and $FF00;  // Make sure lower 8 bits clear
         pwHotKey := pwHotKey or pwHotKeyHi;
         ShellLinkWInterface.SetHotkey(pwHotKey);
@@ -8018,7 +8013,8 @@ var
   IDO: IDataObject;
   QCMInfo: PQCMINFO;
   DFMICS: PDFMICS;
-  MapCount, i: Integer;
+  MapCount: NativeInt;
+  i: NativeInt;
   MergeOffset: UINT;
   MenuItem: TMenuItem;
 begin
@@ -8197,7 +8193,7 @@ begin
         MergeOffset := QCMInfo^.idCmdFirst;
         QCMInfo^.idCmdFirst := QCMInfo^.idCmdFirst + 600; // Allow up to 200 items to be added in DFM_MERGECONTEXTMENU;
         DoMenuMergeTop(QCMInfo^.Menu, QCMInfo^.IndexMenu, QCMInfo^.idCmdFirst, QCMInfo^.idCmdLast, CFM_FLAGSToShellContextMenuFlags(WParm));
-        DoMenuMergeBottom(QCMInfo^.Menu, GetMenuItemCount(QCMInfo^.Menu), QCMInfo^.idCmdFirst, QCMInfo^.idCmdLast, CFM_FLAGSToShellContextMenuFlags(WParm));
+        DoMenuMergeBottom(QCMInfo^.Menu, ToUInt32(GetMenuItemCount(QCMInfo^.Menu)), QCMInfo^.idCmdFirst, QCMInfo^.idCmdLast, CFM_FLAGSToShellContextMenuFlags(WParm));
         // Fix the MenuIDs to be commonly offset once all merging is done
         if MenuMap.Count > MapCount then
           for i := MapCount to MenuMap.Count - 1 do
@@ -8392,7 +8388,7 @@ begin
   {$ENDIF}
 end;
 
-function TCommonShellContextMenu.FindCommandId(CmdID: UINT; var MenuItem: TMenuItem): Boolean;
+function TCommonShellContextMenu.FindCommandId(CmdID: WPARAM; var MenuItem: TMenuItem): Boolean;
 var
   i: Integer;
 begin
@@ -8442,7 +8438,7 @@ var
   NSList: TList;
   NS: TNamespace;
   NSArray: TNamespaceArray;
-  i: Integer;
+  i: NativeInt;
 begin
   Result := E_NOINTERFACE;
   if FromDesktop then
@@ -8537,7 +8533,9 @@ var
   Menu: hMenu;
   InvokeInfo: TCMInvokeCommandInfoEx;
   MenuCmd: Cardinal;
-  x, y, i: integer;
+  x, y: integer;
+  i: Integer;
+  iNative: NativeInt;
   ShowConextMenu, Success: Boolean;
   Flags: Longword;
   ContextMenu: IContextMenu;
@@ -8562,8 +8560,8 @@ begin
   OldMode := SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
   try
     ActivePIDLs.Clear;
-    for i := 0 to Length(ChildPIDLs) - 1 do
-      ActivePIDLs.Add(ChildPIDLs[i]);     // These are shared
+    for iNative := 0 to Length(ChildPIDLs) - 1 do
+      ActivePIDLs.Add(ChildPIDLs[iNative]);     // These are shared
     try
       case ShiftKeyState of
         evsCurrent: ShiftDown := GetKeyState(VK_SHIFT) and $8000 <> 0;
@@ -8699,8 +8697,8 @@ begin
               SHGetDesktopFolder(FActiveFolder);
               SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, DesktopPIDL);
               Success := CDefFolderMenu_Create2_MP(DesktopPIDL, Owner.Handle,
-                Length(ChildPIDLs), PItemIDList(ChildPIDLs[0]), Self,
-                Stub.StubPointer, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK;
+                ToUInt32(Length(ChildPIDLs)), PItemIDList(ChildPIDLs[0]), Self,
+                Stub.StubPointer, ToUInt32(Length(Keys)), PHKey(@Keys[0]), ContextMenu) = S_OK;
             end else
             begin
               FromDesktop := False;
@@ -8714,14 +8712,14 @@ begin
                 begin
                   if Assigned(ParentPIDL) and Assigned(ChildPIDLs) then
                     Success := CDefFolderMenu_Create2_MP(nil {ParentPIDL}, Owner.Handle,
-                      Length(ChildPIDLs), PItemIDList(ChildPIDLs[0]),
-                      Self, Stub.StubPointer, Length(Keys), PHKey(@Keys[0]), ContextMenu) = S_OK
+                      ToUInt32(Length(ChildPIDLs)), PItemIDList(ChildPIDLs[0]),
+                      Self, Stub.StubPointer, ToUInt32(Length(Keys)), PHKey(@Keys[0]), ContextMenu) = S_OK
                   else begin
                     // Must be a background menu call
                     ChildrenPIDLs := nil;
                     if Assigned(ParentPIDL) and not Assigned(ChildPIDLs) then
                       Success := CDefFolderMenu_Create2_MP(ParentPIDL, Owner.Handle,
-                        0, ChildrenPIDLs, Self, Stub.StubPointer, Length(Keys),
+                        0, ChildrenPIDLs, Self, Stub.StubPointer, ToUInt32(Length(Keys)),
                         PHKey(@Keys[0]), ContextMenu) = S_OK
                   end
                 end
@@ -8833,8 +8831,8 @@ begin
             { 'delete' the component using this class could have freed the instance   }
             { of the object through a ShellNotifyRegister or some other way.          }
             DestroyMenu(Menu);
-            for i := 0 to Length(Keys) - 1 do
-              RegCloseKey(Keys[i]);
+            for iNative := 0 to Length(Keys) - 1 do
+              RegCloseKey(Keys[iNative]);
             Keys := nil;
           end;
         end
@@ -8985,7 +8983,7 @@ end;
 
 procedure TCommonShellContextMenu.LoadMultiFolderPIDLArray(Namespaces: TNamespaceArray; var PIDLs: TAbsolutePIDLArray);
 var
-  i: Integer;
+  i: NativeInt;
 begin
   CopyValidated := True;
   CutValidated := True;
@@ -9061,12 +9059,12 @@ begin
 end;
 
 function TCommonShellContextMenu.MergeMenuIntoContextMenu(Menu: TPopupMenu;
-  ContextMenu: HMenu; Index: Integer; idStart: UINT): Integer;
+  ContextMenu: HMenu; Index: Integer; idStart: UINT): UInt32;
   //
   // Returns the ItemID of the last item it added to the ContextMenu
   //
 
-  function RunMenu(MenuItem: TMenuItem; hPopupMenu: hMenu; MenuID: UINT): Integer;
+  function RunMenu(MenuItem: TMenuItem; hPopupMenu: hMenu; MenuID: UINT): UInt32;
   var
     i: Integer;
     SubMenu: hMenu;
@@ -9293,8 +9291,8 @@ begin
       Properties.Enabled := LocalFocused.HasPropSheet
     else
       Properties.Enabled := False;
-    CmdFirst := MergeMenuIntoContextMenu(PopupMenuProperties, Menu, IndexMenu, CmdFirst);
-    AddContextMenuItem(Menu, '-', IndexMenu);
+    CmdFirst := MergeMenuIntoContextMenu(PopupMenuProperties, Menu, ToInt32(IndexMenu), CmdFirst);
+    AddContextMenuItem(Menu, '-', ToInt32(IndexMenu));
   end;
   inherited DoMenuMergeBottom(Menu, IndexMenu, CmdFirst, CmdLast, Flags);
 end;
@@ -9304,13 +9302,13 @@ begin
   Paste.Enabled := ClipboardContainsShellFormats;
   PasteShortCut.Enabled := ClipboardContainsShellFormats;
   if ShowPasteItem or ShowPasteShortCutItem then
-    AddContextMenuItem(Menu, '-', IndexMenu);
+    AddContextMenuItem(Menu, '-', ToInt32(IndexMenu));
   if ShowPasteItem then
-    CmdFirst := MergeMenuIntoContextMenu(PopupMenuPaste, Menu, IndexMenu, CmdFirst);
+    CmdFirst := MergeMenuIntoContextMenu(PopupMenuPaste, Menu, ToInt32(IndexMenu), CmdFirst);
   if ShowPasteShortCutItem then
-    CmdFirst := MergeMenuIntoContextMenu(PopupMenuPasteShortCut, Menu, IndexMenu, CmdFirst);
+    CmdFirst := MergeMenuIntoContextMenu(PopupMenuPasteShortCut, Menu, ToInt32(IndexMenu), CmdFirst);
   if ShowPasteItem or ShowPasteShortCutItem then
-    AddContextMenuItem(Menu, '-', IndexMenu);
+    AddContextMenuItem(Menu, '-', ToInt32(IndexMenu));
 
   inherited DoMenuMergeTop(Menu, IndexMenu, CmdFirst, CmdLast, Flags);
 end;
@@ -9419,7 +9417,7 @@ var
 constructor TColumnMap.Create;
 begin
   inherited Create;
-  FList := TList.Create;
+  FList := TObjectList<TColumnItem>.Create;
 end;
 
 destructor TColumnMap.Destroy;
@@ -9484,7 +9482,7 @@ begin
       ShellFolder2 := FolderNS.ShellFolder2;
     if Assigned(ShellFolder2) then
     begin
-      if not Succeeded( ShellFolder2.MapColumnToSCID(iColumn, TSHCOLUMNID( Key))) then
+      if not Succeeded( ShellFolder2.MapColumnToSCID(ToUInt32(iColumn), TSHCOLUMNID( Key))) then
         Key := MapColumnToDefaultSCID( MapNamespaceToFolderMapType(FolderNS), iColumn)
 
     end else
@@ -9495,24 +9493,24 @@ end;
 
 function TColumnMap.FindByPropertyKey(FolderNS: TNamespace; Key: TPropertyKey): TColumnItem;
 var
-  i: Integer;
+  i: NativeInt;
   FolderType: TCommonFolderMapType;
 begin
   Result := nil;
   FolderType := MapNamespaceToFolderMapType(FolderNS);
-  i := GuidBinarySearch(FolderType, GUIDToString(Key.fmtid), Key.pid, Self, 0, Count - 1);
+  i := GuidBinarySearch(FolderType, GUIDToString(Key.fmtid), ToInt32(Key.pid), Self, 0, Count - 1);
   if i > -1 then
     Result := ColumnItem[i]
 end;
 
-function TColumnMap.GetColumnItem(Index: Integer): TColumnItem;
+function TColumnMap.GetColumnItem(Index: NativeInt): TColumnItem;
 begin
-  Result := TColumnItem( List[Index])
+  Result := List[Index];
 end;
 
-function TColumnMap.GetCount: Integer;
+function TColumnMap.GetCount: NativeInt;
 begin
-  Result := List.Count
+  Result := List.Count;
 end;
 
 function TColumnMap.MapColumnToDefaultSCID(FolderType: TCommonFolderMapType; i: Integer): TPropertyKey;
@@ -9525,7 +9523,7 @@ begin
   else
     Result.fmtid := SCID_DEFAULT_FILESYSTEM_COLUMNS;
   end;
-  Result.pid := i;
+  Result.pid := ToUInt32(i);
 end;
 
 function TColumnMap.MapNamespaceToFolderMapType(NS: TNamespace): TCommonFolderMapType;
@@ -9553,15 +9551,8 @@ begin
 end;
 
 procedure TColumnMap.Clear;
-var
-  i: Integer;
 begin
-  try
-    for i := 0 to List.Count - 1 do
-      TObject( List[i]).Free
-  finally
-    List.Count := 0;
-  end;
+  List.Clear;
 end;
 
 procedure TColumnMap.DefaultColumnWidth(FolderType: TCommonFolderMapType; i: Integer);
@@ -9619,7 +9610,7 @@ begin
   begin
     if Assigned(ShellFolder2) then
     begin
-      if Succeeded(ShellFolder2.MapColumnToSCID(i, TSHColumnID(Key))) then
+      if Succeeded(ShellFolder2.MapColumnToSCID(ToUInt32(i), TSHColumnID(Key))) then
         ForceandLoadMapItem(ColumnNS, ColumnWidths, FolderName, FolderType, i, Key)
       else
         MimicColumnSCID(ColumnNS, ColumnWidths, FolderName, FolderType, i, Key);
@@ -9656,14 +9647,29 @@ begin
 
 end;
 
-procedure TColumnMap.SetColumnItem(Index: Integer; Value: TColumnItem);
+procedure TColumnMap.SetColumnItem(Index: NativeInt; Value: TColumnItem);
 begin
   List[Index] := Value
 end;
 
+procedure TColumnMap.SetList(const AValue: TObjectList<TColumnItem>);
+begin
+  FList.Clear;
+  FList.AddRange(AValue);
+end;
+
 procedure TColumnMap.Sort;
 begin
-  FList.Sort(@ColumnMapSortByGUID)
+  FList.Sort(TComparer<TColumnItem>.Construct(function(const ALeft, ARight: TColumnItem): Integer
+  begin
+    Result := CompareValue(Ord(ALeft.FolderType), Ord(ARight.FolderType));
+    if Result = 0 then
+      Result := WideCompareText(ALeft.GUID, ARight.GUID);
+    if Result = 0 then
+      Result := CompareValue(ALeft.Key.pid, ARight.Key.pid);
+    if (Result = 0) and (ALeft <> ARight) then
+      Assert(True = False, 'Duplicate Column Map Item');
+  end));
 end;
 
 { TPIDLCache }

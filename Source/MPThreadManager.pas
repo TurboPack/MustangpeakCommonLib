@@ -102,15 +102,15 @@ type
   private
     FID: WPARAM;                     // The ID that identifies the request type
     FPriority: TCommonThreadPriority;  // The Thread will sort the request list by Priority, 0 being highest 100 being the lowest
-    FRefCount: Integer;
+    FRefCount: NativeInt;
     FTag: NativeInt;                 // User defineable field
     FThread: TCommonThread;          // Reference to the thread handling the request
     FWindow: TWinControl;            // The control to send the Message to, set to nil to have the thread free the object without dispatching it to the main thread
     FItem: Pointer;                  // Identifier of the Item the threaded data is being extracted for
-    FRemainingRequests: Integer;     // Number of remaining requests in the thread prior to being dispatched to the window
+    FRemainingRequests: NativeInt;   // Number of remaining requests in the thread prior to being dispatched to the window
     FCallbackWndMessage: Cardinal;   // This is the window message that is sent to the client window, WM_COMMONTHREADCALLBACK by default
   protected
-    property RefCount: Integer read FRefCount write FRefCount;
+    property RefCount: NativeInt read FRefCount write FRefCount;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -123,7 +123,7 @@ type
     property Item: Pointer read FItem write FItem;
     property ID: WPARAM read FID write FID;
     property Priority: TCommonThreadPriority read FPriority write FPriority default 50;
-    property RemainingRequests: Integer read FRemainingRequests write FRemainingRequests;
+    property RemainingRequests: NativeInt read FRemainingRequests write FRemainingRequests;
     property Tag: NativeInt read FTag write FTag;
     property Thread: TCommonThread read FThread;
     property Window: TWinControl read FWindow write FWindow;
@@ -335,7 +335,7 @@ type
 
     function GetThread: TCommonThread;
     function GetFilterWindow: HWND;
-    function GetRequestCount: Integer;
+    function GetRequestCount: NativeInt;
     procedure SetEnabled(const Value: Boolean);
   protected
     FThread: TCommonThread;
@@ -362,7 +362,7 @@ type
     procedure UnRegisterAll;
     procedure UnRegisterControl(Window: TWinControl);
 
-    property RequestCount: Integer read GetRequestCount;
+    property RequestCount: NativeInt read GetRequestCount;
     property Thread: TCommonThread read GetThread;
 
   published
@@ -388,7 +388,7 @@ function GlobalCallbackThreadManager: TCallbackThreadManager;
 implementation
 
 uses
-  MPResources, MPShellUtilities;
+  MPShellFunc, MPResources, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -457,7 +457,11 @@ end;
 
 procedure TCommonThreadRequest.Release;
 begin
+{$IFDEF CPUX64}
+  InterlockedDecrement64(FRefCount);
+{$ELSE}
   InterlockedDecrement(FRefCount);
+{$ENDIF}
   if RefCount <= 0 then
   begin
     RefCount := 0;
@@ -603,7 +607,7 @@ end;
 
 destructor TCommonThread.Destroy;
 var
-  i: Integer;
+  i: NativeInt;
   List: TList;
 begin
   Assert(Finished, 'The Thread must be terminated before destroying the TCommonThread object');
@@ -709,7 +713,7 @@ end;
 procedure TCommonThread.FlushRequestList;
 var
   List: TList;
-  i: Integer;
+  i: NativeInt;
   Request: TObject;
 begin
   List := RequestList.LockList;
@@ -848,7 +852,8 @@ procedure TCommonEventThread.Execute;
 var
   ARequestCopy, OriginalRequest: TCommonThreadRequest;
   List: TList;
-  WorkingIndex, SafetyValve: Integer;
+  WorkingIndex: NativeInt;
+  SafetyValve: Integer;
   LoopCount: Cardinal;
   RequestClassType: TCommonThreadRequestClass;
 begin
@@ -1055,7 +1060,7 @@ end;
 
 procedure TCommonThreadManager.DispatchRequest(lParam: LPARAM; wParam: WPARAM);
 var
-  i: Integer;
+  i: NativeInt;
   RegList: TList;
   Request: TCommonThreadRequest;
   RequestList: TList;
@@ -1123,10 +1128,10 @@ procedure TCommonThreadManager.FlushMessageCache(AWindow: TWinControl; ARequestI
 // (comparing it to the TCommonThreadRequest.AItem field)
 // Pass a ARequestID = TID_START to remove all request from a AWindow
 var
-  lCount: Integer;
+  lCount: NativeInt;
   lList: TList;
   lMsg: TMsg;
-  lQuitMsgExitCode: Integer;
+  lQuitMsgExitCode: WPARAM;
   lRepostQuitMsg: Boolean;
   lRequest: TCommonThreadRequest;
 begin
@@ -1226,7 +1231,7 @@ begin
             end;
           end;
           if lRepostQuitMsg then
-            PostQuitMessage(lQuitMsgExitCode);
+            PostQuitMessage(ToInt32(lQuitMsgExitCode));
         end
       end;
 
@@ -1274,7 +1279,7 @@ begin
   Result := FFilterWindow;
 end;
 
-function TCommonThreadManager.GetRequestCount: Integer;
+function TCommonThreadManager.GetRequestCount: NativeInt;
 var
   List: TList;
 begin
@@ -1443,7 +1448,7 @@ end;
 procedure TCommonThreadManager.UnRegisterAll;
 var
   List: TList;
-  i: Integer;
+  i: NativeInt;
 begin
   List := ControlList.LockList;
   try
@@ -1508,7 +1513,7 @@ end;
 procedure TCallbackThreadManager.FlushObjectCache(AnObject: TObject);
 var
   List: TList;
-  i: Integer;
+  i: NativeInt;
 begin
   if Assigned(Thread) then
   begin

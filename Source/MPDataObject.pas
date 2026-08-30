@@ -119,7 +119,7 @@ type
   ICommonDataObject = interface(IDataObject)
     ['{F8B3EE47-C6C1-4FE3-9D94-757AA35DC038}']
     function AssignDragImage(Image: TBitmap; HotSpot: TPoint; TransparentColor: TColor): Boolean;
-    function SaveGlobalBlock(Format: TClipFormat; MemoryBlock: Pointer; MemoryBlockSize: integer): Boolean;
+    function SaveGlobalBlock(Format: TClipFormat; MemoryBlock: Pointer; MemoryBlockSize: NativeInt): Boolean;
     function LoadGlobalBlock(Format: TClipFormat; var MemoryBlock: Pointer): Boolean;
   end;
 
@@ -133,7 +133,7 @@ type
 
   TGetDataEvent = procedure(Sender: TObject; const FormatEtcIn: TFormatEtc; var Medium: TStgMedium; var Handled: Boolean) of object;
   TQueryGetDataEvent = procedure(Sender: TObject; const FormatEtcIn: TFormatEtc; var FormatAvailable: Boolean; var Handled: Boolean) of object;
-         
+
   TCommonDataObject = class(TObject, IUnknown, IDataObject, ICommonDataObject, ICommonExtractObj, ICommonDataObject2)
   private
     FIsMultiFolderVerified: Boolean;
@@ -195,7 +195,7 @@ type
     function AssignDragImage(Image: TBitmap; HotSpot: TPoint; TransparentColor: TColor): Boolean;
     function GetUserData(Format: TFormatEtc; var StgMedium: TStgMedium): Boolean; virtual;
     function LoadGlobalBlock(Format: TClipFormat; var MemoryBlock: Pointer): Boolean;
-    function SaveGlobalBlock(Format: TClipFormat; MemoryBlock: Pointer; MemoryBlockSize: integer): Boolean;
+    function SaveGlobalBlock(Format: TClipFormat; MemoryBlock: Pointer; MemoryBlockSize: NativeInt): Boolean;
 
     property IsMultiFolderVerified: Boolean read FIsMultiFolderVerified write FIsMultiFolderVerified;
     property IsMultiFolder: Boolean read FIsMultiFolder write FIsMultiFolder;
@@ -230,9 +230,9 @@ type
   TFileGroupDescriptorW = class(TCommonClipboardFormat)
   private
     FStream: TStream;
-    function GetDescriptorCount: Integer;
-    function GetFileDescriptorW(Index: Integer): TFileDescriptorW;
-    procedure SetFileDescriptor(Index: Integer;
+    function GetDescriptorCount: NativeInt;
+    function GetFileDescriptorW(Index: NativeInt): TFileDescriptorW;
+    procedure SetFileDescriptor(Index: NativeInt;
       const Value: TFileDescriptorW);
   protected
     FFileDescriptors: TDescriptorWArray;
@@ -250,8 +250,8 @@ type
     function SaveToClipboard: Boolean; override;
     function SaveToDataObject(DataObject: IDataObject): Boolean; override;
 
-    property DescriptorCount: Integer read GetDescriptorCount;
-    property FileDescriptor[Index: Integer]: TFileDescriptorW read GetFileDescriptorW write SetFileDescriptor;
+    property DescriptorCount: NativeInt read GetDescriptorCount;
+    property FileDescriptor[Index: NativeInt]: TFileDescriptorW read GetFileDescriptorW write SetFileDescriptor;
   end;
 
   // Simpifies dealing with the CF_HDROP format
@@ -261,12 +261,12 @@ type
     function GetHDropStruct: THandle;
   protected
     FDropFiles: PDropFiles;
-    FStructureSize: integer;
+    FStructureSize: NativeUInt;
     FFileCount: integer;
 
-    procedure AllocStructure(Size: integer);
-    function CalculateDropFileStructureSizeA(Value: PDropFiles): integer;
-    function CalculateDropFileStructureSizeW(Value: PDropFiles): integer;
+    procedure AllocStructure(Size: NativeUInt);
+    function CalculateDropFileStructureSizeA(Value: PDropFiles): NativeUInt;
+    function CalculateDropFileStructureSizeW(Value: PDropFiles): NativeUInt;
     function FileCountA: Integer;
     function FileCountW: Integer;
     function FileNameA(Index: integer): AnsiString;
@@ -288,7 +288,7 @@ type
     property HDropStruct: THandle read GetHDropStruct;
     function SaveToClipboard: Boolean; override;
     function SaveToDataObject(DataObject: IDataObject): Boolean; override;
-    property StructureSize: integer read FStructureSize;
+    property StructureSize: NativeUInt read FStructureSize;
     property DropFiles: PDropFiles read FDropFiles write SetDropFiles;
   end;
 
@@ -297,7 +297,7 @@ type
   TCommonShellIDList = class(TCommonClipboardFormat)
   private
     FCIDA: PIDA;
-    function GetCIDASize: integer;
+    function GetCIDASize: NativeUInt;
     function InternalChildPIDL(Index: integer): PItemIDList;
     function InternalParentPIDL: PItemIDList;
     procedure SetCIDA(const Value: PIDA);
@@ -310,14 +310,14 @@ type
     function LoadFromClipboard: Boolean; override;
     function LoadFromDataObject(DataObject: IDataObject): Boolean; override;
     function ParentPIDL: PItemIDList;
-    function PIDLCount: integer;
+    function PIDLCount: Integer;
     function RelativePIDL(Index: integer): PItemIDList;
     procedure RelativePIDLs(APIDLList: TCommonPIDLList);
     function SaveToClipboard: Boolean; override;
     function SaveToDataObject(DataObject: IDataObject): Boolean; override;
 
     property CIDA: PIDA read FCIDA write SetCIDA;
-    property CIDASize: integer read GetCIDASize;
+    property CIDASize: NativeUInt read GetCIDASize;
   end;
 
   // Simpilies dealing with the CFSTR_LOGICALPERFORMEDDROPEFFECT format
@@ -373,7 +373,7 @@ var
 implementation
 
 uses
-  MPShellUtilities;
+  MPShellFunc, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -398,7 +398,6 @@ var
   P: PItemIDList;
 begin
   Result := False;
-  ;
   if Assigned(DataObj) and Assigned(APIDL) and LoadShellILIsEqual then
   begin
     if Succeeded(DataObj.QueryGetData(ShellIDListFormat)) then
@@ -453,22 +452,22 @@ begin
   Result.tymed := TYMED_HGLOBAL;
 end;
 
-function FileDescriptorAFormat: TFormatEtc; 
-begin 
-  Result.cfFormat := CF_FILEDESCRIPTORA; 
-  Result.ptd := nil; 
-  Result.dwAspect := DVASPECT_CONTENT; 
-  Result.lindex := -1; 
-  Result.tymed := TYMED_HGLOBAL 
-end; 
+function FileDescriptorAFormat: TFormatEtc;
+begin
+  Result.cfFormat := CF_FILEDESCRIPTORA;
+  Result.ptd := nil;
+  Result.dwAspect := DVASPECT_CONTENT;
+  Result.lindex := -1;
+  Result.tymed := TYMED_HGLOBAL
+end;
 
-function FileDescriptorWFormat: TFormatEtc; 
-begin 
-  Result.cfFormat := CF_FILEDESCRIPTORW; 
-  Result.ptd := nil; 
-  Result.dwAspect := DVASPECT_CONTENT; 
-  Result.lindex := -1; 
-  Result.tymed := TYMED_HGLOBAL 
+function FileDescriptorWFormat: TFormatEtc;
+begin
+  Result.cfFormat := CF_FILEDESCRIPTORW;
+  Result.ptd := nil;
+  Result.dwAspect := DVASPECT_CONTENT;
+  Result.lindex := -1;
+  Result.tymed := TYMED_HGLOBAL
 end;
 
 function FillFormatEtc(cfFormat: Word; ptd: PDVTargetDevice = nil;
@@ -559,7 +558,7 @@ end;
 
 { THDrop }
 
-procedure TCommonHDrop.AllocStructure(Size: integer);
+procedure TCommonHDrop.AllocStructure(Size: NativeUInt);
 begin
   FreeStructure;
   GetMem(FDropFiles, Size);
@@ -570,7 +569,7 @@ end;
 procedure TCommonHDrop.AssignFilesA(FileList: TStringList);
 var
   i: Integer;
-  Size: integer;
+  Size: NativeUInt;
   Path: PAnsiChar;
 begin
   if Assigned(FileList) then
@@ -590,7 +589,7 @@ begin
     Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
     for i := 0 to FileList.Count - 1 do
     begin
-      MoveMemory(Path, Pointer(AnsiString( FileList[i])), Length(FileList[i]));
+      MoveMemory(Path, PAnsiChar(AnsiString(TEncoding.ANSI.GetBytes(FileList[i]))), ToNativeUInt(Length(FileList[i])));
       Inc(Path, Length(FileList[i]) + 1); // skip over the single null #0
     end
   end
@@ -622,19 +621,19 @@ begin
 end;
 
 function TCommonHDrop.CalculateDropFileStructureSizeA(
-  Value: PDropFiles): integer;
+  Value: PDropFiles): NativeUInt;
 var
   Head: PAnsiChar;
   Len: integer;
 begin
   if Assigned(Value) then
   begin
-    Result := Value^.pFiles;
+    Result := ToNativeUInt(Value^.pFiles);
     Head := PAnsiChar( Value) + Value^.pFiles;
     Len := lstrlenA(Head);
     while Len > 0 do
     begin
-      Result := Result + Len + 1;
+      Result := Result + NativeUInt(Len) + 1;
       Head := Head + Len + 1;
        Len := lstrlenA(Head);
     end;
@@ -644,19 +643,19 @@ begin
 end;
 
 function TCommonHDrop.CalculateDropFileStructureSizeW(
-  Value: PDropFiles): integer;
+  Value: PDropFiles): NativeUInt;
 var
   Head: PAnsiChar;
   Len: integer;
 begin
   if Assigned(Value) then
   begin
-    Result := Value^.pFiles;
+    Result := ToNativeUInt(Value^.pFiles);
     Head := PAnsiChar( Value) + Value^.pFiles;
     Len := 2 * (lstrlenW(PWideChar( Head)));
     while Len > 0 do
     begin
-      Result := Result + Len + 2;
+      Result := Result + NativeUInt(Len) + 2;
       Head := Head + Len + 2;
        Len := 2 * (lstrlenW(PWideChar( Head)));
     end;
@@ -755,7 +754,7 @@ begin
       if PathNameCount = Index then
       begin
         SetLength(Result, Len + 1);
-        CopyMemory(@Result[1], Head, Len + 1); // Include the NULL
+        CopyMemory(@Result[1], Head, ToNativeUInt(Len + 1)); // Include the NULL
         Done := True;
       end;
       Head := Head + Len + 1;
@@ -768,7 +767,7 @@ end;
 procedure TCommonHDrop.AssignFilesW(FileList: TStrings);
 var
   i: Integer;
-  Size: integer;
+  Size: NativeUInt;
   Path: PAnsiChar;
   ByteSize: Integer;
 begin
@@ -790,7 +789,7 @@ begin
     Path := PAnsiChar(FDropFiles) + FDropFiles.pFiles;
     for i := 0 to FileList.Count - 1 do
     begin
-      MoveMemory(Path, Pointer(FileList[i]), Length(FileList[i])*ByteSize);
+      MoveMemory(Path, Pointer(FileList[i]), ToNativeUInt(Length(FileList[i])*ByteSize));
       Inc(Path, (Length(FileList[i]) + 1)*ByteSize); // skip over the single null #0
     end
   end
@@ -836,7 +835,7 @@ begin
       if PathNameCount = Index then
       begin
         SetLength(Result, (Len + 1) div 2);
-        CopyMemory(@Result[1], Head, Len + 2); // Include the NULL
+        CopyMemory(@Result[1], Head, ToNativeUInt(Len + 2)); // Include the NULL
         Done := True;
       end;
       Head := Head + Len + 2;
@@ -1016,7 +1015,7 @@ begin
       Inc(PAnsiChar( PMem), SizeOf(Int64));
 
       // Copy the data to the stream
-      MoveMemory(PMem, CoolStream.Memory, Size);
+      MoveMemory(PMem, CoolStream.Memory, NativeUInt(Size));
     finally
       GlobalUnlock(Medium.hGlobal);
       ReleaseStgMedium(Medium);
@@ -1040,19 +1039,19 @@ var
   Size: Int64;
   PSize: Pointer;
 begin
-  Mem := GlobalAlloc(GMEM_SHARE  or GMEM_MOVEABLE, CoolStream.Size + SizeOf(Int64));
+  Mem := GlobalAlloc(GMEM_SHARE  or GMEM_MOVEABLE, NativeUInt(CoolStream.Size) + NativeUInt(SizeOf(Int64)));
   PMem := GlobalLock(Mem);
   try
     FillChar(Medium, SizeOf(Medium), #0);
-    
+
     PSize := @Size;
-    
+
     // Write the size of the Stream to the block
     Size := CoolStream.Size;
     MoveMemory(PMem, PSize, SizeOf(Int64));
 
     // Copy the Stream to a global memory block
-    MoveMemory(PMem, CoolStream.Memory, CoolStream.Size);
+    MoveMemory(PMem, CoolStream.Memory, NativeUInt(CoolStream.Size));
 
     // Transfer the data with a global memory block
     Medium.tymed := TYMED_HGLOBAL;
@@ -1092,7 +1091,7 @@ procedure TCommonShellIDList.AssignPIDLs(APIDLList: TCommonPIDLList);
 { PIDLs[0] must be the Absolute Parent PIDL and the rest single ItemID children }
 var
   Count: Integer;
-  i: Integer;
+  i: NativeInt;
   Head: Pointer;
   PIDLLength: Integer;
 begin
@@ -1112,7 +1111,7 @@ begin
     { Head points to the position of the first PIDL }
     Inc(PAnsiChar(Head),  SizeOf(FCIDA.cidl) + (SizeOf(FCIDA.aoffset) * APIDLList.Count));
     { Don't count the absolute parent PIDL }
-    FCIDA.cidl := APIDLList.Count - 1;
+    FCIDA.cidl := ToUInt32(APIDLList.Count - 1);
     for i := 0 to APIDLList.Count - 1 do
     begin
       { Set up the array index to point to the actual PIDL data }
@@ -1134,9 +1133,9 @@ begin
   inherited;
 end;
 
-function TCommonShellIDList.GetCIDASize: integer;
+function TCommonShellIDList.GetCIDASize: NativeUInt;
 var
-  Count: integer;
+  Count: NativeUInt;
   i: integer;
 begin
   Count := 0;
@@ -1236,12 +1235,12 @@ begin
   Result := PIDLMgr.CopyPIDL( InternalParentPIDL)
 end;
 
-function TCommonShellIDList.PIDLCount: integer;
+function TCommonShellIDList.PIDLCount: Integer;
 { indexing is a bit weird.  Index 0 is the Absolute Parent PIDL but it is not }
 { counted in the first byte of the structure.                                 }
 begin
   if Assigned(FCIDA) then
-    Result := FCIDA^.cidl
+    Result := ToInt32(FCIDA^.cidl)
   else
     Result := 0
 end;
@@ -1296,7 +1295,7 @@ end;
 
 procedure TCommonShellIDList.SetCIDA(const Value: PIDA);
 var
-  TempSize: integer;
+  TempSize: NativeUInt;
 begin
   { Free previously assigned CIDA }
   if Assigned(FCIDA) then
@@ -1313,7 +1312,7 @@ begin
     { Get memory to make a copy of the passed PIDA }
     GetMem(FCIDA, TempSize);
     { Copy the passed PIDA }
-    Move(Value^, FCIDA^, TempSize);
+    Move(Value^, FCIDA^, ToNativeInt(TempSize));
   end;
 end;
 
@@ -1433,7 +1432,7 @@ begin
       SHDragImage.sizeDragImage.cx := Image.Width;
       SHDragImage.sizeDragImage.cy := Image.Height;
       SHDragImage.ptOffset := HotSpot;
-      SHDragImage.ColorRef := ColorToRGB(TransparentColor);
+      SHDragImage.ColorRef := ToUInt32(ColorToRGB(TransparentColor));
       SHDragImage.hbmpDragImage := CopyImage(Image.Handle, IMAGE_BITMAP, Image.Width,
         Image.Height, LR_COPYRETURNORG);
       if SHDragImage.hbmpDragImage <> 0 then
@@ -1550,7 +1549,7 @@ end;
 
 procedure TCommonDataObject.DoGetCustomFormats(dwDirection: Integer; var Formats: TFormatEtcArray);
 begin
-  
+
 end;
 
 procedure TCommonDataObject.DoOnGetData(const FormatEtcIn: TFormatEtc;
@@ -1595,7 +1594,7 @@ function TCommonDataObject.EnumFormatEtc(dwDirection: Integer;
 // by Enumerating the TFormatEtc array through an IEnumFormatEtc object.
 var
   LocalEnumFormatEtc: TCommonEnumFormatEtc;
-  i: integer;
+  i: NativeInt;
 begin
   {$IFDEF GX_DEBUG_COMMONDATAOBJECT}
   SendDebug('TCommonDataObject.EnumFormatEtc');
@@ -1731,7 +1730,7 @@ end;
 function TCommonDataObject.HGlobalClone(HGlobal: THandle): THandle;
 // Returns a global memory block that is a copy of the passed memory block.
 var
-  Size: LongWord;
+  Size: SIZE_T;
   Data, NewData: PAnsiChar;
 begin
   Size := GlobalSize(HGlobal);
@@ -1740,7 +1739,7 @@ begin
   try
     NewData := GlobalLock(Result);
     try
-      Move(Data, NewData, Size);
+      Move(Data, NewData, ToNativeInt(Size));
     finally
       GlobalUnLock(Result);
     end
@@ -1766,12 +1765,12 @@ begin
 
   if Succeeded(QueryGetData(FormatEtc)) and Succeeded(GetData(FormatEtc, StgMedium)) then
   begin
-    MemoryBlock := AllocMem( GlobalSize(StgMedium.hGlobal));
+    MemoryBlock := AllocMem(ToNativeInt(GlobalSize(StgMedium.hGlobal)));
     GlobalObject := GlobalLock(StgMedium.hGlobal);
     try
       if Assigned(MemoryBlock) and Assigned(GlobalObject) then
       begin
-        Move(GlobalObject^, MemoryBlock^, GlobalSize(StgMedium.hGlobal));
+        Move(GlobalObject^, MemoryBlock^, ToNativeInt(GlobalSize(StgMedium.hGlobal)));
       end
     finally
       GlobalUnLock(StgMedium.hGlobal);
@@ -1846,7 +1845,7 @@ begin
 end;
 
 function TCommonDataObject.SaveGlobalBlock(Format: TClipFormat;
-  MemoryBlock: Pointer; MemoryBlockSize: integer): Boolean;
+  MemoryBlock: Pointer; MemoryBlockSize: NativeInt): Boolean;
 var
   FormatEtc: TFormatEtc;
   StgMedium: TStgMedium;
@@ -1860,7 +1859,7 @@ begin
 
   StgMedium.tymed := TYMED_HGLOBAL;
   StgMedium.unkForRelease := nil;
-  StgMedium.hGlobal := GlobalAlloc(GHND or GMEM_SHARE, MemoryBlockSize);
+  StgMedium.hGlobal := GlobalAlloc(GHND or GMEM_SHARE, ToNativeUInt(MemoryBlockSize));
   GlobalObject := GlobalLock(StgMedium.hGlobal);
   try
     try
@@ -1878,7 +1877,7 @@ function TCommonDataObject.SetData(const formatetc: TFormatEtc; var medium: TStg
 // Allows dynamic adding to the IDataObject during its existance.  Most noteably
 // it is used to implement IDropSourceHelper in win2k
 var
-  Index: integer;
+  Index: NativeInt;
   {$IFDEF GX_DEBUG_COMMONDATAOBJECT}
   ClipName: array[0..128] of AnsiChar;
   {$ENDIF}
@@ -1976,7 +1975,7 @@ begin
         if CopyInMedium then
         begin
           OutStgMedium.lpszFileName := CoTaskMemAlloc(lstrLenW(InStgMedium.lpszFileName));
-          MoveMemory(PWideChar(OutStgMedium.lpszFileName), PWideChar(InStgMedium.lpszFileName), lstrlenW(InStgMedium.lpszFileName) * 2);
+          MoveMemory(PWideChar(OutStgMedium.lpszFileName), PWideChar(InStgMedium.lpszFileName), ToNativeUInt(lstrlenW(InStgMedium.lpszFileName)) * 2);
         end else
           OutStgMedium.unkForRelease := Pointer(Self as IDataObject) // Does increase RefCount
       end;
@@ -2043,7 +2042,7 @@ end;
 
 procedure TFileGroupDescriptorW.DeleteFileDescriptor(Index: integer);
 var
-  i: Integer;
+  i: NativeInt;
 begin
   for i := Index to Length(FFileDescriptors) - 1 do
     FileDescriptor[i] := FileDescriptor[i+1];
@@ -2056,12 +2055,12 @@ begin
   StrCopyW(Result.cFileName, PWideChar(FileName));
 end;
 
-function TFileGroupDescriptorW.GetDescriptorCount: Integer;
+function TFileGroupDescriptorW.GetDescriptorCount: NativeInt;
 begin
   Result := Length(FFileDescriptors)
 end;
 
-function TFileGroupDescriptorW.GetFileDescriptorW(Index: Integer): TFileDescriptorW;
+function TFileGroupDescriptorW.GetFileDescriptorW(Index: NativeInt): TFileDescriptorW;
 begin
   FillChar(Result, SizeOf(Result), #0);
   if (Index > -1) and (Index < Length(FFileDescriptors)) then
@@ -2102,8 +2101,8 @@ begin
       begin
         FStream := TMemoryStream.Create;
         PMem := GlobalLock(Medium.hGlobal);
-        FStream.Size := GlobalSize(Medium.hglobal);
-        MoveMemory(TMemoryStream(FStream).Memory, PMem, FStream.Size);
+        FStream.Size := ToInt64(GlobalSize(Medium.hglobal));
+        MoveMemory(TMemoryStream(FStream).Memory, PMem, ToNativeUInt(FStream.Size));
         GlobalUnLock(Medium.hGlobal);
         ReleaseStgMedium(Medium);
       end
@@ -2114,7 +2113,7 @@ end;
 
 function TFileGroupDescriptorW.GetFormatEtc: TFormatEtc;
 begin
-  Result := FileDescriptorWFormat 
+  Result := FileDescriptorWFormat
 end;
 
 procedure TFileGroupDescriptorW.LoadFileGroupDestriptor(FileGroupDiscriptor: PFileGroupDescriptorW);
@@ -2152,7 +2151,7 @@ begin
   begin
     GroupDescriptor := GlobalLock(Medium.hGlobal);
     try
-      for i := 0 to GroupDescriptor^.cItems - 1 do
+      for i := 0 to ToInt32(GroupDescriptor^.cItems - 1) do
         AddFileDescriptor(GroupDescriptor^.fgd[i])
     finally
       GlobalUnlock(Medium.hGlobal);
@@ -2182,11 +2181,11 @@ begin
   Result := False;
   if Assigned(DataObject) and (DescriptorCount > 0) then
   begin
-    Mem := GlobalAlloc(GHND, DescriptorCount * SizeOf(TFileDescriptorW) + SizeOf(GroupDescriptor.cItems));
+    Mem := GlobalAlloc(GHND, ToNativeUInt(DescriptorCount * SizeOf(TFileDescriptorW) + SizeOf(GroupDescriptor.cItems)));
     GroupDescriptor := GlobalLock(Mem);
     try
-      GroupDescriptor.cItems := DescriptorCount;
-      CopyMemory(@GroupDescriptor^.fgd[0], @FFileDescriptors[0], DescriptorCount * SizeOf(TFileDescriptorW));
+      GroupDescriptor.cItems := ToUInt32(DescriptorCount);
+      CopyMemory(@GroupDescriptor^.fgd[0], @FFileDescriptors[0], ToNativeUInt( DescriptorCount * SizeOf(TFileDescriptorW)));
     finally
       GlobalUnlock(Mem)
     end;
@@ -2208,7 +2207,7 @@ begin
   end
 end;
 
-procedure TFileGroupDescriptorW.SetFileDescriptor(Index: Integer; const Value: TFileDescriptorW);
+procedure TFileGroupDescriptorW.SetFileDescriptor(Index: NativeInt; const Value: TFileDescriptorW);
 begin
   if (Index > -1) and (Index < Length(FFileDescriptors)) then
     FFileDescriptors[Index] := Value
@@ -2267,16 +2266,16 @@ begin
 end;
 
 initialization
-  CF_SHELLIDLIST := RegisterClipboardFormat(CFSTR_SHELLIDLIST);
-  CF_LOGICALPERFORMEDDROPEFFECT := RegisterClipboardFormat(CFSTR_LOGICALPERFORMEDDROPEFFECT);
-  CF_PREFERREDDROPEFFECT := RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT);
-  CF_PERFORMEDDROPEFFECT := RegisterClipboardFormat(CFSTR_PERFORMEDDROPEFFECT);
-  CF_PASTESUCCEEDED := RegisterClipboardFormat(CFSTR_PASTESUCCEEDED);
-  CF_INDRAGLOOP := RegisterClipboardFormat(CFSTR_INDRAGLOOP);
-  CF_SHELLIDLISTOFFSET := RegisterClipboardFormat(CFSTR_SHELLIDLISTOFFSET);
-  CF_FILECONTENTS := RegisterClipboardFormat(CFSTR_FILECONTENTS);
-  CF_FILEDESCRIPTORA := RegisterClipboardFormat(CFSTR_FILEDESCRIPTORA);
-  CF_FILEDESCRIPTORW := RegisterClipboardFormat(CFSTR_FILEDESCRIPTORW);
+  CF_SHELLIDLIST := ToUInt16(RegisterClipboardFormat(CFSTR_SHELLIDLIST));
+  CF_LOGICALPERFORMEDDROPEFFECT := ToUInt16(RegisterClipboardFormat(CFSTR_LOGICALPERFORMEDDROPEFFECT));
+  CF_PREFERREDDROPEFFECT := ToUInt16(RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT));
+  CF_PERFORMEDDROPEFFECT := ToUInt16(RegisterClipboardFormat(CFSTR_PERFORMEDDROPEFFECT));
+  CF_PASTESUCCEEDED := ToUInt16(RegisterClipboardFormat(CFSTR_PASTESUCCEEDED));
+  CF_INDRAGLOOP := ToUInt16(RegisterClipboardFormat(CFSTR_INDRAGLOOP));
+  CF_SHELLIDLISTOFFSET := ToUInt16(RegisterClipboardFormat(CFSTR_SHELLIDLISTOFFSET));
+  CF_FILECONTENTS := ToUInt16(RegisterClipboardFormat(CFSTR_FILECONTENTS));
+  CF_FILEDESCRIPTORA := ToUInt16(RegisterClipboardFormat(CFSTR_FILEDESCRIPTORA));
+  CF_FILEDESCRIPTORW := ToUInt16(RegisterClipboardFormat(CFSTR_FILEDESCRIPTORW));
   PIDLMgr := TCommonPIDLManager.Create;
 
 finalization

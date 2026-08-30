@@ -253,7 +253,7 @@ type
   //
   TCommonDefaultCanvasState = class
   private
-    FBkMode: Longword;
+    FBkMode: Int32;
     FFont: TFont;
     FBrush: TBrush;
     FPen: TPen;
@@ -270,7 +270,7 @@ type
     procedure StoreCanvas(ACanvas: TCanvas);
     procedure RestoreCanvas(ACanvas: TCanvas);
 
-    property BkMode: Longword read FBkMode;
+    property BkMode: Int32 read FBkMode;
     property CanvasStored: Boolean read FCanvasStored;
     property CopyMode: TCopyMode read FCopyMode;
     property Font: TFont read GetFont;
@@ -300,7 +300,7 @@ type
 
     procedure Clear; override;
     procedure CloneList(PIDLList: TCommonPIDLList);
-    function CopyAdd(PIDL: PItemIDList): Integer;
+    function CopyAdd(PIDL: PItemIDList): NativeInt;
     function FindPIDL(TestPIDL: PItemIDList): Integer;
     function LoadFromStream( Stream: TStream): Boolean; virtual;
     function SaveToStream( Stream: TStream): Boolean; virtual;
@@ -480,7 +480,7 @@ type
     FDict: TObjectDictionary<Integer, TCustomImageList>;
   strict private
     FCurrentPPI: Integer;
-    FDPIChangedMessageID: Integer;
+    FDPIChangedMessageID: Int64;
     FOnChangeA: TCustomImageListProc;
     FSize: TSysImageListSize;
     FSourceImageList: TCustomImageList;
@@ -547,7 +547,7 @@ implementation
 
 uses
   System.IOUtils, System.Math, System.UITypes, MPCommonUtilities, MPDataObject,
-  MPShellUtilities;
+  MPShellUtilities, MPShellFunc;
 
 type
   TAccessCustomImageList = class(TCustomImageList)
@@ -677,7 +677,9 @@ procedure StripDuplicatesAndDesktops(NamespaceList: TList);
 // be freed so this list should not own the items
 //
 var
-  i, j, SourceLen: Integer;
+  i: NativeInt;
+  j: NativeInt;
+  SourceLen: Integer;
   Dups: TList;
   NS, NSNext: TNamespace;
 begin
@@ -736,7 +738,7 @@ procedure CreateFullyQualifiedShellDataObject(NamespaceList: TList; DragDropObje
 //
 var
   ShellIDList: TCommonShellIDList;
-  i: Integer;
+  i: NativeInt;
   HDrop: TCommonHDrop;
   DragLoop: TCommonInShellDragLoop;
   FileListA: TStringList;
@@ -1273,8 +1275,8 @@ var
   lOffsetX: NativeInt;
   lOffsetY: NativeInt;
   lServices: TCustomStyleServices;
-  lStyle: Longword;
-  lStyleEx: Longword;
+  lStyle: NativeInt;
+  lStyleEx: NativeInt;
 begin
   // Let Windows paint the scrollbars first
   DefaultHandler(AMsg);
@@ -1294,8 +1296,8 @@ begin
     lOffsetY := lNonClientRect.Top;
 
     // The lDC origin is with respect to the Window so offset everything to match
-    OffsetRect(lNonClientRect, -lOffsetX, -lOffsetY);
-    OffsetRect(lClientRect, -lOffsetX, -lOffsetY);
+    OffsetRect(lNonClientRect, ToInt32(-lOffsetX), ToInt32(-lOffsetY));
+    OffsetRect(lClientRect, ToInt32(-lOffsetX), ToInt32(-lOffsetY));
 
     lStyle := GetWindowLong(Handle, GWL_STYLE);
     if (lStyle and WS_VSCROLL) <> 0 then
@@ -1341,8 +1343,8 @@ begin
         if BevelOuter <> bvNone then
           InflateRect(lClientRect, 1, 1);
       end;
-      DrawEdge(lDC, lNonClientRect, cInnerStyles[BevelInner] or cOuterStyles[BevelOuter],
-        Byte(BevelEdges) or cEdgeStyles[BevelKind] or cCtl3DStyles[Ctl3D]);
+      DrawEdge(lDC, lNonClientRect, ToUInt32(cInnerStyles[BevelInner] or cOuterStyles[BevelOuter]),
+        ToUInt32(Byte(BevelEdges) or cEdgeStyles[BevelKind] or cCtl3DStyles[Ctl3D]));
     end;
 
     lServices := StyleServices(Self);
@@ -1449,7 +1451,7 @@ end;
 
 procedure TCommonPIDLList.Clear;
 var
-  i: integer;
+  i: NativeInt;
 begin
   if not SharePIDLs then
     for i := 0 to Count - 1 do
@@ -1459,7 +1461,7 @@ end;
 
 procedure TCommonPIDLList.CloneList(PIDLList: TCommonPIDLList);
 var
-  i: Integer;
+  i: NativeInt;
 begin
   if Assigned(PIDLList) then
   begin
@@ -1470,7 +1472,7 @@ begin
   end
 end;
 
-function TCommonPIDLList.CopyAdd(PIDL: PItemIDList): integer;
+function TCommonPIDLList.CopyAdd(PIDL: PItemIDList): NativeInt;
 // Adds a Copy of the passed PIDL to the list
 begin
   Result := Add( LocalPIDLMgr.CopyPIDL(PIDL));
@@ -1522,7 +1524,7 @@ end;
 function TCommonPIDLList.SaveToStream(Stream: TStream): Boolean;
 // Saves the PIDL list to a stream
 var
-  i: integer;
+  i: NativeInt;
 begin
   Result := True;
   try
@@ -1536,7 +1538,7 @@ end;
 
 procedure TCommonPIDLList.StripDesktopPIDLs;
 var
-  i: Integer;
+  i: NativeInt;
   PIDL: PItemIDList;
 begin
   try
@@ -1559,7 +1561,7 @@ function TCommonPIDLManager.AllocGlobalMem(Size: Integer): PByte;
 begin
   Result := Malloc.Alloc(Size);
   if Result <> nil then
-    ZeroMemory(Result, Size);
+    ZeroMemory(Result, ToNativeUInt(Size));
 end;
 
 // Routines to do most anything you would want to do with a PIDL
@@ -1584,9 +1586,9 @@ begin
   if Assigned(Result) then
   begin
     if Assigned(DestPIDL) and (DestPIDLSize > 0) then
-      CopyMemory(Result, DestPIDL, DestPIDLSize);
+      CopyMemory(Result, DestPIDL, ToNativeUInt(DestPIDLSize));
     if Assigned(SrcPIDL) and (SrcPIDLSize > 0) then
-      CopyMemory(PAnsiChar(Result) + DestPIDLSize, SrcPIDL, SrcPIDLSize);
+      CopyMemory(PAnsiChar(Result) + DestPIDLSize, SrcPIDL, ToNativeUInt(SrcPIDLSize));
   end;
 end;
 
@@ -1623,7 +1625,7 @@ begin
     Size := PIDLSize(APIDL);
     Result := FMalloc.Alloc(Size);
     if Result <> nil then
-      CopyMemory(Result, APIDL, Size);
+      CopyMemory(Result, APIDL, ToNativeUInt(Size));
   end else
     Result := nil
 end;
@@ -1864,7 +1866,7 @@ function TCommonPIDLManager.AllocStrGlobal(SourceStr: string): POleStr;
 begin
   Result := Malloc.Alloc((Length(SourceStr) + 1) * 2); // Add the null
   if Result <> nil then
-    CopyMemory(Result, PWideChar(SourceStr), (Length(SourceStr) + 1) * 2);
+    CopyMemory(Result, PWideChar(SourceStr), (ToNativeUInt(Length(SourceStr)) + 1) * 2);
 end;
 
 procedure TCommonPIDLManager.ParsePIDL(AbsolutePIDL: PItemIDList; var PIDLList: TCommonPIDLList; AllAbsolutePIDLs: Boolean);
@@ -2032,10 +2034,10 @@ end;
 
 procedure TCommonMemoryStreamHelper.WriteStream(SourceStream, TargetStream: TStream);
 var
-  Len: Integer;
+  Len: Int32;
   X: array of Byte;
 begin
-  Len := SourceStream.Size;
+  Len := ToInt32(SourceStream.Size);
   TargetStream.Write(Len, SizeOf(Len));
   if Len > 0 then
   begin
@@ -2195,9 +2197,9 @@ end;
 
 function TCommonStream.ReadAnsiString: AnsiString;
 var
-  Size: LongWord;
+  Size: Int32;
 begin
-  ReadBuffer(Size, SizeOf(LongWord));
+  ReadBuffer(Size, SizeOf(Int32));
   SetLength(Result, Size);
   ReadBuffer(PAnsiChar(Result)^, Size)
 end;
@@ -2214,9 +2216,9 @@ end;
 
 function TCommonStream.ReadUnicodeString: string;
 var
-  Size: LongWord;
+  Size: Int32;
 begin
-  ReadBuffer(Size, SizeOf(LongWord));
+  ReadBuffer(Size, SizeOf(Int32));
   SetLength(Result, Size);
   ReadBuffer(PWideChar(Result)^, Size * 2)
 end;
@@ -2238,7 +2240,7 @@ end;
 
 procedure TCommonStream.WriteAnsiString(const Value: AnsiString);
 var
-  Size: LongWord;
+  Size: Int32;
 begin
   Size := Length(Value);
   WriteBuffer(Size, SizeOf(Size));
@@ -2247,7 +2249,7 @@ end;
 
 procedure TCommonStream.WriteStringList(Value: TStringList);
 var
-  i, Count: LongWord;
+  i, Count: Integer;
 begin
   Count := Value.Count;
   WriteBuffer(Count, SizeOf(Count));
@@ -2257,7 +2259,7 @@ end;
 
 procedure TCommonStream.WriteUnicodeString(const Value: string);
 var
-  Size: LongWord;
+  Size: Int32;
 begin
   Size := Length(Value);
   WriteBuffer(Size, SizeOf(Size));
@@ -2317,7 +2319,7 @@ end;
 
 procedure TCommonCheckBoundManager.Clear;
 var
-  i: Integer;
+  i: NativeInt;
 begin
   for i := 0 to List.Count - 1 do
     TObject(List[i]).Free;
