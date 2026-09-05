@@ -96,6 +96,7 @@ type
   TCommonPWideCharArray = array of PWideChar;
   TCommonStringDynArray = array of string;
   TCommonIntegerDynArray = array of Integer;
+  TCommonNativeDynArray = TArray<NativeInt>;
 
   TCommonDropEffect = (
     cdeNone,                 // No drop effect (the circle with the slash through it
@@ -265,7 +266,7 @@ function DiffRectHorz(Rect1, Rect2: TRect): TRect;
 function DiffRectVert(Rect1, Rect2: TRect): TRect;
 function DiskInDrive(C: AnsiChar): Boolean;
 function DragDetectPlus(Handle: HWND; Pt: TPoint): Boolean;
-function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect; Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
+function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect; Flags: TCommonDrawTextWFlags; MaxLineCount: NativeInt): NativeInt;
 function EqualWndMethod(A, B: TWndMethod): Boolean;
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
 function FindUniqueMenuID(AMenu: HMenu): Cardinal;
@@ -297,7 +298,7 @@ function ShortenTextW(DC: hDC; TextToShorten: string; MaxSize: Integer): string;
 function ShortFileName(const FileName: string): string;
 function ShortPath(const Path: string): string;
 function Size(cx, cy: Integer): TSize;
-function SplitTextW(DC: hDC; TextToSplit: string; MaxWidth: Integer; var Buffer: TCommonWideCharArray; MaxSplits: Integer): Integer;
+function SplitTextW(DC: hDC; TextToSplit: string; MaxWidth: Integer; var Buffer: TCommonWideCharArray; MaxSplits: NativeInt): NativeInt;
 function StrRetToStr(StrRet: TStrRet; APIDL: PItemIDList): string;
 function SystemDirectory: string;
 function SysMenuFont: HFONT;
@@ -355,8 +356,8 @@ function StrCopyW(Dest, Source: PWideChar): PWideChar;
 
 function KeyDataToShiftState(KeyData: Longint): TShiftState;
 function KeyDataAsyncToShiftState: TShiftState;
-function KeyToKeyStates(Keys: Word): TCommonKeyStates;
-function KeyStatesToMouseButton(Keys: Word): TCommonMouseButton;
+function KeyToKeyStates(Keys: Int32): TCommonKeyStates;
+function KeyStatesToMouseButton(Keys: Int32): TCommonMouseButton;
 function KeyStatesToKey(Keys: TCommonKeyStates): Longword;
 function DropEffectToDropEffectStates(Effect: Integer): TCommonDropEffects;
 function DropEffectStatesToDropEffect(Effect: TCommonDropEffects): Integer;
@@ -2247,7 +2248,7 @@ begin
 end;
 
 function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect;
-  Flags: TCommonDrawTextWFlags; MaxLineCount: Integer): Integer;
+  Flags: TCommonDrawTextWFlags; MaxLineCount: NativeInt): NativeInt;
 // Creates and extented version of DrawTextW that works in Win9x as well as
 // NT.  If MaxLineCount is -1 then the line count will depend on the Text.  All
 // lines that are extracted from the text are drawn or calcuated in the rectangle
@@ -2257,13 +2258,15 @@ function DrawTextWEx(DC: HDC; Text: string; var lpRect: TRect;
 var
   TextMetrics: TTextMetric;
   Size: TSize;
-  TextPosX, TextPosY, i, NewLineTop: Integer;
+  TextPosX, TextPosY, i: Integer;
+  NewLineTop: NativeInt;
   TextOutFlags: Integer;
   LineRect, OldlpRect: TRect;
   Buffer: TCommonWideCharArray;
   BufferIndex: PWideChar;
   ShortText: string;
-  VOffset, SplitCount: Integer;
+  VOffset: NativeInt;
+  SplitCount: NativeInt;
 begin
   OldlpRect := lpRect;
   GetTextMetrics(DC, TextMetrics);
@@ -2379,7 +2382,7 @@ begin
       begin
         // Calculate where the top of a single line of text starts
         NewLineTop := OldlpRect.Top + (i * TextMetrics.tmHeight) + VOffset;
-        LineRect := Rect(OldlpRect.Left, NewLineTop, OldlpRect.Right, NewLineTop + TextMetrics.tmHeight);
+        LineRect := Rect(OldlpRect.Left, ToInt32(NewLineTop), OldlpRect.Right, ToInt32(NewLineTop + TextMetrics.tmHeight));
         if (dtEndEllipsis in Flags) {and not(dtCalcRect in Flags)} then
         begin
           ShortText := ShortenTextW(DC, string(BufferIndex), RectWidth(OldlpRect));
@@ -3611,7 +3614,7 @@ begin
     Result := Result or Integer(DROPEFFECT_SCROLL);
 end;
 
-function KeyToKeyStates(Keys: Word): TCommonKeyStates;
+function KeyToKeyStates(Keys: Int32): TCommonKeyStates;
 begin
   Result := [];
   if Keys and MK_CONTROL <> 0 then
@@ -3630,7 +3633,7 @@ begin
     Include(Result, cksButton);
 end;
 
-function KeyStatesToMouseButton(Keys: Word): TCommonMouseButton;
+function KeyStatesToMouseButton(Keys: Int32): TCommonMouseButton;
 begin
   if Keys and MK_LBUTTON <> 0 then
     Result := cmbLeft
@@ -3766,7 +3769,7 @@ end;
 
 // Solerman's version
 function SplitTextW(DC: hDC; TextToSplit: string; MaxWidth: Integer;
-   var Buffer: TCommonWideCharArray; MaxSplits: Integer): Integer;
+   var Buffer: TCommonWideCharArray; MaxSplits: NativeInt): NativeInt;
 // Takes the passed string and breaks it up so each piece fits within the MaxWidth
 // The function detects any LF/CR pairs and treats them as one break if CR or LF
 // is defined as a break character.

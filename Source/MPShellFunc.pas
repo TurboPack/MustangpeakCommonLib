@@ -12,10 +12,21 @@ type
     function ToUInt32: UInt32; inline;
   end;
 
+function AsString(const AValue: AnsiString): string; inline;
 function ToAnsiString(const AValue: string): AnsiString;
+function ToString(const AValue: AnsiString): string;
 
+function ToInt8(const AValue: Int16): Int8; overload; inline;
+function ToInt8(const AValue: Int32): Int8; overload; inline;
+function ToInt8(const AValue: Int64): Int8; overload; inline;
+
+function ToUInt8(const AValue: Int16): UInt8; overload; inline;
 function ToUInt8(const AValue: Int32): UInt8; overload; inline;
 function ToUInt8(const AValue: Int64): UInt8; overload; inline;
+
+function ToInt16(const AValue: UInt16): Int16; overload; inline;
+function ToInt16(const AValue: Int32): Int16; overload; inline;
+function ToInt16(const AValue: Int64): Int16; overload; inline;
 
 function ToUInt16(const AValue: Int32): UInt16; overload; inline;
 function ToUInt16(const AValue: Int64): UInt16; overload; inline;
@@ -55,6 +66,11 @@ implementation
 uses
   System.SysUtils;
 
+function AsString(const AValue: AnsiString): string;
+begin
+  Result := ToString(AValue);
+end;
+
 function ToAnsiString(const AValue: string): AnsiString;
 var
   lBytes: TBytes;
@@ -69,6 +85,39 @@ begin
     Result := '';
 end;
 
+function ToString(const AValue: AnsiString): string;
+var
+  lBytes: TBytes;
+begin
+  if AValue = string.Empty then
+    Exit(string.Empty);
+
+  SetLength(lBytes, Length(AValue));
+  Move(AValue[1], lBytes[0], Length(lBytes));
+
+  Result := TEncoding.ANSI.GetString(lBytes);
+end;
+
+function ToInt8(const AValue: Int16): Int8;
+begin
+  Result := Int8(AValue);
+end;
+
+function ToInt8(const AValue: Int32): Int8;
+begin
+  Result := Int8(AValue);
+end;
+
+function ToInt8(const AValue: Int64): Int8;
+begin
+  Result := Int8(AValue);
+end;
+
+function ToUInt8(const AValue: Int16): UInt8;
+begin
+  Result := UInt8(AValue);
+end;
+
 function ToUInt8(const AValue: Int32): UInt8;
 begin
   Result := UInt8(AValue);
@@ -77,6 +126,21 @@ end;
 function ToUInt8(const AValue: Int64): UInt8;
 begin
   Result := UInt8(AValue);
+end;
+
+function ToInt16(const AValue: UInt16): Int16;
+begin
+  Result := Int16(AValue);
+end;
+
+function ToInt16(const AValue: Int32): Int16;
+begin
+  Result := Int16(AValue);
+end;
+
+function ToInt16(const AValue: Int64): Int16;
+begin
+  Result := Int16(AValue);
 end;
 
 function ToUInt16(const AValue: Int32): UInt16;

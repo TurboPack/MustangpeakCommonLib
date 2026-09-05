@@ -1019,8 +1019,8 @@ type
     function GetSubItems: Boolean; virtual;
     function GetSystem: Boolean; virtual;
     function GetTemporary: Boolean; virtual;
-    function GetThreadedDetailLoaded(ColumnIndex: Integer): Boolean; virtual;
-    function GetThreadedDetailLoading(ColumnIndex: Integer): Boolean; virtual;
+    function GetThreadedDetailLoaded(ColumnIndex: NativeInt): Boolean; virtual;
+    function GetThreadedDetailLoading(ColumnIndex: NativeInt): Boolean; virtual;
     function GetThreadedIconLoaded: Boolean; virtual;
     function GetThreadedImageLoaded: Boolean; virtual;
     function GetThreadedImageLoading: Boolean; virtual;
@@ -1032,8 +1032,8 @@ type
     procedure LoadCategoryInfo;
     procedure SetFreePIDLOnDestroy(const Value: Boolean); virtual;
     procedure SetIconIndexChanged(const Value: Boolean); virtual;
-    procedure SetThreadedDetailLoaded(ColumnIndex: Integer; Value: Boolean); virtual;
-    procedure SetThreadedDetailLoading(ColumnIndex: Integer; Value: Boolean); virtual;
+    procedure SetThreadedDetailLoaded(ColumnIndex: NativeInt; Value: Boolean); virtual;
+    procedure SetThreadedDetailLoading(ColumnIndex: NativeInt; Value: Boolean); virtual;
     procedure SetThreadIconLoading(const Value: Boolean); virtual;
     procedure SetThreadImageLoading(const Value: Boolean); virtual;
 
@@ -1074,7 +1074,7 @@ type
     function CanRenameAll(NamespaceArray: TNamespaceArray): Boolean; virtual;
     function CanShowPropertiesOfAll(NamespaceArray: TNamespaceArray): Boolean; virtual;
     function Clone(ReleasePIDLOnDestroy: Boolean): TNameSpace; virtual;
-    function ComparePIDL(PIDLToCompare: PItemIDList; IsAbsolutePIDL: Boolean; Column: Integer = 0): ShortInt; virtual;
+    function ComparePIDL(PIDLToCompare: PItemIDList; IsAbsolutePIDL: Boolean; Column: NativeInt = 0): ShortInt; virtual;
     function ContextMenuItemHelp(MenuItemID: LongWord): string; virtual;
     function ContextMenuVerb(MenuItemID: LongWord): string; virtual;
     function Copy(Owner: TWinControl; NamespaceArray: TNamespaceArray): Boolean; virtual;
@@ -1082,16 +1082,16 @@ type
     function DataObjectMulti(NamespaceArray: TNamespaceArray): IDataObject; virtual;
     function Delete(Owner: TWinControl; NamespaceArray: TNamespaceArray; ShiftKeyState: TExecuteVerbShift = evsCurrent): Boolean; virtual;
     function DetailsAlignment(ColumnIndex: Integer): TAlignment; virtual;
-    function DetailsColumnTitle(ColumnIndex: integer): string; virtual;
-    function DetailsDefaultColumnTitle(ColumnIndex: integer): string; virtual;
-    function DetailsDefaultOf(ColumnIndex: integer): string; virtual;
+    function DetailsColumnTitle(ColumnIndex: NativeInt): string; virtual;
+    function DetailsDefaultColumnTitle(ColumnIndex: NativeInt): string; virtual;
+    function DetailsDefaultOf(ColumnIndex: NativeInt): string; virtual;
     function DetailsDefaultSupportedColumns: integer; virtual;
-    function DetailsGetDefaultColumnState(ColumnIndex: integer): TSHColumnStates; virtual;
-    function DetailsOf(ColumnIndex: integer): string; virtual;
-    function DetailsOfEx(ColumnIndex: integer): string; virtual;
+    function DetailsGetDefaultColumnState(ColumnIndex: NativeInt): TSHColumnStates; virtual;
+    function DetailsOf(ColumnIndex: NativeInt): string; virtual;
+    function DetailsOfEx(ColumnIndex: NativeInt): string; virtual;
     function DetailsSupportedColumns: integer; virtual;
     function DetailsSupportedVisibleColumns: TVisibleColumnIndexArray; virtual;
-    function DetailsValidIndex(DetailsIndex: integer): Boolean; virtual;
+    function DetailsValidIndex(DetailsIndex: NativeInt): Boolean; virtual;
     function DragEffect(grfKeyState: integer): HRESULT; virtual;
     function DragEnter(const dataObj: IDataObject; grfKeyState: Integer; pt: TPoint; var dwEffect: Integer): HResult; virtual;
     function DragLeave: HResult;  virtual;
@@ -1127,7 +1127,7 @@ type
     function ParseDisplayName: PItemIDList;  overload;  virtual;
     function ParseDisplayName(const APath: string): PItemIDList; overload; virtual;
     function Paste(Owner: TWinControl; NamespaceArray: TNamespaceArray; AsShortCut: Boolean = False): Boolean; virtual;
-    procedure SetDetailByThread(ColumnIndex: Integer; Detail: string);
+    procedure SetDetailByThread(ColumnIndex: NativeInt; Detail: string);
     procedure SetIconIndexByThread(IconIndex: Integer; OverlayIndex: Integer; ClearThreadLoading: Boolean); virtual;
     procedure SetImageByThread(Bitmap: TBitmap; ClearThreadLoading: Boolean);  virtual;
     function SetNameOf(const ANewName: string): Boolean; virtual;
@@ -1229,8 +1229,8 @@ type
     property SymbolicLink: Boolean read GetSymbolicLink;
     property SymbolicLinkResolvePath: string read GetSymbolicLinkResolvePath;
     property Tag: NativeInt read FTag write FTag;
-    property ThreadedDetailLoaded[Column: Integer]: Boolean read GetThreadedDetailLoaded write SetThreadedDetailLoaded;
-    property ThreadedDetailLoading[Column: Integer]: Boolean read GetThreadedDetailLoading write SetThreadedDetailLoading;
+    property ThreadedDetailLoaded[Column: NativeInt]: Boolean read GetThreadedDetailLoaded write SetThreadedDetailLoaded;
+    property ThreadedDetailLoading[Column: NativeInt]: Boolean read GetThreadedDetailLoading write SetThreadedDetailLoading;
     property ThreadedIconLoaded: Boolean read GetThreadedIconLoaded;
     property ThreadIconLoading: Boolean read GetThreadIconLoading write SetThreadIconLoading;
     property ThreadImageLoaded: Boolean read GetThreadedImageLoaded;
@@ -3416,7 +3416,7 @@ begin
 end;
 
 function TNamespace.ComparePIDL(PIDLToCompare: PItemIDList;
-  IsAbsolutePIDL: Boolean; Column: Integer = 0): ShortInt;
+  IsAbsolutePIDL: Boolean; Column: NativeInt = 0): ShortInt;
 // Encapsulation of the CompareID Function of IShellFolder
 // Returns    > 0 if PIDLToCompare > RelativePIDL
 //            0 if PIDLToCompare = RelativePIDL
@@ -3747,7 +3747,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsColumnTitle(ColumnIndex: integer): string;
+function TNamespace.DetailsColumnTitle(ColumnIndex: NativeInt): string;
 { Returns the Text that is in the Header of the Explorer Listview based on what }
 { the folder in the Treeview is displaying.  Only implemented partially on      }
 { different versions of Windows.  It was undocumented until about Win98.        }
@@ -3786,11 +3786,11 @@ begin
   end
 end;
 
-function TNamespace.DetailsDefaultColumnTitle(ColumnIndex: integer): string;
+function TNamespace.DetailsDefaultColumnTitle(ColumnIndex: NativeInt): string;
 { If IShellDetails is not implemented then these are returned for the Header    }
 { text as a default.  Can be overridden.                                        }
 begin
-  case ColumnIndex of
+  case ToInt32(ColumnIndex) of
    -1, 0:  Result := STR_COLUMN_NAMES[0];
     1:  Result := STR_COLUMN_NAMES[1];
     2:  Result := STR_COLUMN_NAMES[2];
@@ -3804,7 +3804,7 @@ begin
   end;
 end;
 
-function TNamespace.DetailsDefaultOf(ColumnIndex: integer): string;
+function TNamespace.DetailsDefaultOf(ColumnIndex: NativeInt): string;
 { If IShellDetail is not implemented the call to DetailsOf calls this and       }
 { returns what it can to mimic the values in columns for a plain file, Name,    }
 { size, type, date, attributes.                                                 }
@@ -3825,7 +3825,7 @@ begin
                              not FileSystem)
     else
       IsSystemFolder := False;
-    case ColumnIndex of
+    case ToInt32(ColumnIndex) of
       -1, 0:  Result := NameInFolder;
       1:  Result := SizeOfFileKB;
       2:  if IsSystemFolder then
@@ -3848,7 +3848,7 @@ begin
   Result := DefaultDetailColumns;
 end;
 
-function TNamespace.DetailsGetDefaultColumnState(ColumnIndex: integer): TSHColumnStates;
+function TNamespace.DetailsGetDefaultColumnState(ColumnIndex: NativeInt): TSHColumnStates;
 { Be careful of the reference point using DetailsXXXX functions.  This function }
 { gets the GetDefaultColumnState of the folder for its children if it exposes   }
 { IShellFolder2.  If it does not it returns csOnByDefault so it will be shown   }
@@ -3894,7 +3894,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsOf(ColumnIndex: integer): string;
+function TNamespace.DetailsOf(ColumnIndex: NativeInt): string;
 { Returns the text for the desired column (detail view in the listview in       }
 { Explorer) using IShellDetail or using information pulled from the namespace   }
 { by other means.                                                               }
@@ -3988,7 +3988,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsOfEx(ColumnIndex: integer): string;
+function TNamespace.DetailsOfEx(ColumnIndex: NativeInt): string;
 var
   ColumnID: TSHColumnID;
   V, V2: OLEVariant;
@@ -4129,7 +4129,7 @@ begin
   end
 end;
 
-function TNamespace.DetailsValidIndex(DetailsIndex: integer): Boolean;
+function TNamespace.DetailsValidIndex(DetailsIndex: NativeInt): Boolean;
 { Test to see if the passed index is in the range of the number of detail       }
 { columns the namespace has.                                                    }
 begin
@@ -4891,7 +4891,7 @@ begin
   end
 end;
 
-function TNamespace.GetThreadedDetailLoaded(ColumnIndex: Integer): Boolean;
+function TNamespace.GetThreadedDetailLoaded(ColumnIndex: NativeInt): Boolean;
 begin
   Result := False;
   EnsureDetailCache;
@@ -4900,7 +4900,7 @@ begin
     Result := docThreadLoaded in ShellCache.Data.DetailsOfCache[ColumnIndex].Cached
 end;
 
-function TNamespace.GetThreadedDetailLoading(ColumnIndex: Integer): Boolean;
+function TNamespace.GetThreadedDetailLoading(ColumnIndex: NativeInt): Boolean;
 begin
   Result := False;
   EnsureDetailCache;
@@ -6913,7 +6913,7 @@ begin
   FCurrentContextMenu2 := Value;
 end;
 
-procedure TNamespace.SetDetailByThread(ColumnIndex: Integer; Detail: string);
+procedure TNamespace.SetDetailByThread(ColumnIndex: NativeInt; Detail: string);
 var
   TempCache: PDetailsOfCacheRec;
 begin
@@ -7016,14 +7016,14 @@ begin
   end;
 end;
 
-procedure TNamespace.SetThreadedDetailLoaded(ColumnIndex: Integer; Value: Boolean);
+procedure TNamespace.SetThreadedDetailLoaded(ColumnIndex: NativeInt; Value: Boolean);
 begin
   EnsureDetailCache;
   if Parent.DetailsValidIndex(ColumnIndex) then
     Include(ShellCache.Data.DetailsOfCache[ColumnIndex].Cached, docThreadLoaded)
 end;
 
-procedure TNamespace.SetThreadedDetailLoading(ColumnIndex: Integer; Value: Boolean);
+procedure TNamespace.SetThreadedDetailLoading(ColumnIndex: NativeInt; Value: Boolean);
 begin
   EnsureDetailCache;
   if Parent.DetailsValidIndex(ColumnIndex) then
