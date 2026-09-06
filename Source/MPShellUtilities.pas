@@ -2311,8 +2311,8 @@ begin
       MenuID := GetMenuItemID(Menu, i);
       if (MenuID <> $FFFFFFFF) and (MenuID > 0) then
       begin
-        FillChar(PWideChar(VerbW)^, Length(VerbW) * 2, #0);
-        StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERBW, nil, Pointer(@VerbW[1]), LEN_MAXVERB));
+        FillChar(PWideChar(VerbW)^, Length(VerbW) * SizeOf(Char), #0);
+        StrFound := Succeeded(ContextMenu.GetCommandString(MenuID-1, GCS_VERBW, nil, Pointer(PChar(VerbW)), LEN_MAXVERB));
         if StrFound or (defaultID = MenuID) then
         begin
           SetLength(VerbW, lstrlenW(PWideChar( VerbW)));
@@ -3491,7 +3491,7 @@ begin
   begin
     SetLength(Result, BufferLen);
     { Keep D6 from complaining about suspicious PChar cast }
-    P := @Result[1];
+    P := Pointer(PChar(Result));
     Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_HELPTEXTW, nil, PAnsiChar(P),
       BufferLen) = NOERROR;
     if not Found then
@@ -3524,7 +3524,7 @@ begin
   begin
     SetLength(Result, BufferLen);
    { Keep D6 from complaining about suspicious PChar cast }
-    P := @Result[1];
+    P := Pointer(PChar(Result));
     Found := CurrentContextMenu.GetCommandString(MenuItemID-1, GCS_VERBW, nil, PAnsiChar(P),
       BufferLen) = NOERROR;
     if not Found then
@@ -4784,15 +4784,9 @@ begin
           begin
             if ReparseDataBuffer^.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT then
             begin
-              SetLength(Result, MAX_PATH);
-              ZeroMemory(Pointer( @Result[1]), MAX_PATH * 2);
-              MoveMemory(Pointer( @Result[1]), Pointer( @ReparseDataBuffer^.PathBuffer[ReparseDataBuffer^.SubstituteNameOffset * 2]), ReparseDataBuffer^.SubstituteNameLength);
-              SetLength(Result, lstrlenW(PWideChar(Result)));
+              Result := string.Create(ReparseDataBuffer^.PathBuffer, ReparseDataBuffer^.SubstituteNameOffset * 2, ReparseDataBuffer^.SubstituteNameLength);
               if Pos(string( '\??\'), Result) > 0 then
-              begin
-                MoveMemory(Pointer( @Result[1]), @Result[5], (ToNativeUInt(Length(Result)) - 4) * 2);
-                SetLength(Result, Length(Result) - 4);
-              end
+                Result := Result.Substring('\??\'.Length);
             end
           end
         finally
@@ -4868,15 +4862,9 @@ begin
           begin
             if ReparseDataBuffer^.ReparseTag = IO_REPARSE_TAG_SYMLINK then
             begin
-              SetLength(Result, MAX_PATH);
-              ZeroMemory(Pointer( @Result[1]), MAX_PATH * 2);
-              MoveMemory(Pointer( @Result[1]), Pointer( @ReparseDataBuffer^.PathBuffer[ReparseDataBuffer^.SubstituteNameOffset * 2]), ReparseDataBuffer^.SubstituteNameLength);
-              SetLength(Result, lstrlenW(PWideChar(Result)));
+              Result := string.Create(ReparseDataBuffer^.PathBuffer, ReparseDataBuffer^.SubstituteNameOffset * 2, ReparseDataBuffer^.SubstituteNameLength);
               if Pos(string( '\??\'), Result) > 0 then
-              begin
-                MoveMemory(Pointer( @Result[1]), @Result[5], (ToNativeUInt(Length(Result)) - 4) * 2);
-                SetLength(Result, Length(Result) - 4);
-              end
+                Result := Result.Substring('\??\'.Length);
             end
           end
         finally
@@ -6383,9 +6371,8 @@ begin
 
               if lMenuCmd <> 0 then
               begin
-                SetLength(lVerbW, cMaxVerbLen);
-                FillChar(lVerbW[1], cMaxVerbLen * SizeOf(Char), #0);
-                lGenericVerb := @lVerbW[1];
+                lVerbW := string.Create(#0, cMaxVerbLen);
+                lGenericVerb := Pointer(PChar(lVerbW));
                 lFlags := GCS_VERBW;
                 if Assigned(lContextMenu3) then
                   Result := Succeeded(lContextMenu3.GetCommandString(lMenuCmd - 1, lFlags, nil, lGenericVerb, cMaxVerbLen))

@@ -73,16 +73,18 @@ end;
 
 function ToAnsiString(const AValue: string): AnsiString;
 var
+  lBuffer: PAnsiChar;
   lBytes: TBytes;
 begin
   lBytes := TEncoding.ANSI.GetBytes(AValue);
   if Assigned(lBytes) then
   begin
     SetLength(Result, Length(lBytes));
-    Move(lBytes[0], Result[1], Length(lBytes));
+    lBuffer := PAnsiChar(Result);
+    Move(lBytes[0], lBuffer^, Length(lBytes));
   end
   else
-    Result := '';
+    Result := string.Empty;
 end;
 
 function ToString(const AValue: AnsiString): string;

@@ -697,7 +697,7 @@ begin
   if Length > 0 then
   begin
     SetLength(Result, Length - 1); // Includes the null
-    ExpandEnvironmentStrings( PWideChar( EnviromentString), PWideChar( @Result[1]), Length);
+    ExpandEnvironmentStrings( PWideChar( EnviromentString), PWideChar(Result), Length);
   end
 end;
 
@@ -709,7 +709,7 @@ begin
   if OpenProcessToken(GetCurrentProcess, TOKEN_IMPERSONATE or TOKEN_QUERY, Token) then
   begin
     SetLength(Result, 256);
-    ExpandEnvironmentStringsForUserW_MP(Token, PWideChar( EnviromentString), PWideChar( @Result[1]), 256);
+    ExpandEnvironmentStringsForUserW_MP(Token, PWideChar( EnviromentString), PWideChar(Result), 256);
     SetLength(Result, lstrlenW(PWideChar( Result)));
     CloseHandle(Token)
   end
@@ -733,10 +733,7 @@ begin
         Dec(i);
     end;
     if Found then
-    begin
-      Result[i] := #0;
-      Result := String(PWideChar( Result));
-    end;
+      Result := Result.Substring(0, i - 1);
   end;
 end;
 
@@ -1156,10 +1153,12 @@ function WideValidateDelimitedExtList(DelimitedText: string;
 //
 var
   i: Integer;
-  TestStr: string;
+  TestStr: TStringBuilder;
   Extensions: TStringList;
+  lTemp: string;
 begin
   Result := '';
+  TestStr := nil;
   Extensions := TStringList.Create;
   try
     Extensions.Sorted := False;
@@ -1197,10 +1196,12 @@ begin
 
     Extensions.DelimitedText := DelimitedText;
 
+    TestStr := TStringBuilder.Create;
     for i := Extensions.Count - 1 downto 0 do
     begin
-      TestStr := SysUtils.AnsiLowerCase(Trim(Extensions[i]));     // Strip off white space
-      if Length(TestStr) < 1 then
+      TestStr.Clear;
+      TestStr.Append(SysUtils.AnsiLowerCase(Trim(Extensions[i])));
+      if TestStr.Length < 1 then
         Extensions.Delete(i)               // Remove if it has no characters
       else begin
 
@@ -1210,19 +1211,21 @@ begin
           TestStr[1] := ' ';
           if (TestStr[2] = '*') or (TestStr[2] = '.')  then
             TestStr[2] := ' ';
-          TestStr := Trim(TestStr);
+          lTemp := Trim(TestStr.ToString);
+          TestStr.Clear;
+          TestStr.Append(lTemp);
         end;
 
         if [vdwcAsterisk, vdwcPeriod] * Prefix = [vdwcAsterisk, vdwcPeriod] then
-          Extensions[i] := '*.' + TestStr
+          Extensions[i] := '*.' + TestStr.ToString
         else
         if vdwcAsterisk in Prefix then
-          Extensions[i] := '*' + TestStr
+          Extensions[i] := '*' + TestStr.ToString
         else
         if vdwcPeriod in Prefix then
-          Extensions[i] := '.' + TestStr
+          Extensions[i] := '.' + TestStr.ToString
         else
-          Extensions[i] := TestStr;
+          Extensions[i] := TestStr.ToString;
 
       end
     end;
@@ -1230,6 +1233,7 @@ begin
     Result := Extensions.DelimitedText;
   finally
     Extensions.Free;
+    TestStr.Free;
   end
 end;
 
@@ -3012,13 +3016,13 @@ begin
     if IsUNCPath(UNCPath) then
     begin
       Result := UNCPath;
-      Head := @Result[1];
+      Head := PWideChar(Result);
       Head := Head + 2;    // Skip past the '\\'
       Head := SysUtils.StrScan(Head, WideChar('\'));
       if Assigned(Head) then
       begin
         Head := Head + 1;
-        Move(Head[0], Result[1], (lstrlenW(Head) + 1) * 2);
+        SetString(Result, Head, lstrlenW(Head));
       end;
       SetLength(Result, lstrlenW(PWideChar(Result)));
     end;
@@ -3176,7 +3180,7 @@ begin
           begin
             Head := Tail - 1;
             L := EllipsisWidth + TextExtentW(Head, DC).cx;
-            while (Head^ <> '\') and (Head <> @TargetString[1]) and (L < Width) do
+            while (Head^ <> '\') and (Head <> PWideChar(TargetString)) and (L < Width) do
             begin
               Dec(Head);
               L := EllipsisWidth + TextExtentW(Head, DC).cx;
@@ -3195,7 +3199,7 @@ begin
             Inc(Tail, lstrlenW(Head));
 
             L := ResultW + TextExtentW(PWideChar(TargetString), DC).cx;
-            while (L > Width) and (Tail > @TargetString[1]) do
+            while (L > Width) and (Tail > PWideChar(TargetString)) do
             begin
               Dec(Tail);
               Tail^ := WideNull;
@@ -3748,7 +3752,7 @@ begin
       while (Low<High) do
         begin
           Middle:=(Low+High+1) shr 1;
-          GetTextExtentPoint32W(DC, @TextToShorten[1], ToInt32(Middle), Size);
+          GetTextExtentPoint32W(DC, TextToShorten, ToInt32(Middle), Size);
           Size.cx := Size.cx + EllipsisSize.cx;
           if (Size.cx<=MaxSize) then
             Low:=Middle
@@ -3803,7 +3807,7 @@ begin
        SetLength(Buffer, Len + 2);
        if Len > 0 then
        begin
-         Head := @TextToSplit[1];
+         Head := PWideChar(TextToSplit);
          CopyMemory(Buffer, Head, ToNativeUInt(Len*2));
          Result := 1;
        end;

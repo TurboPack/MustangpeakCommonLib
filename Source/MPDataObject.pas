@@ -373,7 +373,7 @@ var
 implementation
 
 uses
-  MPShellFunc, MPShellUtilities;
+  System.AnsiStrings, MPShellFunc, MPShellUtilities;
 
 var
   PIDLMgr: TCommonPIDLManager;
@@ -732,7 +732,7 @@ begin
     if DropFiles.fWide then
       Result := FileNameW(Index)
     else
-      Result := string(FileNameA(Index));
+      Result := AsString(FileNameA(Index));
   end
 end;
 
@@ -754,7 +754,7 @@ begin
       if PathNameCount = Index then
       begin
         SetLength(Result, Len + 1);
-        CopyMemory(@Result[1], Head, ToNativeUInt(Len + 1)); // Include the NULL
+        System.AnsiStrings.StrMove(PAnsiChar(Result), Head, ToUInt32(Len + 1)); // Include the NULL
         Done := True;
       end;
       Head := Head + Len + 1;
@@ -835,7 +835,7 @@ begin
       if PathNameCount = Index then
       begin
         SetLength(Result, (Len + 1) div 2);
-        CopyMemory(@Result[1], Head, ToNativeUInt(Len + 2)); // Include the NULL
+        StrMove(PWideChar(Result), PWideChar(Head), ToUInt32(Len + 2)); // Include the NULL
         Done := True;
       end;
       Head := Head + Len + 2;
