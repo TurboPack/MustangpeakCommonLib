@@ -637,7 +637,7 @@ begin
     FLargeSysImagesCommon.SourceImageList := LargeSysImages;
     FLargeSysImagesCommon.Size := TSysImageListSize.sisLarge;
   end;
-  Result := FSmallSysImagesCommon;
+  Result := FLargeSysImagesCommon;
 end;
 
 function SmallSysImages: TCommonSysImages;
