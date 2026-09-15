@@ -102,7 +102,8 @@ type
   private
     FID: WPARAM;                     // The ID that identifies the request type
     FPriority: TCommonThreadPriority;  // The Thread will sort the request list by Priority, 0 being highest 100 being the lowest
-    FRefCount: NativeInt;
+    //Alexandria has problems with the NativeInt
+    FRefCount: {$IFDEF CPUX86}Integer{$ELSE}Int64{$ENDIF};
     FTag: NativeInt;                 // User defineable field
     FThread: TCommonThread;          // Reference to the thread handling the request
     FWindow: TWinControl;            // The control to send the Message to, set to nil to have the thread free the object without dispatching it to the main thread
@@ -110,7 +111,7 @@ type
     FRemainingRequests: NativeInt;   // Number of remaining requests in the thread prior to being dispatched to the window
     FCallbackWndMessage: Cardinal;   // This is the window message that is sent to the client window, WM_COMMONTHREADCALLBACK by default
   protected
-    property RefCount: NativeInt read FRefCount write FRefCount;
+    property RefCount: {$IFDEF CPUX86}Integer{$ELSE}Int64{$ENDIF} read FRefCount write FRefCount;
   public
     constructor Create; virtual;
     destructor Destroy; override;
