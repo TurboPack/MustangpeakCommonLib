@@ -835,7 +835,7 @@ begin
       if PathNameCount = Index then
       begin
         SetLength(Result, (Len + 1) div 2);
-        StrMove(PWideChar(Result), PWideChar(Head), ToUInt32(Len + 2)); // Include the NULL
+        StrMove(PWideChar(Result), PWideChar(Head), ToUInt32(Result.Length));
         Done := True;
       end;
       Head := Head + Len + 2;
